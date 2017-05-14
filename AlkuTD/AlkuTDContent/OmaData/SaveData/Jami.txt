@@ -1,0 +1,6 @@
+CompletedLevels:
+1
+HighScores:
+500
+0
+0

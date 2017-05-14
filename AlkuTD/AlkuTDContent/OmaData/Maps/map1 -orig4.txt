@@ -1,0 +1,35 @@
+Initial layout:
+  (space=void, 0=wall, '=path(even column), .=path(odd column):
+
+000000   00000 
+'.0.'.'.'.'.'  
+ 0'0000000'00  
+00'.000.  '000 
+ 000'00. .'.000
+   0'.0.'00.'0 
+  000.00'.00'0 
+ 00 0.0000'0'. 
+00  00'.0.'000'
+ 0000000'.000.'
+ 0000.'.'.'.0.'
+0000'00000000. 
+0   '.'.'   '. 
+
+Life/Energy/Genes:
+10
+500
+0
+
+SpawnPoints(x/y):
+0	1
+4	4
+
+GoalPoints/OpeningTimes:
+13	12	0
+8	12	1000
+
+Waves:
+CreAmt	Type	Name		Texture		SpawnP	Goals	HP	RRes	GRes	BRes	SPD	CellDmg	LifeDmg	Genes	SpawnR	Duration
+																	
+3	Nav	Jellybug	jellybugSS	0	0	350	0	0	0	1.5	0.0	2	5	100	500
+6	Flo	Limabug		limabug		1	0,1	200	0	10	0	1.0	0.5	1	2	60	200

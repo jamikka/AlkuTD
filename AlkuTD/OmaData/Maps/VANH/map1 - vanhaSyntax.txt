@@ -1,0 +1,31 @@
+Initial layout:
+  (space=void, 0=wall, '=path(even column/higher tile), .=path(odd column/lower tile):
+
+   000        
+ 00.'.00   0  
+0.0.00'1000.00
+0.'000'.'.'0'0
+00'0  00000.'0
+  0      0'00 
+          0   
+
+Life/Energy/Genes:
+5
+70
+0
+
+SpawnPoints(x/y):
+1	2
+
+GoalPoints/OpeningTimes:
+10	5	0
+
+Waves:
+CreAmt	Type	Name	Texture		SpawnP	Goals	HP	RRes	GRes	BRes	SPD	CellDmg	LifeDmg	Genes	SpawnR	Duration
+																
+4	Flo	1	armorbug	0	0	3	0	0	0	0.8	0	1	10	145	1600
+10	Flo	1	armorbug	0	0	3	0	0	0	0.8	0	1	10	75	2000	
+7	Flo	1	armorbug	0	0	3	0	0	0	0.8	0	1	10	50	1100
+1	Flo	1	uimarbug	0	0	13	0	0	0	0.6	0	1	20	1	1300
+6	Flo	1	armorbug	0	0	3	0	0	0	0.8	0	1	10	50	300
+4	Flo	1	uimarbug	0	0	13	0	0	0	0.6	0	1	20	160	0

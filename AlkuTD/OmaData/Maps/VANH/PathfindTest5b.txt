@@ -1,0 +1,20 @@
+                     
+                     
+ 000                 
+ 01.0E0000           
+  00'.'.'a0          
+  0000'.'00          
+      00000          
+        0            
+                     
+                     
+                     
+
+Available towers: 2 3 - - - -
+Life:   5
+Energy: 100
+Genes:  0
+
+	Creamt	Type	Name		Texture		SpawnP	Goals	HP	Elem	SPD	CellDmg	LifeDmg	Energy	Genes	SpawnD	Duration
+Wave 1------------------------------------------------------------------------------------------------------------------------------------------
+	1	Flo	Perus		pitkubug	1	a	3	none	0.8	0	1	1	1	0	12
