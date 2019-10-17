@@ -68,6 +68,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Slider.cs" />
+    <Compile Include="SniperTower.cs" />
     <Compile Include="SpawnGroup.cs" />
     <Compile Include="Team.cs" />
     <Compile Include="TextCell.cs" />

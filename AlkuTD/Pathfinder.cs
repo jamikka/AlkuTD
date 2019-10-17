@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace AlkuTD
 {
@@ -39,12 +40,15 @@ namespace AlkuTD
         int levelWidth;
         int levelHeight;
 
+        List<Point> pathFindSteps;
+
         public Pathfinder(HexMap hexMap)
         {
             this.HexMap = hexMap;
             levelWidth = hexMap.Layout.GetLength(1);
             levelHeight = hexMap.Layout.GetLength(0);
             InitializeTiles();
+            pathFindSteps = new List<Point>();
         }
 
         float HeuristicDistance(Point a, Point b)
@@ -171,6 +175,8 @@ namespace AlkuTD
 		//--------Theta* algorithm with encouragement for turning
         public List<Vector2> FindPath(Point startPoint, Point goalPoint)
         {
+            pathFindSteps.Clear();
+
             if (startPoint == goalPoint)
                 return new List<Vector2>();
             ResetTileValues();
@@ -196,7 +202,7 @@ namespace AlkuTD
                     return FinalPath(startTile, goalTile);
 
 				//float smallestF = float.MaxValue; //----------OLD TRY AT SIMULT-SMOOTHENING
-                for (int i = 0; i < currentTile.Neighbors.Length; i++)
+                for (int i = 0; i < currentTile.Neighbors.Length; i++) //-----GO THROUGH ALL OF CURRENT TILES OPEN NEIGHBORS
                 {
                     Tile neighbor = currentTile.Neighbors[i];
                     if (neighbor == null || !neighbor.IsOpen)
@@ -234,23 +240,38 @@ namespace AlkuTD
 					float newG = currentTile.G + 1;
 					neighbor.NewNeighbors.Remove(currentTile);
 
+
 					if (!neighbor.InOpenList && !neighbor.Checked) // a new acquaintance
                     {
-						neighbor.InOpenList = true;
                         OpenList.Add(neighbor);
+                        neighbor.InOpenList = true;
+                        pathFindSteps.Add(neighbor.MapCoord);
 
-						if (CheckLOS(neighbor.MapCoord, currentTile.Parent.MapCoord))
+                        /*if (CheckLOS(neighbor.MapCoord, currentTile.Parent.Parent.MapCoord)) // lisäSuoristelua 11.10.19 
 						{
-						    neighbor.Parent = currentTile.Parent;
-						    //neighbor.F = newF + CubeDistance(neighbor, currentTile.Parent); // vanh YLLÄTTÄVÄN JEES
-							neighbor.G = currentTile.Parent.G + StraightDistance(neighbor, currentTile.Parent); // G = parent's G + straightDist from parent
-							neighbor.F = neighbor.G + CubeDistance(neighbor, goalTile); // F = G + dist to goal
-							if (currentTile != startTile && currentTile.NewNeighbors.Count > 1 && CheckIfSameDir(currentTile, neighbor)) // IF not in a tunnel and going straight THEN PENALIZE (to encourage looking at different directions)
-							{
-								neighbor.F += 1.1f; //1.1: U oikein
-								//neighbor.G += 1f;
-							}
-						}
+                            neighbor.Parent = currentTile.Parent.Parent;
+                            //neighbor.F = newF + CubeDistance(neighbor, currentTile.Parent); // vanh YLLÄTTÄVÄN JEES
+                            neighbor.G = currentTile.Parent.Parent.G + StraightDistance(neighbor, currentTile.Parent.Parent); // G = parent's G + straightDist from parent
+                            neighbor.F = neighbor.G + CubeDistance(neighbor, goalTile); // F = G + dist to goal
+                            if (currentTile != startTile && currentTile.NewNeighbors.Count > 1 && CheckIfSameDir(currentTile, neighbor)) // IF not in a tunnel and going straight THEN PENALIZE (to encourage looking at different directions)
+                            {
+                                neighbor.F += 1.1f; //1.1: U oikein
+                                                    //neighbor.G += 1f;
+                            }
+                        }
+                        else */
+                        if (CheckLOS(neighbor.MapCoord, currentTile.Parent.MapCoord))
+                        {
+                            neighbor.Parent = currentTile.Parent;
+                            //neighbor.F = newF + CubeDistance(neighbor, currentTile.Parent); // vanh YLLÄTTÄVÄN JEES
+                            neighbor.G = currentTile.Parent.G + StraightDistance(neighbor, currentTile.Parent); // G = parent's G + straightDist from parent
+                            neighbor.F = neighbor.G + CubeDistance(neighbor, goalTile); // F = G + dist to goal
+                            if (currentTile != startTile && currentTile.NewNeighbors.Count > 1 && CheckIfSameDir(currentTile, neighbor)) // IF not in a tunnel and going straight THEN PENALIZE (to encourage looking at different directions)
+                            {
+                                neighbor.F += 1.1f; //1.1: U oikein
+                                                    //neighbor.G += 1f;
+                            }
+                        }
 						else
 						{
 							neighbor.G = newG;
@@ -260,19 +281,28 @@ namespace AlkuTD
                     }
                     else if (newG < neighbor.G) // an old friend and in a better light than before
                     {
-                        neighbor.G = newG;
-						neighbor.F = newG + CubeDistance(neighbor, goalTile);
-                        neighbor.Parent = currentTile; // omamod
-						neighbor.Checked = false; // omamod
-						neighbor.InOpenList = true; // omamod
-						OpenList.Add(neighbor); // omamod
+                        if (CheckLOS(neighbor.MapCoord, currentTile.Parent.MapCoord))
+                        {
+                            neighbor.Parent = currentTile.Parent;
+                            neighbor.G = currentTile.Parent.G + StraightDistance(neighbor, currentTile.Parent);
+                            neighbor.F = neighbor.G + CubeDistance(neighbor, goalTile);
+                        }
+                        else
+                        {
+                            neighbor.G = newG;
+                            neighbor.F = newG + CubeDistance(neighbor, goalTile);
+                            neighbor.Parent = currentTile; // omamod
+                        }
+                        neighbor.Checked = false; // omamod
+                        neighbor.InOpenList = true; // omamod
+                        OpenList.Add(neighbor); // omamod
                     }
 					currentTile.NewNeighbors.Remove(neighbor);
                 }
                 OpenList.Remove(currentTile);
                 currentTile.Checked = true;
             }
-            return new List<Vector2>(); //--------------------Hmm unreachable
+            return new List<Vector2>(); //--------------------unreachable
         }
         
         //------Old method for multiple goalpoints
@@ -411,6 +441,27 @@ namespace AlkuTD
             while (parentTile != startTile);
 			ResolvedList.Add(startTile);
 
+            //ResolvedList.Remove(ResolvedList[0].Parent);
+            /*Tile currentTile;
+            for (int i = 0; i < ResolvedList.Count -2; i++)
+            {
+                currentTile = ResolvedList[i];
+                for (int k = i+1; k < ResolvedList.Count && ResolvedList[k] != goalTile && CheckLOS(currentTile.MapCoord, ResolvedList[k].Parent.MapCoord);)
+                {
+                    Tile seenParent = ResolvedList[k].Parent;
+                    currentTile.Parent = seenParent;
+                    ResolvedList.Remove(ResolvedList[k]);
+                }
+            }*/
+            //currentTile.Parent = goalTile;
+
+            /*int i = 0;
+            while (CheckLOS(ResolvedList[i].MapCoord, ResolvedList[i].Parent.Parent.MapCoord))
+            {
+                ResolvedList[i].Parent = ResolvedList[i].Parent.Parent;
+                ResolvedList.Remove(ResolvedList[i].Parent);
+            }*/
+
 			#region OLD TRY AT POST-SMOOTHING
 			//List<Point> finPoints = new List<Point>();
 			//Point currTile = ResolvedList[0].MapCoord;
@@ -498,6 +549,12 @@ namespace AlkuTD
 				return true;
 			else return false;
 		}
+
+        public void Draw (SpriteBatch sb) //for debug visualisation of tile check order
+        {
+            for (int i = 0; i < pathFindSteps.Count; i++)
+                sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(pathFindSteps[i]), Color.PeachPuff);
+        }
     }
 }
 

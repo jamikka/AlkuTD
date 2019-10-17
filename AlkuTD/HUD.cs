@@ -783,12 +783,15 @@ namespace AlkuTD
 			}
 		}
 
-		void OpenTilering()
+		void OpenTilering(bool onOpenTile)
 		{
 			activeTileCoord = new Point(hoveredCoord.X, hoveredCoord.Y);
 			Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
 			selectedRingPart = 0;
-			tileCorners = new Vector2[7] { activeTilePos,   //Center
+            if (!onOpenTile)
+                TileRingInfoBox = new TowerInfoBox(selectedTower, activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f)), false);
+            ///TileRingInfoBox.Pos = activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f));
+            tileCorners = new Vector2[7] { activeTilePos,   //Center
 													new Vector2(activeTilePos.X - ParentMap.TileWidth/4 -1, activeTilePos.Y - ParentMap.TileHalfHeight), //up-L
 													new Vector2(activeTilePos.X + ParentMap.TileWidth/4 +1 /* +1 jotta ei näy upgia mietties kokoajan vanha range*/, activeTilePos.Y - ParentMap.TileHalfHeight),  //up-R
 													new Vector2(activeTilePos.X + ParentMap.TileHalfWidth /* ennen 28.5.16 -1, mut vaihto jotta ei näy upgia mietties kokoajan vanha range*/, activeTilePos.Y),    //R
@@ -1212,8 +1215,8 @@ namespace AlkuTD
 
                 if (MapEditorTopButtons[1].State == ButnState.Active) //---------------------------------------WAVE TABLE OPEN-------.
                 {
-                    for (int i = 0; i < MapEditorLabelButtons.Length; i++) //COLUMN LABEL UPDATES----------
-                        MapEditorLabelButtons[i].Update(mouse, prevMouse);
+                    //for (int i = 0; i < MapEditorLabelButtons.Length; i++) //COLUMN LABEL UPDATES----------
+                     //   MapEditorLabelButtons[i].Update(mouse, prevMouse);
 
                     #region ---------------------------   CELL UPDATE/SELECTION  --------------------------------
                     if (keyboard.IsKeyUp(Keys.Tab)) tabRefreshCounter = 30;
@@ -1403,7 +1406,7 @@ namespace AlkuTD
                         else if (keyboard.IsKeyDown(Keys.V) && prevKeyboard.IsKeyUp(Keys.V))
                         {
                             int trimStart = 0;
-                            for (int i = 0; clipBoard[i] < 0; i++)
+                            for (int i = 0; i < clipBoard.Length && clipBoard[i] < 0; i++)
                                 trimStart++;
 
                             TextCell[] selectedCells = Array.FindAll<TextCell>(MapEditorTableCells, c => c.State == ButnState.Active || c.State == ButnState.Selected);
@@ -1429,12 +1432,19 @@ namespace AlkuTD
                     #endregion
 
                     #region ---------------------------   WAVELABEL UPDATE   --------------------------------
-                    MapEditorWaveLabels[0].Update(mouse, prevMouse);//------nnh...
-                    int labelPos = 0; //---------------------------WAVELABEL UPDATE-----TODO: select wave by clicking waveLabel
-                    for (int i = 1; i < ParentMap.MapEditorTempWaves.Count; i++)
+                    int labelPos = 0; //---------------------------WAVELABEL UPDATE-----
+                    for (int i = 0; i < ParentMap.MapEditorTempWaves.Count; i++)
                     {
-                        labelPos += ParentMap.MapEditorTempWaves[i - 1].TempGroups.Count;
+                        if (i == 0)
+                            labelPos = 0;
+                        else
+                            labelPos += ParentMap.MapEditorTempWaves[i - 1].TempGroups.Count;
                         MapEditorWaveLabels[labelPos].Update(mouse, prevMouse);
+                        if (MapEditorWaveLabels[labelPos].State == ButnState.Released)
+                        {
+                            for (int k = labelPos * (MapEditorTableCols - 1); k < labelPos * (MapEditorTableCols - 1) + ParentMap.MapEditorTempWaves[i].TempGroups.Count * (MapEditorTableCols - 1); k++)
+                                MapEditorTableCells[k].State = ButnState.Selected;
+                        }
                     }
                     #endregion
 
@@ -1686,7 +1696,8 @@ namespace AlkuTD
         public Vector2 overlayPos;
         const float tileRingFadeCycles = 7;
         public const float hoverFadeCycles = 7;
-		const int towerHoverCycles = 30;
+		const int towerHoverCycles = 20;
+        const int towerHoverPopUpDelayCycles = 15;
         int tileRingFade;
         public int tileHoverFade;
 		float towerHoverCounter;
@@ -1702,11 +1713,14 @@ namespace AlkuTD
                 overlayPos = new Vector2(mousePos.X, mousePos.Y);
             overlayPos += (hoveredTilePos - overlayPos) / 2.5f;
             //sb.DrawString(font, hoveredCoord.ToString(), mousePos - new Vector2(20, 20), Color.WhiteSmoke);
-            
-            if (CurrentGame.gameState != GameState.MapEditor)
+            //foreach (Tile t in ParentMap.)
+
+            // InGame-------------------------------------------------------.
+            if (CurrentGame.gameState != GameState.MapEditor) 
             {
                 for (int i = 0; i < HUDbuttons.Length; i++)
                     HUDbuttons[i].Draw(sb);
+
 
                 #region AWFUL TILE BORDER ANIMATION (MOVED TO HEXMAP)
                 /*
@@ -1763,33 +1777,33 @@ namespace AlkuTD
                     if (tileRingFade < tileRingFadeCycles) 
 						tileRingFade++;
                     ParentGame.IsMouseVisible = false;
-                    
+
                     //foreach (Vector2 point in tileCorners) sb.Draw(CurrentGame.pixel, point, null, new Color(150, 150, 150, 150));
 
                     //--------------------------------------------------------------------------------------------------------------------------------------EIKÖS TÄMÄN PITÄS OLLA UPDATESSA?!
                     #region NOW FUNCTIONALIZED MOUSE RESTRICT & MAGNETISM
-					//Vector2 dirFromTile = mousePos - activeTilePos; //--------------------äpp äpp, tee itsenäinen muuttuja jotta hienovaraiset pos-updatemuutokset toimii!
-					//float angle = (float)Math.Atan2(dirFromTile.Y, dirFromTile.X);
-					//float angleOffset = (float)(Math.Abs(angle % (Math.PI / 3)) / (Math.PI / 6));
-                    
-					//if (angleOffset > 1)
-					//    angleOffset = 2 - angleOffset;                      //hex corners zero -- side centers one
-					//angleOffset = (float)Math.Round(angleOffset * 4.5f); //TileWidth/2f - TileHeight/2f;
-					//if (dirFromTile.Length() > ParentMap.TileHalfWidth - angleOffset) //if out of tile
-					//{
-					//    //Pyöristeles------------------------------------------------------------------------------------------------------------------------------------!
-					//    dirFromTile = (ParentMap.TileHalfWidth - angleOffset) * (dirFromTile / dirFromTile.Length());
-					//    //Mouse.SetPosition((int)Math.Round(dirFromTile.X + activeTilePos.X), (int)Math.Round(dirFromTile.Y +activeTilePos.Y));
-					//}
-					//dirFromTile += activeTilePos;
-					//Vector2 partDist = mousePos - tileCorners[selectedRingPart];
-					//Vector2 dir = partDist / partDist.Length();
-					//if (partDist.Length() <= 1)
-					//    dirFromTile = tileCorners[selectedRingPart];
-					//else if (/*partDist.Length() < 18 && */ParentGame.gameTimer % 2 == 0)
-					//    dirFromTile -= dir * 0.8f;
+                    //Vector2 dirFromTile = mousePos - activeTilePos; //--------------------äpp äpp, tee itsenäinen muuttuja jotta hienovaraiset pos-updatemuutokset toimii!
+                    //float angle = (float)Math.Atan2(dirFromTile.Y, dirFromTile.X);
+                    //float angleOffset = (float)(Math.Abs(angle % (Math.PI / 3)) / (Math.PI / 6));
 
-					//Mouse.SetPosition((int)Math.Round(dirFromTile.X), (int)Math.Round(dirFromTile.Y));
+                    //if (angleOffset > 1)
+                    //    angleOffset = 2 - angleOffset;                      //hex corners zero -- side centers one
+                    //angleOffset = (float)Math.Round(angleOffset * 4.5f); //TileWidth/2f - TileHeight/2f;
+                    //if (dirFromTile.Length() > ParentMap.TileHalfWidth - angleOffset) //if out of tile
+                    //{
+                    //    //Pyöristeles------------------------------------------------------------------------------------------------------------------------------------!
+                    //    dirFromTile = (ParentMap.TileHalfWidth - angleOffset) * (dirFromTile / dirFromTile.Length());
+                    //    //Mouse.SetPosition((int)Math.Round(dirFromTile.X + activeTilePos.X), (int)Math.Round(dirFromTile.Y +activeTilePos.Y));
+                    //}
+                    //dirFromTile += activeTilePos;
+                    //Vector2 partDist = mousePos - tileCorners[selectedRingPart];
+                    //Vector2 dir = partDist / partDist.Length();
+                    //if (partDist.Length() <= 1)
+                    //    dirFromTile = tileCorners[selectedRingPart];
+                    //else if (/*partDist.Length() < 18 && */ParentGame.gameTimer % 2 == 0)
+                    //    dirFromTile -= dir * 0.8f;
+
+                    //Mouse.SetPosition((int)Math.Round(dirFromTile.X), (int)Math.Round(dirFromTile.Y));
                     #endregion
 
                     //sb.Draw(tileringGlow, dirFromTile - new Vector2(tileringGlow.Width / 2), Color.White * 0.7f); //restricted & magnetized object
@@ -1916,8 +1930,8 @@ namespace AlkuTD
                     #endregion
 
                     #region TILERING LOGIC
-					#region NEW TOWER TILERING
-					if (newTileRingActive)  //--------------------------------------------------------------------------------------------------------------------------------------JA TÄMÄN?!
+                    #region NEW TOWER TILERING
+                    if (newTileRingActive)  //--------------------------------------------------------------------------------------------------------------------------------------JA TÄMÄN?!
                     {
 						selectedRingPart = CheckNearestPoint(tileCorners);
 						if (selectedRingPart > 0)
@@ -1930,13 +1944,18 @@ namespace AlkuTD
 
 								if (selectedRingPart != prevRingPart)
 								{
-									TileRingInfoBox = new TowerInfoBox(HexMap.ExampleTowers[selectedRingPart - 1], true);
+									TileRingInfoBox = new TowerInfoBox(HexMap.ExampleTowers[selectedRingPart - 1], activeTilePos, true);
 									TileRingInfoBox.Pos = activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f));
 								}
 
                                 if (ParentMap.Players[0].EnergyPoints >= HexMap.ExampleTowers[selectedRingPart - 1].Cost) //-------------------------------tämä ehkä joku joskus harkittu visuaalibonus?
                                     sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.White);
                                 //else sb.Draw(ParentMap.tileTextures[5], tileCorners[selectedRingPart] - new Vector2(ParentMap.tileTextures[5].Width / 2, ParentMap.tileTextures[5].Height / 2), Color.Red);
+                            }
+                            else
+                            {
+                                TileRingInfoBox = new TileringInfoBox(activeTilePos, null, new string[]{ "Tower type", "not available" });
+                                TileRingInfoBox.Pos = activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f));
                             }
                         }
                         //Tähän ringFillit ennen tileringiä jotta afford-hohdot symbolien alle--------------------------------------------------------------------------------------------------------------------------------O
@@ -1981,18 +2000,20 @@ namespace AlkuTD
                         //ParentMap.Players[0].Towers[ParentMap.Layout[activeTileCoord.Y, activeTileCoord.X] - 6].ShowRadius = true;
 
 						#region hoverInfo
-						if (selectedRingPart > 0 && selectedRingPart != prevRingPart)
-						{
+						//if (/*selectedRingPart > 0 && */selectedRingPart != prevRingPart)
+						//{
 							string geneCostStr;
 							Vector2 belowTilePos = activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f));
 							switch (selectedRingPart)
 							{
-								case 1: if (selectedTower.UpgradeLvl < UpgLvl.Max)
+                                case 0: TileRingInfoBox = new TowerInfoBox(selectedTower, belowTilePos, false);
+
+                                        break;
+                                case 1: if (selectedTower.UpgradeLvl < UpgLvl.Max)
 										{
 											HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].ShowRadius = true;
 											HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].MapCoord = activeTileCoord;
-											TileRingInfoBox = new TowerInfoBox(HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6], true);
-											TileRingInfoBox.Pos = belowTilePos;
+											TileRingInfoBox = new TowerInfoBox(HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6], belowTilePos, true);
 										}
 										break;
 								case 2: geneCostStr = selectedTower.GeneSpecs.BaseTiers[0] == 2 ? "34" : GeneSpecs.TierSize.ToString();
@@ -2032,10 +2053,10 @@ namespace AlkuTD
 								TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, TileringInfoBox.DefaultHeight * -0.5f), null, "Already at max");
 								TileRingInfoBox.LineColors = new List<Color>() { GeneColors[selectedTower.GeneSpecs.GetPrimaryElem().ToString()] };
 							}
-						}
+						//}
 						#endregion
 
-						#region pick
+						#region PICK
 						if (mouse.LeftButton == ButtonState.Released)
                         {   // if mouse on same hexcorner && allowed upglvl && sufficient money
 							//if (selectedRingPart == 1 && (int)selectedTower.UpgradeLvl +1 < ParentMap.AvailableTowers[towerBranch] && ParentMap.Players[0].EnergyPoints >= HexMap.ExampleTowers[towerBranch + (((int)selectedTower.UpgradeLvl+1)*6)].Cost)
@@ -2062,7 +2083,7 @@ namespace AlkuTD
                             hudCue.Play();
                             towerTileRingActive = false;
 
-							HoveredTowerInfoBox = new TowerInfoBox(selectedTower, false);
+							HoveredTowerInfoBox = new TowerInfoBox(selectedTower, belowTilePos, false);
 						}
 						#endregion
 
@@ -2185,7 +2206,7 @@ namespace AlkuTD
                 #region HOVER & CLICK
                 {
                     ParentGame.IsMouseVisible = true;
-					char tileChar = ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X];
+                    char tileChar = ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X];
 					#region switchOption
 					//switch (tileChar)
 					//{
@@ -2231,12 +2252,13 @@ namespace AlkuTD
 					if (tileChar == '0' || !(tileChar == ' ' || tileChar == '\'' || tileChar == '.' || (tileChar >= 'a' && tileChar <= 'i') || (tileChar >= '1' && tileChar <= '9')))
                     {
 						activeTilePos = hoveredTilePos;
-						if (tileChar == '0') //-----OPEN TILE 
+                        Vector2 belowTilePos = activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f));
+                        if (tileChar == '0') //-----OPEN TILE 
 						{
 							if (mouse.LeftButton == ButtonState.Pressed)
 							{
 								newTileRingActive = true;
-								OpenTilering();
+								OpenTilering(true);
 							}
 						}
 						else //---------------------TOWER
@@ -2244,12 +2266,12 @@ namespace AlkuTD
 							if (mouse.LeftButton == ButtonState.Pressed)
 							{
 								towerTileRingActive = true;
-								OpenTilering();
+								OpenTilering(false);
 							}
 							if (mouse.RightButton == ButtonState.Pressed)
 							{
 								priorityRingActive = true;
-								OpenTilering();
+								OpenTilering(false);
 							}
 							for (int i = 0; i < ParentMap.Players[0].Towers.Count; i++)
 							{
@@ -2258,8 +2280,8 @@ namespace AlkuTD
 									selectedTower = ParentMap.Players[0].Towers[i];
 									if (HoveredTowerInfoBox == null || HoveredTowerInfoBox.Target != selectedTower)
 									{
-										HoveredTowerInfoBox = new TowerInfoBox(selectedTower, false);
-										towerHoverCounter = -50;
+										HoveredTowerInfoBox = new TowerInfoBox(selectedTower, belowTilePos, false);
+										towerHoverCounter = -towerHoverPopUpDelayCycles;
 									}
 									if (towerHoverCounter < towerHoverCycles)
 										towerHoverCounter++;
@@ -2273,9 +2295,9 @@ namespace AlkuTD
 
 						if (tileHoverFade < hoverFadeCycles) 
 							tileHoverFade++;
-					} //----------------------------------------------HOVERING OVER VOID OR PATH
-					else
-					{
+					}
+                    else //----------------------------------------------HOVERING OVER VOID OR PATH
+                    {
 						if (tileHoverFade > 0)
 							tileHoverFade--;
 						towerHoverCounter--;
@@ -2714,19 +2736,22 @@ namespace AlkuTD
 			//}
 			#endregion
 
-			GeneBars[0].Draw(sb);
-			GeneBars[1].Draw(sb);
-			GeneBars[2].Draw(sb);
+
+			//GeneBars[0].Draw(sb);
+			//GeneBars[1].Draw(sb);
+			//GeneBars[2].Draw(sb);
 
 			prevRingPart = selectedRingPart;
 
-			#region INFOBOXES
-			if ((newTileRingActive || towerTileRingActive) && selectedRingPart > 0)
-				TileRingInfoBox.Draw(sb, 1);
-			else if (HoveredTowerInfoBox != null && selectedTower != null && !(towerTileRingActive || newTileRingActive || priorityRingActive))
-			{
-				HoveredTowerInfoBox.Draw(sb, Math.Min(towerHoverCounter / towerHoverCycles, 1));
-			}
+            #region INFOBOXES
+            if (newTileRingActive && selectedRingPart > 0)
+                TileRingInfoBox.Draw(sb, 1);
+            else if (towerTileRingActive && TileRingInfoBox != null)
+                TileRingInfoBox.Draw(sb, 1);
+            else if (HoveredTowerInfoBox != null && selectedTower != null && !(towerTileRingActive || newTileRingActive || priorityRingActive))
+            {
+                HoveredTowerInfoBox.Draw(sb, Math.Min(towerHoverCounter / towerHoverCycles, 1));
+            }
 			for (int i = 0; i < BugBoxes.Count; i++)
 			{
 				if (!BugBoxes[i].locked)

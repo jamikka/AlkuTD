@@ -133,23 +133,26 @@ namespace AlkuTD
             //                               new Tower("5", this, ParentGame.HUD.activeTileCoord, 150, 20, new Texture2D[] { game.Content.Load<Texture2D>("Towers\\TORN-66-57-väri1") }, (float)Math.PI * 0.5f, CurrentGame.pixel, 12f, 25, 0, new int[] { 0, 0 }, Element.None, 100, 200)};
             //new Tower(ParentGame, "2", this, ParentGame.HUD.activeTileCoord, 100, 20, tileTextures[6], (float)Math.PI * 0.5f, tileTextures[7], null, 12f, 25, 0, new int[] { 0, 0 }, 0, 0, 0, 100, 200),
             ExampleTowers = new Tower[18] {new Tower('A', "Pruiter 1", Point.Zero, 75, 55, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri1") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 10, 200, true),
-                                           new Tower('E', "Splasher 1", Point.Zero, 110, 50, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN1") }, new GeneSpecs(), CurrentGame.ball, 2f, 1, DmgType.Splash, 15, new float[] {0,0}, 20, 200, true),
-                                           new Tower('I', "Sniper 1", Point.Zero, 80, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 30, 200, true),
-                                           new Tower('O', "Slower 1", Point.Zero, 90, 60, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 12f, 10, 0, 0, new float[] {0,0}, 10, 200, true),
+                                           new Tower('E', "Splasher 1", Point.Zero, 110, 50, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN1") }, new GeneSpecs(), CurrentGame.ball, 2f, 2, DmgType.Splash, 15, new float[] {0,0}, 20, 200, true),
+                                           new SniperTower(Point.Zero, UpgLvl.Basic, true),
+                                           //new Tower('I', "Sniper 1", Point.Zero, 200, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 5, 0, 0, new float[] {0,0}, 30, 200, true),
+                                           new Tower('O', "Slower 1", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.2f,200}, 10, 200, true),
                                            new Tower('U', "Grabber 1", Point.Zero, 120, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
                                            new Tower('|', "Booster 1", Point.Zero, 350, 60, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 8f, 1, 0, 0, new float[] {0,0}, 15, 200, true),
 
-                                           new Tower('Ä', "Pruiter 2", Point.Zero, 75, 55, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri6") }, new GeneSpecs(), CurrentGame.ball, 12f, 0, 0, 0, new float[] {0.8f,200}, 10, 200, true),
-                                           new Tower('Ë', "Splasher 2", Point.Zero, 250, 50, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN2") }, new GeneSpecs(), CurrentGame.ball, 2f, 1, DmgType.Splash, 25, new float[] {0,0}, 20, 200, true),
-                                           new Tower('Ï', "Sniper 2", Point.Zero, 85, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 30, 200, true),
-                                           new Tower('Ö', "Slower 2", Point.Zero, 95, 60, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri5") }, new GeneSpecs(1f,0,0), CurrentGame.ball, 12f, 10, 0, 0, new float[] {0,0}, 10, 200, true),
+                                           new Tower('Ä', "Pruiter 2", Point.Zero, 75, 55, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri6") }, new GeneSpecs(), CurrentGame.ball, 12f, 0, 0, 0, new float[] {0,0}, 10, 200, true),
+                                           new Tower('Ë', "Splasher 2", Point.Zero, 250, 50, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN2") }, new GeneSpecs(), CurrentGame.ball, 2f, 3, DmgType.Splash, 25, new float[] {0,0}, 20, 200, true),
+                                           new SniperTower(Point.Zero, UpgLvl.Advanced, true),
+                                           //new Tower('Ï', "Sniper 2", Point.Zero, 225, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 15, 0, 0, new float[] {0,0}, 30, 200, true),
+                                           new Tower('Ö', "Slower 2", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.4f,200}, 10, 200, true),
                                            new Tower('Ü', "Grabber 2", Point.Zero, 125, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
                                            new Tower('†', "Booster 2", Point.Zero, 155, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 15, 200, true),
 
                                            new Tower('Â', "Pruiter 3", Point.Zero, 125, 70, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri7") }, new GeneSpecs(), CurrentGame.ball, 18f, 3, 0, 0, new float[] {0,0}, 10, 200, true),
-                                           new Tower('Ê', "Splasher 3", Point.Zero, 120, 50, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, DmgType.Splash, 40, new float[] {0,0}, 20, 200, true),
-                                           new Tower('Î', "Sniper 3", Point.Zero, 90, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 30, 200, true),
-                                           new Tower('Ô', "Slower 3", Point.Zero, 100, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri5") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 10, 200, true),
+                                           new Tower('Ê', "Splasher 3", Point.Zero, 120, 50, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN4") }, new GeneSpecs(), CurrentGame.ball, 12f, 4, DmgType.Splash, 360, new float[] {0,0}, 20, 200, true),
+                                           new SniperTower(Point.Zero, UpgLvl.Max, true),
+                                           //new Tower('Î', "Sniper 3", Point.Zero, 250, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 25, 0, 0, new float[] {0,0}, 30, 200, true),
+                                           new Tower('Ô', "Slower 3", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.6f,200}, 10, 200, true),
                                            new Tower('Û', "Grabber 3", Point.Zero, 130, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
                                            new Tower('‡', "Booster 3", Point.Zero, 160, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 15, 200, true)};
 
@@ -494,12 +497,12 @@ namespace AlkuTD
 					case 'i': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, Color.Salmon * 0.7f, 0, tileTexCenter, 1, SpriteEffects.None, 0); break; //5=GOALPOINTS
                     default: sb.Draw(wallTextures[0], screenPos, null, Color.Cyan, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //0=OPEN TILES (light)
                 }
-				//sb.DrawString(CurrentGame.font, x + "," + y, screenPos + new Vector2(-20,0), Color.White *0.2f);
+				sb.DrawString(CurrentGame.font, x + "," + y, screenPos + new Vector2(-20,0), Color.White *0.2f);
 				//sb.DrawString(CurrentGame.font, cubeCoords[k].X.ToString() + "," + cubeCoords[k].Y.ToString() + "," + cubeCoords[k].Z.ToString(), screenPos - new Vector2(25,5), Color.White * 0.2f);
               }
             }
 
-            //------PATH HOVER (DRAW UNDER CREATURES) ------------not cool
+            //------PATH TILE HOVER (DRAW UNDER CREATURES) ------------not cool
 			if (CurrentGame.HUD.hoveredCoord.X >= 0 && CurrentGame.HUD.hoveredCoord.X < Layout.GetLength(1) && CurrentGame.HUD.hoveredCoord.Y >= 0 && CurrentGame.HUD.hoveredCoord.Y < Layout.GetLength(0))
             {
 				if (Layout[CurrentGame.HUD.hoveredCoord.Y, CurrentGame.HUD.hoveredCoord.X] == 3 && !(CurrentGame.HUD.newTileRingActive || CurrentGame.HUD.towerTileRingActive)) 
@@ -601,7 +604,9 @@ namespace AlkuTD
 			{
 				Players[0].Towers[i].DrawBullets(sb);
 			}
-            
+
+            Pathfinder.Draw(sb);
+
         }
     }
 }

@@ -61,7 +61,7 @@ namespace AlkuTD
 			if (Target.ElemArmors.HasAny)
 			{
 				GeneType gt = Target.ElemArmors.GetPrimaryElem();
-				Lines.Add(/*target.ElemArmors.GetPrimaryElem().ToString() + ": " + */enter + enter + ((int)((Target.ElemArmors.GetPrimaryElemStrength()) * 100)).ToString());
+				Lines.Add(/*target.ElemArmors.GetPrimaryElem().ToString() + ": " + */enter + enter + ((int)((Target.ElemArmors.GetPrimaryElemStrength()) * 100)).ToString() + "%");
 				lines++;
 				switch (gt)
 				{
@@ -70,6 +70,13 @@ namespace AlkuTD
 					case GeneType.Blue: LineColors.Add(Color.CornflowerBlue); break;
 				}
 			}
+            if (Target.isSlowed)
+            {
+                lines++;
+                Lines.Add(enter + enter + enter + "Spd ." + (int)((Target.Speed / Target.defSpeed) * 100));
+                LineColors.Add(Color.Aquamarine);
+                Width = Padding * 2 + (int)Math.Max(Width, CurrentGame.font.MeasureString(Lines.Last<string>()).X);
+            }
 				
 			Height = lines * CurrentGame.font.LineSpacing + YPadding;
 			if (ParentBox != null)

@@ -17,8 +17,8 @@ namespace AlkuTD
 		Rectangle CostHighlightRec;
 		public bool IsBuildInfo;
 
-		public TowerInfoBox(Tower target, bool isBuildInfo)
-			: base(target.ScreenLocation)
+		public TowerInfoBox(Tower target, Vector2 location, bool isBuildInfo)
+			: base(location)
 		{
 			Target = target;
 			GenerateText();
@@ -102,7 +102,7 @@ namespace AlkuTD
 			}
 			Width = (int)widest + 2 * Padding;
 
-			Pos = Target.ScreenLocation - new Vector2(-20, Height * 0.5f);
+			//Pos = Target.ScreenLocation - new Vector2(-20, Height * 0.5f);
 		}
 
 		public override void Draw(SpriteBatch sb, float fadeAmt)

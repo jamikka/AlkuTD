@@ -82,11 +82,11 @@ namespace AlkuTD
         public float BulletSpeed;
         public Texture2D[] Textures;
         Vector2 texOrigin;
-        Texture2D bulletTexture;
+        internal Texture2D bulletTexture;
         Texture2D[] radiusTextures;
-        List<Bullet> Bullets;
-        //float angle;
-        //float angleOffset;
+        internal List<Bullet> Bullets;
+        internal float angle;
+        internal float angleOffset;
         public short Dmg;
         public float[] slow;       //[0] = percentage, [1] = duration 
         public int Cost;
@@ -98,14 +98,17 @@ namespace AlkuTD
 		public GeneSpecs GeneSpecs;
 		public ColorPriority ElemPriority;
 		public TargetPriority TargetPriority;
-		DmgType DmgType;
+		internal DmgType DmgType;
 		public int SplashRange;
 
-		List<Creature> CreaturesInRange;
-		List<Creature> ColoredInRange;
-		List<Creature> PossibleTargets;
+        internal List<Creature> CreaturesInRange;
+        internal List<Creature> ColoredInRange;
+        internal List<Creature> PossibleTargets;
 
 		public uint nextHitIteration;
+
+        internal Color loadBarColor = Color.White;
+        internal int loadBarWidth = 25;
 
         //--------Constructors------------------------------
         public Tower(char symbol, string name, Point mapCoord, float range, float firerate, Texture2D[] textures, GeneSpecs geneSpecs, Texture2D bulletTexture, float bulletSpeed, short dmg, DmgType dmgType, int splashRange, float[] slow, int cost, int buildTime, bool isExample)
@@ -142,6 +145,7 @@ namespace AlkuTD
             Built = false;
             Bullets = new List<Bullet>(10);
             towerTypeIdx = Array.IndexOf(TowerSymbols, symbol);
+            UpgradeLvl = (UpgLvl)(towerTypeIdx / 6);
 			towerBranch = towerTypeIdx % 6;
 			SplashRange = splashRange;
 
@@ -256,7 +260,7 @@ namespace AlkuTD
         */
         #endregion
 
-		void UpdateBullet(Bullet b)
+		internal void UpdateBullet(Bullet b)
 		{
 			b.SplashRange = SplashRange;
 			b.dmg = Dmg;
@@ -266,7 +270,7 @@ namespace AlkuTD
 		}
 
         //Shoot at creature
-        public void Shoot(Creature targetCreature)
+        public virtual void Shoot(Creature targetCreature)
         {
 			Bullet freeBullet = Bullets.Find(b => b.active == false);
 			if (freeBullet == null && Bullets.Count < 10)
@@ -531,18 +535,14 @@ namespace AlkuTD
 			ParentMap.Layout[mapCoord.Y, mapCoord.X] = '0';
 		}
 
-		int firerateCounter = 0;		
-		Creature currentTarget;
-		List<Creature> previousTargets;
-		Creature prevTarget;
-		void Hunt(List<Creature> aliveCreatures)
+		internal int firerateCounter = 0;		
+		internal Creature currentTarget;
+		internal List<Creature> previousTargets;
+		internal Creature prevTarget;
+		internal virtual void Hunt(List<Creature> aliveCreatures)
         {
-			firerateCounter--;
 			if (aliveCreatures.Count == 0)
 				return;
-
-			if (DmgType == AlkuTD.DmgType.Splash)
-				CreaturesInRange.Clear();
 
 			CreaturesInRange.Clear();
 			ColoredInRange.Clear();
@@ -588,7 +588,7 @@ namespace AlkuTD
 			prevTarget = currentTarget;
 		}
 
-		Creature ChooseTarget()
+		internal Creature ChooseTarget()
 		{
 			//if (DmgType == AlkuTD.DmgType.Basic)
 			//{
@@ -708,10 +708,13 @@ namespace AlkuTD
 		}
 
         float oldRange;
-        public void Update(List<Creature> aliveCreatures)
+        public virtual void Update(List<Creature> aliveCreatures)
         {
             if (buildTimer == 0)
             {
+                if (firerateCounter > 0)
+                    firerateCounter--;
+
                 if (Built == false)
                 {
                     Built = true;
@@ -740,15 +743,20 @@ namespace AlkuTD
 
         public const float radiusFadeCycles = 10; //------------------------------------not cool
         public int radiusFade = 0;
-        public void Draw(SpriteBatch sb)
+        public virtual void Draw(SpriteBatch sb)
         {
             float buildPhase = (BuildTime - buildTimer) / (float)BuildTime;
 
             if (buildTimer == 0)
             {
-                sb.Draw(Textures[0], ScreenLocation, null, Color.White, 0, texOrigin, 1, SpriteEffects.None, 0);
+                sb.Draw(Textures[0], ScreenLocation, null, Color.White, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0);
 
-				if (GeneSpecs.HasAny)
+                //---FirerateLoadBars 
+
+                sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f - 1), loadBarWidth, 4), Color.Black); //black background
+                sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2 + 1, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f), (int)((loadBarWidth - 2) * ((FireRate - firerateCounter) / FireRate)), 2), loadBarColor);
+
+                if (GeneSpecs.HasAny)
 				{
 					GeneType gt = GeneSpecs.GetPrimaryElem();
 					int geneIdx = (int)gt -1;
@@ -809,6 +817,9 @@ namespace AlkuTD
                             Vector2.Zero, new Vector2(Math.Min(ParentMap.TileWidth / 2 - 1, ParentMap.TileWidth / 2 * (buildPhase - 5/6f) * 6), 2), SpriteEffects.None, 0);
                 #endregion
             }
+            
+            
+            
 
             if (ShowRadius || radiusFade > 0) //-------------------RADIUS
             {
@@ -853,19 +864,28 @@ namespace AlkuTD
 
         public static Tower Clone(Tower t) //--HARD CODED IsExample !!!
         {
-			return new Tower(t.Symbol, t.Name, t.MapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false); 
+            Type checkedType = t.GetType();
+            if (checkedType == typeof(SniperTower))
+                return new SniperTower(t.MapCoord, t.UpgradeLvl, false);
+            else
+                return new Tower(t.Symbol, t.Name, t.mapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false);
         }
 
 		public static Tower NewFromModel(Tower t, Point mapCoord)
 		{
-			Tower tempTower = new Tower(t.Symbol, t.Name, mapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false);
-			tempTower.buildTimer = 0;
-			tempTower.buildFinishedCounter = 0; //jottei Tower.Draw pistä valkosia outlinejä valmistumisen kunniaks
-			tempTower.Built = true;
+            Type checkedType = t.GetType();
+            Tower tempTower;
+            if (checkedType == typeof(SniperTower))
+                tempTower = new SniperTower(mapCoord, t.UpgradeLvl, false);
+            else
+                tempTower = new Tower(t.Symbol, t.Name, mapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false);
+            tempTower.buildTimer = 0;
+            tempTower.buildFinishedCounter = 0; //jottei Tower.Draw pistä valkosia outlinejä valmistumisen kunniaks
+            tempTower.Built = true;
 			return tempTower;
-		}
+        }
 
-		public override string ToString()
+        public override string ToString()
 		{
 			return TowerSymbols[towerTypeIdx] + " (" + this.MapCoord.X.ToString() + ";" + this.MapCoord.Y.ToString() + ")";
 		}

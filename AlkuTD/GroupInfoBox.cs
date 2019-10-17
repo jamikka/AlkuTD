@@ -56,12 +56,20 @@ namespace AlkuTD
 			//sb.Draw(CurrentGame.pixel, Bounds, Color.LightGray * 0.4f * fadeAmt);
 			string creatureCount = Group.AliveCreatures.Count.ToString();
 			int textOriginX = (int)(textScale * CurrentGame.font.MeasureString(creatureCount).X * 0.5f);
-			sb.DrawString(CurrentGame.font, creatureCount, new Vector2(Bounds.Center.X - textOriginX, Bounds.Y + YPadding + 2), Color.White * fadeAmt, 0, Vector2.Zero, textScale, SpriteEffects.None, 0);
+            Vector2 numTexPos = new Vector2(Bounds.Center.X - textOriginX, Bounds.Y + YPadding + 2);
+
+            sb.DrawString(CurrentGame.font, creatureCount, numTexPos, Color.White * fadeAmt, 0, Vector2.Zero, textScale, SpriteEffects.None, 0);
 			sb.Draw(SmallBugTex, new Vector2(Bounds.Center.X, Bounds.Bottom - SmallBugTex.Height), null, Color.White * fadeAmt, 0, TexOrigin, bugScale, SpriteEffects.None, 0); //---------vanhakomment: suhteuta infoTex.Width scaleen!
 			if (hoveredOver || locked)
 			{
 				BugBox.Draw(sb, 1);
 			}
-		}
+            //string whatString = (((float)Group.spawnTimer / Group.GroupDuration)*100).ToString();
+            //sb.DrawString(CurrentGame.font, whatString, numTexPos + new Vector2(5, 5), Color.Beige);
+
+            // GroupDurationBars
+            sb.Draw(CurrentGame.pixel, new Rectangle(PosX, (int)(numTexPos.Y + boxHeight - 5 - 1), boxWidth, 4), Color.Black); // black background
+            sb.Draw(CurrentGame.pixel, new Rectangle(PosX + 1, (int)(numTexPos.Y + boxHeight - 5), (int)((boxWidth - 2) * Math.Min((float)Group.spawnTimer / Group.GroupDuration, 1)), 2), Color.White);
+        }
 	}
 }

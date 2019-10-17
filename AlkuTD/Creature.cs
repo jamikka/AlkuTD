@@ -66,6 +66,7 @@ namespace AlkuTD
 		public ParticleEngine TrailEngine;
 
         public float spin;
+        public float initSpin;
 
 		public float DistanceToGoal; // tää bugaa koska öröt pyöristää reitin kulmia (alempana if (distanceToNextWaypoint < 20) 
 
@@ -106,8 +107,9 @@ namespace AlkuTD
             LifeDmg = 1;
             hpBarWidth = 25;
             spin = (float)(ParentMap.rnd.NextDouble() - 0.5f) * 0.08f;
+            initSpin = spin;
 
-			TowersTargetingThis = new List<Tower>();
+            TowersTargetingThis = new List<Tower>();
 			CurrentSlowEffect = new float[2];
 			DmgHeadedThisWay = new List<KeyValuePair<uint, int>>();
 
@@ -134,7 +136,7 @@ namespace AlkuTD
             defSpeed = defaultSpeed;
             Speed = defaultSpeed;
             Splatter = new ParticleEngine(CurrentGame.smallBall, Location, 50 + (int)InitHp, 5, ParentMap.rnd); //---------------------täällä kuoloparticlemäärä----------!!
-			TrailEngine = new ParticleEngine(CurrentGame.pixel, Location, 5000, 5000, ParentMap.rnd); //-----------TRAIL
+			TrailEngine = new ParticleEngine(CurrentGame.pixel, Location, 200, 100, ParentMap.rnd); //-----------TRAIL
 			TrailEngine.SourceCreature = this; //-----------TRAIL
 			TrailEngine.ParticleSpeed = 0; //-----------TRAIL
         }
@@ -254,7 +256,7 @@ namespace AlkuTD
 				else
 					hpLoss = bullet.dmg;
 
-				if (hp - hpLoss <= 0)
+				if (hp - hpLoss <= 0) // DEATH OF CREATURE
 				{
 					hp = 0;
 					Alive = false;
@@ -270,6 +272,7 @@ namespace AlkuTD
 						bugBox.locked = false;
 						CurrentGame.HUD.bugHoverCounter = HUD.bugHoverFade;
 					}
+                    ParentGroup.AliveCreatures.Remove(this);
 					Splatter.IsActive = true;
 					Splatter.Location = Location;
 					Splatter.EmitterAngle = Vector2.Normalize(Location - bullet.originPoint);
@@ -279,6 +282,7 @@ namespace AlkuTD
 				else
 				{
 					hp -= hpLoss;
+                    ShakeTheCreature(true, hpLoss);
 
 					if (bullet.slow[0] > 0) //if bullet has a slow percentage
 					{
@@ -292,17 +296,36 @@ namespace AlkuTD
 						}
 						else
 						{
-							if (bullet.slow[0] > CurrentSlowEffect[0])
+                            justGotSlowed = false;
+                            if (bullet.slow[0] > CurrentSlowEffect[0])
 							{
-								CurrentSlowEffect = bullet.slow; 
-							}
+								CurrentSlowEffect = bullet.slow;
+                                justGotSlowed = true;
+                            }
 							//else // if already slowed more... ?
-
 							slowedCounter = (int)bullet.slow[1];
-							justGotSlowed = false;
 						}
 					}
 				}
+            }
+        }
+
+        static int creatureShakeIters = 50;
+        static float creatureShakeSpeed = 1.5f;
+        int creatureShakeCounter;
+        float hpLossToHpRatio;
+        void ShakeTheCreature (bool calledFromTakeAHit, float hpLoss)
+        {
+            if (calledFromTakeAHit)
+            {
+                creatureShakeCounter = creatureShakeIters;
+                hpLossToHpRatio = hpLoss / InitHp;
+            }
+            else if (creatureShakeCounter >= 0)
+            {
+                float shakeCounterRatio = (float)creatureShakeCounter / creatureShakeIters;
+                spin = initSpin + (float)Math.Pow(shakeCounterRatio, 6) * creatureShakeSpeed * hpLossToHpRatio * Math.Sign(initSpin);
+                creatureShakeCounter--;
             }
         }
 
@@ -398,7 +421,7 @@ namespace AlkuTD
 			return tempLocation;
 		}
 
-		public Vector2 PredictHitLocation(Tower tower, out bool canHitBeforeOutOfRange, out uint hitIteration)
+		public Vector2 PredictHitLocation(Tower tower, out bool canHitBeforeOutOfRange, out uint hitIteration) // täällä ei ehkä oo uusimmat hidastusLogiikat
 		{
 			int maxIterations = (int)Math.Round((tower.Range / tower.BulletSpeed)) +1;
 			uint startIteration = CurrentGame.gameTimer;
@@ -543,6 +566,7 @@ namespace AlkuTD
 		float vecPos;
 		Vector2 imagPos;
 		bool justGotSlowed;
+        static int slowTransitionIters = 50;
         public void Update()
         {
             if (Born && Alive)
@@ -618,10 +642,18 @@ namespace AlkuTD
 
 				if (isSlowed)
 				{
-					if (justGotSlowed && slowedCounter >= CurrentSlowEffect[1] - 10)
-						Speed = defSpeed * (1 - ((CurrentSlowEffect[1] - slowedCounter) / 10f) * CurrentSlowEffect[0]);
-					if (slowedCounter <= 20)
-						Speed = defSpeed * (1 - (slowedCounter / 20f) * CurrentSlowEffect[0]);
+                    //if (justGotSlowed && slowedCounter >= CurrentSlowEffect[1] - 10)
+                    //	Speed = defSpeed * (1 - ((CurrentSlowEffect[1] - slowedCounter) / 10f) * CurrentSlowEffect[0]);
+                    if (Speed > defSpeed * (1 - CurrentSlowEffect[0]))
+                    {
+                        Speed -= defSpeed * (1 - CurrentSlowEffect[0]) * 0.1f; //----------------------29.9.2019
+                        Speed = Math.Max(Speed, defSpeed * (1 - CurrentSlowEffect[0]));
+                    }
+                    if (slowedCounter <= slowTransitionIters)
+                    {
+                        Speed = defSpeed * (1 - ((float)slowedCounter / slowTransitionIters) * CurrentSlowEffect[0]);
+                        TrailEngine.MaxParticles = (int)(TrailEngine.InitMaxParticles * ((float)slowedCounter / slowTransitionIters));
+                    }
 					if (slowedCounter <= 0)
 					{
 						isSlowed = false;
@@ -629,9 +661,11 @@ namespace AlkuTD
 						Speed = defSpeed;
 					}
 					slowedCounter--;
-				}
+                    TrailEngine.UpdateTrail();
+                    TrailEngine.MaxParticles = TrailEngine.InitMaxParticles;
+                }
 
-				float distanceToNextWaypoint = Vector2.Distance(Location, Path[nextWaypoint]);
+                float distanceToNextWaypoint = Vector2.Distance(Location, Path[nextWaypoint]);
 
 				if (distanceToNextWaypoint < distToBeginTurn)
 				{
@@ -672,7 +706,8 @@ namespace AlkuTD
 				CheckDistToGoal();
 
                 //Angle = (float)Math.Atan2(-vel.Y, vel.X)/* + (float)Math.PI * 1.5f*/; //blaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                Angle += spin;
+                ShakeTheCreature(false, 0);
+                Angle += spin * (Speed / defSpeed); // Slow spin according to slow effect
 
                 if (totalFrames > 1)
                 {                    
@@ -692,42 +727,44 @@ namespace AlkuTD
             }
 			else if (Splatter.IsActive)
                 Splatter.Update();
-			//TrailEngine.UpdateTrail();
         }
         
         public void Draw(SpriteBatch sb)
         {
             //if (Born && Alive)
             //{
-                if (totalFrames > 1)
+            TrailEngine.Draw(sb);
+
+            if (totalFrames > 1)
                 {
                     int row = (int)(currentFrame / (float)SpritesheetColumns);
                     int column = currentFrame % SpritesheetColumns;
                     Rectangle sourceRect = new Rectangle(Width * column, Height * row, Width, Height);
                     sb.Draw(Spritesheet, Location, sourceRect, Color.White, -Angle /*+ AngleOffset*/, Origin, 2, SpriteEffects.None, 0);
                 }
-                else if (Name == "1") sb.Draw(Spritesheet, Location, null, Color.White, -Angle, Origin, 1, SpriteEffects.None, 0);
-                else sb.Draw(Spritesheet, Location, null, Color.White, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, 0);
+            else if (Name == "1") sb.Draw(Spritesheet, Location, null, Color.White, -Angle, Origin, 1, SpriteEffects.None, 0);
+            else sb.Draw(Spritesheet, Location, null, Color.White, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, 0);
 
-				//foreach (Vector2 p in Path)
-				//	sb.Draw(CurrentGame.pixel, p, null, Color.Red, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
-				//sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint]), 1), null, Color.CadetBlue, (float)Math.Atan2(Path[nextWaypoint].Y - Location.Y, Path[nextWaypoint].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
-				//sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint-1]), 1), null, Color.Orange, (float)Math.Atan2(Path[nextWaypoint-1].Y - Location.Y, Path[nextWaypoint-1].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
-				//sb.Draw(Spritesheet, imagPos, null, Color.White * 0.5f, -Angle, Origin, 1, SpriteEffects.None, 0);
-				//sb.DrawString(CurrentGame.font, Math.Round(imagDist).ToString(), Location, Color.Wheat);
-				//sb.DrawString(CurrentGame.font, vecPos.ToString(), Location, Color.Wheat);
-				//sb.Draw(CurrentGame.pixel, imagDest, null, Color.Green, 0, Vector2.Zero, 2, SpriteEffects.None, 0);
-				//sb.DrawString(CurrentGame.font, Speed.ToString(), Vector2.One, Color.Wheat);
-				
 
-                /*if (hp != InitHp)//-------------SIIRRETTY HUDIIN PIIRTYMÄÄN ÖRÖJEN PÄÄLLE---------------------------------------------------------------------------
-                {
-                    sb.Draw(ParentGame.pixel, new Rectangle((int)Location.X - hpBarWidth / 2, (int)(Location.Y - Height * SpriteScale / 2 - 1), hpBarWidth, 4), Color.Black); //black background
-                    sb.Draw(ParentGame.pixel, new Rectangle((int)Location.X - hpBarWidth / 2 + 1, (int)(Location.Y - Height * SpriteScale / 2), (int)((hpBarWidth -2) * (hp / InitHp)), 2), new Color(1 - hp / InitHp, hp / InitHp, 0));
-                }*/
+            //foreach (Vector2 p in Path)
+            //	sb.Draw(CurrentGame.pixel, p, null, Color.Red, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+            //sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint]), 1), null, Color.CadetBlue, (float)Math.Atan2(Path[nextWaypoint].Y - Location.Y, Path[nextWaypoint].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+            //sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint-1]), 1), null, Color.Orange, (float)Math.Atan2(Path[nextWaypoint-1].Y - Location.Y, Path[nextWaypoint-1].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+            //sb.Draw(Spritesheet, imagPos, null, Color.White * 0.5f, -Angle, Origin, 1, SpriteEffects.None, 0);
+            //sb.DrawString(CurrentGame.font, Math.Round(imagDist).ToString(), Location, Color.Wheat);
+            //sb.DrawString(CurrentGame.font, vecPos.ToString(), Location, Color.Wheat);
+            //sb.Draw(CurrentGame.pixel, imagDest, null, Color.Green, 0, Vector2.Zero, 2, SpriteEffects.None, 0);
+            //sb.DrawString(CurrentGame.font, Speed.ToString(), Vector2.One, Color.Wheat);
+
+
+            /*if (hp != InitHp)//-------------SIIRRETTY HUDIIN PIIRTYMÄÄN ÖRÖJEN PÄÄLLE---------------------------------------------------------------------------
+            {
+                sb.Draw(ParentGame.pixel, new Rectangle((int)Location.X - hpBarWidth / 2, (int)(Location.Y - Height * SpriteScale / 2 - 1), hpBarWidth, 4), Color.Black); //black background
+                sb.Draw(ParentGame.pixel, new Rectangle((int)Location.X - hpBarWidth / 2 + 1, (int)(Location.Y - Height * SpriteScale / 2), (int)((hpBarWidth -2) * (hp / InitHp)), 2), new Color(1 - hp / InitHp, hp / InitHp, 0));
+            }*/
             //}
-			//sb.DrawString(CurrentGame.font, Math.Round(DistanceToGoal).ToString(), Location, Color.Wheat);
-		}
+            //sb.DrawString(CurrentGame.font, Math.Round(DistanceToGoal).ToString(), Location, Color.Wheat);
+        }
 
         public static Creature Clone(Creature model)
         {

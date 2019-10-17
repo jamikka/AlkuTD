@@ -12,6 +12,7 @@ namespace AlkuTD
         public Creature SourceCreature;
         public int MinParticleLifeTime;
         public int MaxParticles;
+        public int InitMaxParticles; // for trail fade out in Creature.Update();
         public float ParticleSpeed;
         public float ParticleDeceleration;
         public Texture2D Texture;
@@ -36,6 +37,7 @@ namespace AlkuTD
             location = emitterLocation;
             Particles = new List<Particle>();
             MaxParticles = maxParticles;
+            InitMaxParticles = maxParticles;
             if (MinParticleLifeTime == 0)
                 MinParticleLifeTime = 5;
             ParticleSpeed = 10;
@@ -84,12 +86,12 @@ namespace AlkuTD
             return new Particle(Texture, null, location, speed, ParticleDeceleration, color, size, rotationAngle, rotationSpeed, ttl);
         }
 
-		public Particle GenerateNewTrail()
+		public Particle GenerateNewTrailParticle()
 		{
 			Vector2 speed = Vector2.Zero;
-			Color color = Color.AntiqueWhite;
-			float size = 1;
-			float rotationAngle = 0.0f;
+			Color color = Color.AntiqueWhite * 0.2f;
+			float size = 3;
+			float rotationAngle = 0.1f;
 			float rotationSpeed = 0.0f;
 			int ttl = MinParticleLifeTime;
 
@@ -165,8 +167,12 @@ namespace AlkuTD
 				}
 			}
 			timer++;
-			if (Particles.Count < MaxParticles && timer % 3 == 0)
-				Particles.Add(GenerateNewTrail());
+			if (Particles.Count < MaxParticles && timer % 2 == 0)
+				Particles.Add(GenerateNewTrailParticle());
+            else if (Particles.Count > MaxParticles)
+            {
+                Particles.RemoveRange(0, Particles.Count - MaxParticles);
+            }
 		}
 
         public void Draw(SpriteBatch spriteBatch)
