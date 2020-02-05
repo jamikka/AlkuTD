@@ -8,33 +8,33 @@ using System.Linq;
 
 namespace AlkuTD
 {
-	public enum DmgType { Basic, Splash }
-	public enum UpgLvl { Basic, Advanced, Max }
-	public enum ColorPriority { None, Red, Green, Blue }
-	public enum TargetPriority	{
-		None = 0,
+	//public enum DmgType { Basic, Splash }
+	//public enum UpgLvl { Basic, Advanced, Max }
+	//public enum ColorPriority { None, Red, Green, Blue }
+	//public enum TargetPriority	{
+	//	None = 0,
 
-		First = 1,
-		Last = 2,
+	//	First = 1,
+	//	Last = 2,
 
-		Tough = 3,
-		Weak = 4,
+	//	Tough = 3,
+	//	Weak = 4,
 
-		Fast = 5,
-		Slow = 6,
+	//	Fast = 5,
+	//	Slow = 6,
 
-		Mob = 7,
-		Far = 8
-	}
+	//	Mob = 7,
+	//	Far = 8
+	//}
 	
-	public enum TowerSymbol // NOT IN USE YET
-	{
-		A, E, I, O, U, X,
-		Ä, Ë, Ï, Ö, Ü, Y,
-		Â, Ê, Î, Ô, Û, Z
-	}
+	//public enum TowerSymbol // NOT IN USE YET
+	//{
+	//	A, E, I, O, U, X,
+	//	Ä, Ë, Ï, Ö, Ü, Y,
+	//	Â, Ê, Î, Ô, Û, Z
+	//}
 
-    public class Tower
+    public class Tower : ITower
     {     
         //------------Fields-------------------------------
         //CurrentGame ParentGame;
@@ -818,9 +818,6 @@ namespace AlkuTD
                 #endregion
             }
             
-            
-            
-
             if (ShowRadius || radiusFade > 0) //-------------------RADIUS
             {
                 if (ShowRadius && radiusFade < radiusFadeCycles) radiusFade++;
@@ -869,6 +866,11 @@ namespace AlkuTD
                 return new SniperTower(t.MapCoord, t.UpgradeLvl, false);
             else
                 return new Tower(t.Symbol, t.Name, t.mapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false);
+        }
+
+        Tower ITower.Clone(Tower t)
+        {
+            return Clone(t);
         }
 
 		public static Tower NewFromModel(Tower t, Point mapCoord)

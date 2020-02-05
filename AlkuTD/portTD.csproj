@@ -57,6 +57,7 @@
     <Compile Include="HexMap.cs" />
     <Compile Include="HUD.cs" />
     <Compile Include="InfoBox.cs" />
+    <Compile Include="ITower.cs" />
     <Compile Include="Jellybug.cs" />
     <Compile Include="KeyEventTest.cs" />
     <Compile Include="MainMenu.cs" />

@@ -13,6 +13,8 @@ namespace AlkuTD
     {
         public CurrentGame ParentGame;
 
+        public string Name;
+
         //public byte[,] InitLayout; //--[row,col]
         //public byte[,] Layout;
         public char[,] InitLayout;
@@ -73,9 +75,10 @@ namespace AlkuTD
 
 		public Vector3[] cubeCoords;
 
-        public HexMap(CurrentGame game, char[,] initLayout, Point[] spawnPoints, Point[] goalPoints, /*int[] goalPointTimetable,*/ Player[] players)
+        public HexMap(CurrentGame game, string name, char[,] initLayout, Point[] spawnPoints, Point[] goalPoints, /*int[] goalPointTimetable,*/ Player[] players)
         {
             ParentGame = game;
+            Name = name;
 			CurrentGame.currentMap = this;
             //tileTextures = new Texture2D[]{ ParentGame.Content.Load<Texture2D>("Tiles\\patternhex-66-57BOU2"/*"hex-66-57-04e"*/), //-----0: Seinä1
             //                                ParentGame.Content.Load<Texture2D>("Tiles\\polkuhex-66-57borderless"/*"hex-66-57-00"*/), //-----1: Polku
@@ -497,7 +500,7 @@ namespace AlkuTD
 					case 'i': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, Color.Salmon * 0.7f, 0, tileTexCenter, 1, SpriteEffects.None, 0); break; //5=GOALPOINTS
                     default: sb.Draw(wallTextures[0], screenPos, null, Color.Cyan, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //0=OPEN TILES (light)
                 }
-				sb.DrawString(CurrentGame.font, x + "," + y, screenPos + new Vector2(-20,0), Color.White *0.2f);
+				//sb.DrawString(CurrentGame.font, x + "," + y, screenPos + new Vector2(-20,0), Color.White *0.2f); //---COOOOOOOOORDS
 				//sb.DrawString(CurrentGame.font, cubeCoords[k].X.ToString() + "," + cubeCoords[k].Y.ToString() + "," + cubeCoords[k].Z.ToString(), screenPos - new Vector2(25,5), Color.White * 0.2f);
               }
             }

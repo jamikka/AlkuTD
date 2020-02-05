@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Linq;
 
 namespace AlkuTD
 {
@@ -27,7 +28,8 @@ namespace AlkuTD
 
 		public override string ToString()
 		{
-			return this.OnAltPath ? MapCoord.X + "," + MapCoord.Y + " OAP" : MapCoord.X + "," + MapCoord.Y;
+            //return this.OnAltPath ? MapCoord.X + "," + MapCoord.Y + " OAP" : MapCoord.X + "," + MapCoord.Y;
+            return MapCoord.X + "," + MapCoord.Y + " G:" + Math.Round(G, 2); //+ ", F:" + F;
 		}
     }
 
@@ -40,7 +42,10 @@ namespace AlkuTD
         int levelWidth;
         int levelHeight;
 
-        List<Point> pathFindSteps;
+        List<Tile> pathFindSteps;
+        List<Tile> stringpullStepsG;
+        List<Tile> stringpullStepsS;
+
 
         public Pathfinder(HexMap hexMap)
         {
@@ -48,7 +53,9 @@ namespace AlkuTD
             levelWidth = hexMap.Layout.GetLength(1);
             levelHeight = hexMap.Layout.GetLength(0);
             InitializeTiles();
-            pathFindSteps = new List<Point>();
+            pathFindSteps = new List<Tile>();
+            stringpullStepsG = new List<Tile>();
+            stringpullStepsS = new List<Tile>();
         }
 
         float HeuristicDistance(Point a, Point b)
@@ -67,9 +74,9 @@ namespace AlkuTD
 			Vector2 B = HexMap.ToScreenLocation(b.MapCoord);
 			float dist = Vector2.Distance(A, B);
 			float result = dist / HexMap.TileHeight;
-			result = (float)Math.Round(result, 1);
-			//float result = Vector2.Distance(A, B) / HexMap.TileHeight;
-			return result;
+			//result = (float)Math.Round(result, 2);
+            //float result = Vector2.Distance(A, B) / HexMap.TileHeight;
+            return result;
 		}
 
         public void InitializeTiles()
@@ -131,6 +138,9 @@ namespace AlkuTD
 
                         openTiles[x, y].Neighbors[i] = openTiles[neighborCoords[i].X, neighborCoords[i].Y];
 						openTiles[x, y].NewNeighbors.Add(openTiles[neighborCoords[i].X, neighborCoords[i].Y]);
+                        if (openTiles[x, y].NewNeighbors.Count <= 4)
+                            openTiles[x, y].LockedWaypoint = true;
+                        else openTiles[x, y].LockedWaypoint = false;
                     }
                 }
             }
@@ -156,7 +166,7 @@ namespace AlkuTD
             }
         }
 
-        Tile FindBestTile()
+        Tile FindBestFTile()
         {
             Tile currentTile = OpenList[0];
             float smallestF = float.MaxValue;
@@ -169,10 +179,12 @@ namespace AlkuTD
                     smallestF = currentTile.F;
                 }
             }
+
             return currentTile;
         }
-        
-		//--------Theta* algorithm with encouragement for turning
+
+        //--------Theta* algorithm with encouragement for turning
+        Tile goalTile;
         public List<Vector2> FindPath(Point startPoint, Point goalPoint)
         {
             pathFindSteps.Clear();
@@ -181,39 +193,39 @@ namespace AlkuTD
                 return new List<Vector2>();
             ResetTileValues();
 
-            if (openTiles[startPoint.X, startPoint.Y] == null || openTiles[goalPoint.X, goalPoint.Y] == null)
+            if (openTiles[startPoint.X, startPoint.Y] == null || openTiles[goalPoint.X, goalPoint.Y] == null) // stop with a empty list if start or goalpoint is missing
                 return new List<Vector2>();
 
             Tile startTile = openTiles[startPoint.X, startPoint.Y];
-            Tile goalTile = openTiles[goalPoint.X, goalPoint.Y];
+            goalTile = openTiles[goalPoint.X, goalPoint.Y];
 
             startTile.InOpenList = true;
             startTile.G = 0;
-			startTile.F = CubeDistance(startTile, goalTile);
+			startTile.F = CubeDistance(startTile, goalTile); // F as CubeDistance
 			startTile.Parent = startTile;
             OpenList.Add(startTile);
 
-            while (OpenList.Count > 0)
+            while (OpenList.Count > 0) //------------------------------------ SEARCH AND POPULATE THE OpenList STARTING FROM startTile
             {
-                Tile currentTile = FindBestTile();
-                if (currentTile == null)
+                Tile currentTile = FindBestFTile();
+                if (currentTile == null) // stop if startTile doesnt exist or return if currTile is the goalTile
                     break;
                 if (currentTile == goalTile)
                     return FinalPath(startTile, goalTile);
 
-				//float smallestF = float.MaxValue; //----------OLD TRY AT SIMULT-SMOOTHENING
-                for (int i = 0; i < currentTile.Neighbors.Length; i++) //-----GO THROUGH ALL OF CURRENT TILES OPEN NEIGHBORS
+                for (int i = 0; i < currentTile.Neighbors.Length; i++) //-----GO THROUGH ALL OF OpenList[currentTile]'S OPEN NEIGHBORS CLOCKWISE FROM N TO NW
                 {
-                    Tile neighbor = currentTile.Neighbors[i];
-                    if (neighbor == null || !neighbor.IsOpen)
+                    Tile NEighbCheck = currentTile.Neighbors[i];
+                    //Tile NEighbCheck = NeighborInGoalDirection(currentTile); //TODO: NeighborInGoalDirection
+                    if (NEighbCheck == null || !NEighbCheck.IsOpen)
                         continue;
 
 					#region OLD TRY AT SIMULT-SMOOTHENING
 					//------------OLD TRY AT SIMULT-SMOOTHENING
-					//float newF = newG + CubeDistance(neighbor, goalTile); 
+					//float newF = currGPlus1 + CubeDistance(NEighbCheck, goalTile); 
 					//if (newF < smallestF)
 					//    smallestF = newF;
-					//else if (newF == smallestF && !neighbor.LockedWaypoint) // If there are multiple tiles with smallestF, set all of them as OnAltPath
+					//else if (newF == smallestF && !NEighbCheck.LockedWaypoint) // If there are multiple tiles with smallestF, set all of them as OnAltPath
 					//{
 					//    for (int k = 0; k < i; k++)
 					//    {
@@ -226,209 +238,201 @@ namespace AlkuTD
 					//                prevNeighbor.OnAltPath = false;
 					//        }
 					//    }
-					//    neighbor.OnAltPath = true;
+					//    NEighbCheck.OnAltPath = true;
 					//}
 					//if (OpenList.Count == 1)
 					//{
 					//    currentTile.OnAltPath = false;
 					//    currentTile.LockedWaypoint = true;
-					//    if (currentTile.MapCoord != startTile.MapCoord && !neighbor.Checked)
-					//        neighbor.LockedWaypoint = true;
+					//    if (currentTile.MapCoord != startTile.MapCoord && !NEighbCheck.Checked)
+					//        NEighbCheck.LockedWaypoint = true;
 					//}
 					#endregion
 
-					float newG = currentTile.G + 1;
-					neighbor.NewNeighbors.Remove(currentTile);
+					float currGPlus1 = currentTile.G + 1;
+					NEighbCheck.NewNeighbors.Remove(currentTile);
 
-
-					if (!neighbor.InOpenList && !neighbor.Checked) // a new acquaintance
+					if (!NEighbCheck.InOpenList && !NEighbCheck.Checked) // a new acquaintance in OpenList
                     {
-                        OpenList.Add(neighbor);
-                        neighbor.InOpenList = true;
-                        pathFindSteps.Add(neighbor.MapCoord);
+                        OpenList.Add(NEighbCheck);
+                        NEighbCheck.InOpenList = true;
 
-                        /*if (CheckLOS(neighbor.MapCoord, currentTile.Parent.Parent.MapCoord)) // lisäSuoristelua 11.10.19 
-						{
-                            neighbor.Parent = currentTile.Parent.Parent;
-                            //neighbor.F = newF + CubeDistance(neighbor, currentTile.Parent); // vanh YLLÄTTÄVÄN JEES
-                            neighbor.G = currentTile.Parent.Parent.G + StraightDistance(neighbor, currentTile.Parent.Parent); // G = parent's G + straightDist from parent
-                            neighbor.F = neighbor.G + CubeDistance(neighbor, goalTile); // F = G + dist to goal
-                            if (currentTile != startTile && currentTile.NewNeighbors.Count > 1 && CheckIfSameDir(currentTile, neighbor)) // IF not in a tunnel and going straight THEN PENALIZE (to encourage looking at different directions)
-                            {
-                                neighbor.F += 1.1f; //1.1: U oikein
-                                                    //neighbor.G += 1f;
-                            }
-                        }
-                        else */
-                        if (CheckLOS(neighbor.MapCoord, currentTile.Parent.MapCoord))
+                        pathFindSteps.Add(NEighbCheck/*.MapCoord*/);
+
+                        if (!NEighbCheck.LockedWaypoint && CheckLOS(NEighbCheck.MapCoord, currentTile.Parent.MapCoord, true) && !CheckIfStraightHexLine(NEighbCheck, currentTile.Parent)) // we see back to parent from the neighbor (IGNORE IF PARENT IS IN A SRAIGHT HEX LINE)
                         {
-                            neighbor.Parent = currentTile.Parent;
-                            //neighbor.F = newF + CubeDistance(neighbor, currentTile.Parent); // vanh YLLÄTTÄVÄN JEES
-                            neighbor.G = currentTile.Parent.G + StraightDistance(neighbor, currentTile.Parent); // G = parent's G + straightDist from parent
-                            neighbor.F = neighbor.G + CubeDistance(neighbor, goalTile); // F = G + dist to goal
-                            if (currentTile != startTile && currentTile.NewNeighbors.Count > 1 && CheckIfSameDir(currentTile, neighbor)) // IF not in a tunnel and going straight THEN PENALIZE (to encourage looking at different directions)
-                            {
-                                neighbor.F += 1.1f; //1.1: U oikein
-                                                    //neighbor.G += 1f;
-                            }
+                            NEighbCheck.Parent = currentTile.Parent;
+                            NEighbCheck.G = currentTile.Parent.G + StraightDistance(NEighbCheck, currentTile.Parent); // G = parent's G + straightDist from parent
+                            NEighbCheck.F = NEighbCheck.G + CubeDistance(NEighbCheck, goalTile); // F = G + CubeDist to goal
+
+                            //if (currentTile != startTile && currentTile.NewNeighbors.Count > 1 && CheckIfContinuedDir(currentTile, NEighbCheck))
+                            //    NEighbCheck.F += 1.1f;
                         }
-						else
-						{
-							neighbor.G = newG;
-							neighbor.F = newG + CubeDistance(neighbor, goalTile);
-							neighbor.Parent = currentTile;
-						}
+                        else // we don't see back to parent from the neigbor, or straight hex line, or LockedWaypoint
+                        {
+                            NEighbCheck.G = currGPlus1;
+                            NEighbCheck.F = currGPlus1 + CubeDistance(NEighbCheck, goalTile);
+                            NEighbCheck.Parent = currentTile;
+
+                            // IF 2 NEW NEIGHBORS (not in a tunnel) AND CONTINUED DIR, ENCUMBER F to encourage looking at different directions
+                            if (currentTile != startTile && currentTile.NewNeighbors.Count > 1 && CheckIfContinuedDir(currentTile, NEighbCheck))
+                                NEighbCheck.F += 0.001f;
+                        }
                     }
-                    else if (newG < neighbor.G) // an old friend and in a better light than before
+                    else if (currGPlus1 < NEighbCheck.G) // an old friend in a better light than before
                     {
-                        if (CheckLOS(neighbor.MapCoord, currentTile.Parent.MapCoord))
+                        if (!NEighbCheck.LockedWaypoint && CheckLOS(NEighbCheck.MapCoord, currentTile.Parent.MapCoord, true) && !CheckIfStraightHexLine(NEighbCheck, currentTile.Parent)) //Check if we see to current parent from old friend (IGNORE IF PARENT IS IN A SRAIGHT HEX LINE)
                         {
-                            neighbor.Parent = currentTile.Parent;
-                            neighbor.G = currentTile.Parent.G + StraightDistance(neighbor, currentTile.Parent);
-                            neighbor.F = neighbor.G + CubeDistance(neighbor, goalTile);
+                            NEighbCheck.Parent = currentTile.Parent;
+                            NEighbCheck.G = currentTile.Parent.G + StraightDistance(NEighbCheck, currentTile.Parent);
+                            NEighbCheck.F = NEighbCheck.G + CubeDistance(NEighbCheck, goalTile);
                         }
-                        else
-                        {
-                            neighbor.G = newG;
-                            neighbor.F = newG + CubeDistance(neighbor, goalTile);
-                            neighbor.Parent = currentTile; // omamod
+                        else //normal step, set currTile as par
+                        { 
+                            NEighbCheck.G = currGPlus1;
+                            NEighbCheck.F = currGPlus1 + CubeDistance(NEighbCheck, goalTile);
+                            NEighbCheck.Parent = currentTile; // omamod
                         }
-                        neighbor.Checked = false; // omamod
-                        neighbor.InOpenList = true; // omamod
-                        OpenList.Add(neighbor); // omamod
+                        NEighbCheck.Checked = false; // omamod
+                        NEighbCheck.InOpenList = true; // omamod
+                        OpenList.Add(NEighbCheck); // omamod
                     }
-					currentTile.NewNeighbors.Remove(neighbor);
+                    Found:
+					    currentTile.NewNeighbors.Remove(NEighbCheck);
                 }
                 OpenList.Remove(currentTile);
                 currentTile.Checked = true;
             }
             return new List<Vector2>(); //--------------------unreachable
         }
-        
+
         //------Old method for multiple goalpoints
-		//public List<Vector2> FindPath(Point startPoint, int[] goalPointIndexes)
-		//{
-		//    //---------Check which of the creature's goalpoints are open
-		//    List<int> openGoalPointIndexes = new List<int>();
-		//    for (int k = 0; k < goalPointIndexes.Length; k++)
-		//    {
-		//        if (HexMap.GoalPointTimetable[goalPointIndexes[k]] <= HexMap.mapTimer)
-		//            openGoalPointIndexes.Add(goalPointIndexes[k]);
-		//    }
-		//    if (openGoalPointIndexes.Count == 0)
-		//        return new List<Vector2>{HexMap.ToScreenLocation(startPoint)};
+        //public List<Vector2> FindPath(Point startPoint, int[] goalPointIndexes)
+        //{
+        //    //---------Check which of the creature's goalpoints are open
+        //    List<int> openGoalPointIndexes = new List<int>();
+        //    for (int k = 0; k < goalPointIndexes.Length; k++)
+        //    {
+        //        if (HexMap.GoalPointTimetable[goalPointIndexes[k]] <= HexMap.mapTimer)
+        //            openGoalPointIndexes.Add(goalPointIndexes[k]);
+        //    }
+        //    if (openGoalPointIndexes.Count == 0)
+        //        return new List<Vector2>{HexMap.ToScreenLocation(startPoint)};
 
-		//    //---------Declare an array of lists of pathpoints
-		//    List<Point>[] Paths = new List<Point>[openGoalPointIndexes.Count];
-		//    for (int x = 0; x < Paths.Length; x++)
-		//        Paths[x] = new List<Point>();
-                
-		//    List<Vector2> ChosenPath = new List<Vector2>();
+        //    //---------Declare an array of lists of pathpoints
+        //    List<Point>[] Paths = new List<Point>[openGoalPointIndexes.Count];
+        //    for (int x = 0; x < Paths.Length; x++)
+        //        Paths[x] = new List<Point>();
 
-		//    //---------The big loop to find paths to open goalpoints
-		//    for (int g = 0; g < openGoalPointIndexes.Count; g++)
-		//    {
-		//        if (startPoint == HexMap.GoalPoints[openGoalPointIndexes[g]])
-		//        {
-		//            ChosenPath.Add(HexMap.ToScreenLocation(startPoint));
-		//            return ChosenPath;
-		//        }
-		//        ResetTileValues();
+        //    List<Vector2> ChosenPath = new List<Vector2>();
 
-		//        Tile startTile = openTiles[startPoint.X, startPoint.Y];
-		//        Tile goalTile = openTiles[HexMap.GoalPoints[openGoalPointIndexes[g]].X, HexMap.GoalPoints[openGoalPointIndexes[g]].Y];
+        //    //---------The big loop to find paths to open goalpoints
+        //    for (int g = 0; g < openGoalPointIndexes.Count; g++)
+        //    {
+        //        if (startPoint == HexMap.GoalPoints[openGoalPointIndexes[g]])
+        //        {
+        //            ChosenPath.Add(HexMap.ToScreenLocation(startPoint));
+        //            return ChosenPath;
+        //        }
+        //        ResetTileValues();
 
-		//        startTile.InOpenList = true;
-		//        startTile.G = 0;
-		//        startTile.F = HeuristicDistance(startPoint, goalTile.MapCoord);
-		//        OpenList.Add(startTile);
+        //        Tile startTile = openTiles[startPoint.X, startPoint.Y];
+        //        Tile goalTile = openTiles[HexMap.GoalPoints[openGoalPointIndexes[g]].X, HexMap.GoalPoints[openGoalPointIndexes[g]].Y];
 
-		//        while (OpenList.Count > 0)
-		//        {
-		//            Tile currentTile = FindBestTile();
-		//            if (currentTile == null)
-		//            {
-		//                Debug.WriteLine("current tile null!");
-		//                break;
-		//            }
-		//            if (currentTile == goalTile)
-		//            {
-		//                OpenList.Clear(); //oks hyvä..?
-		//                ResolvedList.Add(goalTile);
-		//                Tile parentTile = goalTile.Parent;
+        //        startTile.InOpenList = true;
+        //        startTile.G = 0;
+        //        startTile.F = HeuristicDistance(startPoint, goalTile.MapCoord);
+        //        OpenList.Add(startTile);
 
-		//                do
-		//                {
-		//                    ResolvedList.Add(parentTile);
-		//                    parentTile = parentTile.Parent;
-		//                } while (parentTile != null);                        
+        //        while (OpenList.Count > 0)
+        //        {
+        //            Tile currentTile = FindBestFTile();
+        //            if (currentTile == null)
+        //            {
+        //                Debug.WriteLine("current tile null!");
+        //                break;
+        //            }
+        //            if (currentTile == goalTile)
+        //            {
+        //                OpenList.Clear(); //oks hyvä..?
+        //                ResolvedList.Add(goalTile);
+        //                Tile parentTile = goalTile.Parent;
 
-		//                for (int ib = ResolvedList.Count -1; ib >= 0; ib--)
-		//                    Paths[g].Add(new Point(ResolvedList[ib].MapCoord.X, ResolvedList[ib].MapCoord.Y)); 
+        //                do
+        //                {
+        //                    ResolvedList.Add(parentTile);
+        //                    parentTile = parentTile.Parent;
+        //                } while (parentTile != null);                        
 
-		//                continue;
-		//            }
+        //                for (int ib = ResolvedList.Count -1; ib >= 0; ib--)
+        //                    Paths[g].Add(new Point(ResolvedList[ib].MapCoord.X, ResolvedList[ib].MapCoord.Y)); 
 
-		//            for (int i = 0; i < currentTile.Neighbors.Length; i++)
-		//            {
-		//                Tile neighbor = currentTile.Neighbors[i];
-		//                if (neighbor == null || !neighbor.IsOpen)
-		//                    continue;
-		//                float newG = currentTile.G + 1;
-		//                float newF = newG + HeuristicDistance(neighbor.MapCoord, goalTile.MapCoord); //----- OLI ENNEN "newF = neighbor.G + H"   !!!
+        //                continue;
+        //            }
 
-		//                if (!neighbor.InOpenList && !neighbor.Checked) // if a new acquaintance
-		//                {
-		//                    neighbor.G = newG;
-		//                    neighbor.F = newF;
-		//                    neighbor.Parent = currentTile;
-		//                    neighbor.InOpenList = true;
-		//                    OpenList.Add(neighbor);
-		//                }
-		//                else // if an old friend
-		//                {
-		//                    if (neighbor.G > newG)
-		//                    {
-		//                        neighbor.G = newG;
-		//                        neighbor.F = newF;
-		//                        neighbor.Parent = currentTile;
-		//                    }
-		//                }
-		//            }
-		//            OpenList.Remove(currentTile);
-		//            //Debug.WriteLine(currentTile.MapCoord);
-		//            currentTile.Checked = true;
-		//        }                
-		//    }
-            
-		//    /*foreach (List<Point> path in Paths)
-		//    { foreach (Point pathpoint in path)
-		//        {
-		//            Debug.WriteLine(pathpoint);
-		//        }
-		//    }*/
-            
-		//    int bestPathIndex = 0;
-		//    if (Paths.Length > 1)
-		//    {
-		//        int fewestPoints = int.MaxValue;                
-		//        for (int i = 0; i < Paths.Length; i++)
-		//        {
-		//            if (Paths[i].Count < fewestPoints)
-		//            {
-		//                fewestPoints = Paths[i].Count;
-		//                bestPathIndex = i;
-		//            }
-		//        }
-		//    }
-		//    foreach (Point p in Paths[bestPathIndex])
-		//        ChosenPath.Add(HexMap.ToScreenLocation(p));
+        //            for (int i = 0; i < currentTile.Neighbors.Length; i++)
+        //            {
+        //                Tile NEighbCheck = currentTile.Neighbors[i];
+        //                if (NEighbCheck == null || !NEighbCheck.IsOpen)
+        //                    continue;
+        //                float currGPlus1 = currentTile.G + 1;
+        //                float newF = currGPlus1 + HeuristicDistance(NEighbCheck.MapCoord, goalTile.MapCoord); //----- OLI ENNEN "newF = NEighbCheck.G + H"   !!!
 
-		//    return ChosenPath;
-		//}
+        //                if (!NEighbCheck.InOpenList && !NEighbCheck.Checked) // if a new acquaintance
+        //                {
+        //                    NEighbCheck.G = currGPlus1;
+        //                    NEighbCheck.F = newF;
+        //                    NEighbCheck.Parent = currentTile;
+        //                    NEighbCheck.InOpenList = true;
+        //                    OpenList.Add(NEighbCheck);
+        //                }
+        //                else // if an old friend
+        //                {
+        //                    if (NEighbCheck.G > currGPlus1)
+        //                    {
+        //                        NEighbCheck.G = currGPlus1;
+        //                        NEighbCheck.F = newF;
+        //                        NEighbCheck.Parent = currentTile;
+        //                    }
+        //                }
+        //            }
+        //            OpenList.Remove(currentTile);
+        //            //Debug.WriteLine(currentTile.MapCoord);
+        //            currentTile.Checked = true;
+        //        }                
+        //    }
 
+        //    /*foreach (List<Point> path in Paths)
+        //    { foreach (Point pathpoint in path)
+        //        {
+        //            Debug.WriteLine(pathpoint);
+        //        }
+        //    }*/
+
+        //    int bestPathIndex = 0;
+        //    if (Paths.Length > 1)
+        //    {
+        //        int fewestPoints = int.MaxValue;                
+        //        for (int i = 0; i < Paths.Length; i++)
+        //        {
+        //            if (Paths[i].Count < fewestPoints)
+        //            {
+        //                fewestPoints = Paths[i].Count;
+        //                bestPathIndex = i;
+        //            }
+        //        }
+        //    }
+        //    foreach (Point p in Paths[bestPathIndex])
+        //        ChosenPath.Add(HexMap.ToScreenLocation(p));
+
+        //    return ChosenPath;
+        //}
+        float pathTotalDist;
         List<Vector2> FinalPath(Tile startTile, Tile goalTile)
         {
+            stringpullStepsG.Clear();
+            stringpullStepsS.Clear();
+            Tile tileFromWhichCurrentFurthestLOS = null;
 			List<Vector2> finalPath = new List<Vector2>();
 			ResolvedList.Add(goalTile);
             Tile parentTile = goalTile.Parent;
@@ -441,85 +445,123 @@ namespace AlkuTD
             while (parentTile != startTile);
 			ResolvedList.Add(startTile);
 
-            //ResolvedList.Remove(ResolvedList[0].Parent);
-            /*Tile currentTile;
-            for (int i = 0; i < ResolvedList.Count -2; i++)
+            #region POST-STRINGPULLING (jos ennätyspitkällä lopusta alkua kohti nähty vanhempi ei oo samaan suuntaan ku vanha enkka, vaihetaan aiempien vanhemmaksi!
+            Tile currTile;
+            Tile peekedTile;
+            int furthestParentIdx = 0;
+            int k = ResolvedList.Count - 1;
+            for (int i = 0; i < ResolvedList.Count;)
             {
-                currentTile = ResolvedList[i];
-                for (int k = i+1; k < ResolvedList.Count && ResolvedList[k] != goalTile && CheckLOS(currentTile.MapCoord, ResolvedList[k].Parent.MapCoord);)
+                currTile = ResolvedList[i]; //from goal (currTile) toward
+                peekedTile = ResolvedList[k]; //far start (peekedTile)
+                if (!stringpullStepsG.Contains(currTile))
+                    stringpullStepsG.Add(currTile);
+
+                if (!stringpullStepsS.Contains(peekedTile))
+                    stringpullStepsS.Add(peekedTile);
+
+                if (CubeDistance(currTile, peekedTile) <= 1)
                 {
-                    Tile seenParent = ResolvedList[k].Parent;
-                    currentTile.Parent = seenParent;
-                    ResolvedList.Remove(ResolvedList[k]);
+                    //currTile.Parent = peekedTile;
+
+                    if (peekedTile == startTile)
+                    {
+                        currTile.Parent = startTile;
+                        break;
+                    }
+                    i++;
+                    if (k > furthestParentIdx)
+                    {
+                        furthestParentIdx = k;
+                        tileFromWhichCurrentFurthestLOS = ResolvedList[i];
+                    }
+                    //furthestParentIdx = k;
+                    k = ResolvedList.Count - 1;
                 }
-            }*/
-            //currentTile.Parent = goalTile;
+                else if (CheckLOS(currTile.MapCoord, peekedTile.MapCoord, true)) //we see toward start
+                {
 
-            /*int i = 0;
-            while (CheckLOS(ResolvedList[i].MapCoord, ResolvedList[i].Parent.Parent.MapCoord))
+                    currTile.Parent = peekedTile;
+
+                    if (k > furthestParentIdx) //peeked tile is furthest we've seen
+                    {
+                        if (tileFromWhichCurrentFurthestLOS != null) //if path from currTile to furthestSeen (A-B-D) is shorter than prev (A-C-D), set new parents
+                        {
+                            float oldPathDist = StraightDistance(tileFromWhichCurrentFurthestLOS, ResolvedList[furthestParentIdx]);
+                            oldPathDist += StraightDistance(ResolvedList[furthestParentIdx], peekedTile);
+                            float newPathDist = StraightDistance(tileFromWhichCurrentFurthestLOS, currTile);
+                            newPathDist += StraightDistance(currTile, peekedTile);
+
+                            if (newPathDist < oldPathDist)
+                            {
+                                for (int j = 0; j < furthestParentIdx; j++)
+                                {
+                                    if (ResolvedList[j].Parent == ResolvedList[furthestParentIdx])
+                                        ResolvedList[j].Parent = currTile;
+                                }
+                            }
+                            //Debug.WriteLine($"newPathDist {newPathDist} < oldPathDist {oldPathDist} = {newPathDist < oldPathDist}");
+
+                            //Vector3 dirCurrToSeen = GetDir(currTile, peekedTile);
+                            //Vector3 dirOldToNewParent = GetDir(ResolvedList[furthestParentIdx], peekedTile);
+                            //if (dirCurrToSeen != dirOldToNewParent)
+                            //{
+                            //    for (int j = 0; j < furthestParentIdx; j++)
+                            //    {
+                            //        if (ResolvedList[j].Parent == ResolvedList[furthestParentIdx])
+                            //            ResolvedList[j].Parent = currTile;
+                            //    }
+                            //}
+                        }
+                        furthestParentIdx = k;
+                        tileFromWhichCurrentFurthestLOS = ResolvedList[i];
+                    }
+
+                    if (peekedTile == startTile)
+                        break;
+                    i++;
+                    k = ResolvedList.Count - 1;
+                }
+                else if (k > 0) //peek closer away from start
+                    k--;
+            }
+
+            ResolvedList.Clear(); //---- Make the ResolvedList again with stringpulled parents
+            ResolvedList.Add(goalTile);
+            parentTile = goalTile.Parent;
+            do
             {
-                ResolvedList[i].Parent = ResolvedList[i].Parent.Parent;
-                ResolvedList.Remove(ResolvedList[i].Parent);
-            }*/
+                ResolvedList.Add(parentTile);
+                parentTile = parentTile.Parent;
+            }
+            while (parentTile != startTile);
+            ResolvedList.Add(startTile);
 
-			#region OLD TRY AT POST-SMOOTHING
-			//List<Point> finPoints = new List<Point>();
-			//Point currTile = ResolvedList[0].MapCoord;
-			//Point hoppedTile;
+            #endregion
 
-			//for (int i = 0; i < ResolvedList.Count - 2; i++)
-			//{
-			//    hoppedTile = ResolvedList[i + 2].MapCoord;
-			//    if (!CheckLOS(currTile, hoppedTile))
-			//    {
-			//        finalPath.Insert(0, HexMap.ToScreenLocation(currTile));
-			//        finPoints.Insert(0, currTile);
-			//        if (i == ResolvedList.Count - 3)
-			//        {
-			//            finalPath.Insert(0, HexMap.ToScreenLocation(ResolvedList[i + 1].MapCoord));
-			//            finPoints.Insert(0, ResolvedList[i + 1].MapCoord);
-			//        }
+            foreach (Tile t in ResolvedList)
+                finalPath.Insert(0, HexMap.ToScreenLocation(t.MapCoord));
 
-			//        currTile = ResolvedList[i + 1].MapCoord;
-			//    }
-			//    else if (i == ResolvedList.Count - 3)
-			//        finalPath.Insert(0, HexMap.ToScreenLocation(currTile));
-
-			//    foreach (Point p in finPoints)
-			//        Debug.WriteLine(p.ToString());
-			//    Debug.WriteLine("");
-			//}
-			//finalPath.Insert(0, HexMap.ToScreenLocation(ResolvedList[ResolvedList.Count - 1].MapCoord));
-			#endregion
-
-			#region OLD TRY AT SIMULT-SMOOTHING
-			//for (int i = ResolvedList.Count - 1; i >= 0; i--)
-			//{
-				//if (!ResolvedList[i].OnAltPath) //----OLD TRY AT SIMULT-SMOOTHING
-				//{
-					//finalPath.Add(HexMap.ToScreenLocation(ResolvedList[i].MapCoord.X, ResolvedList[i].MapCoord.Y));
-				//}
-				//else if (!CheckLOS(currTile, ResolvedList[i].MapCoord))
-				//{
-				//    finalPath.Add(HexMap.ToScreenLocation(ResolvedList[i].MapCoord.X, ResolvedList[i].MapCoord.Y));
-				//}
-			//}
-			#endregion
-
-			foreach (Tile t in ResolvedList)
-				finalPath.Insert(0, HexMap.ToScreenLocation(t.MapCoord));
+            pathTotalDist = 0; //---- TarkistusMatkaLasku
+            for (int j = 1; j < finalPath.Count; j++)
+            {
+                pathTotalDist += StraightDistance(ResolvedList[j], ResolvedList[j - 1]);
+            }
 
             return finalPath;
         }
 
-		public bool CheckLOS(Point A, Point B)
+		public bool CheckLOS(Point A, Point B, bool withClearance)
 		{
 			Vector2 a = HexMap.ToScreenLocation(A);
 			Vector2 b = HexMap.ToScreenLocation(B);
 			Vector2 broadened;
 			Vector2 dir = Vector2.Normalize(b - a);
 			Vector2 perpDir = new Vector2(dir.Y, -dir.X);
-			int clearance = (int)(HexMap.TileHalfWidth * 0.4f); // the width of the ray
+            int clearance;
+            if (withClearance)
+                clearance = (int)(HexMap.TileHalfWidth * 0.363f); // the width of the ray (0.363 AAPFT1(1) menee mut PathfindtestU ei nätti
+            else clearance = 0;
 
 			a += (HexMap.TileHalfHeight + 6) * dir; //start raycasting at the tile border + some
 			int targetDist = (int)Vector2.Distance(b, a);
@@ -540,7 +582,43 @@ namespace AlkuTD
 			return true;
 		}
 
-		public bool CheckIfSameDir(Tile curr, Tile next)
+        public List<Tile> GetTilesInBetween(Point A, Point B, bool withClearance)
+        {
+            Vector2 a = HexMap.ToScreenLocation(A);
+            Vector2 b = HexMap.ToScreenLocation(B);
+            Vector2 broadened;
+            Vector2 dir = Vector2.Normalize(b - a);
+            Vector2 perpDir = new Vector2(dir.Y, -dir.X);
+            int clearance;
+            if (withClearance)
+                clearance = (int)(HexMap.TileHalfWidth * 0.4f); // the width of the ray
+            else clearance = 0;
+
+            a += (HexMap.TileHalfHeight + 6) * dir; //start raycasting at the tile border + some
+            int targetDist = (int)Vector2.Distance(b - (HexMap.TileHalfHeight+1) * dir, a); // don't include the endpoint tile
+
+            List<Tile> tileList = new List<Tile>();
+
+            for (int i = 0; i < targetDist; i++)
+            {
+                broadened = i % 2 == 1 ? a + clearance * perpDir : a - clearance * perpDir; // check collision at clearance distance perpendicular to the ray (+odd, -even)
+                Point coord = HexMap.ToMapCoordinate(broadened);
+                if (coord.X >= 0 && coord.Y >= 0 && coord.X < HexMap.Layout.GetLength(1) && coord.Y < HexMap.Layout.GetLength(0))
+                {
+                    char tileChar = HexMap.Layout[coord.Y, coord.X];
+                    if (tileChar == '.' || tileChar == '\'')
+                    {
+                        Tile tileUnderRaycastPoint = openTiles[coord.X, coord.Y];
+                        if (!tileList.Contains(tileUnderRaycastPoint))
+                            tileList.Add(tileUnderRaycastPoint);
+                    }
+                    a += dir;
+                }
+            }
+            return tileList;
+        }
+
+        public bool CheckIfContinuedDir(Tile curr, Tile next)
 		{
 			Vector3 dirCurrNext = Vector3.Normalize(next.CubeCoord - curr.CubeCoord);
 			Vector3 dirParentNext = Vector3.Normalize(next.CubeCoord - curr.Parent.CubeCoord);
@@ -550,10 +628,34 @@ namespace AlkuTD
 			else return false;
 		}
 
+        public bool CheckIfStraightHexLine(Tile to, Tile from)
+        {
+            if (to.CubeCoord.X == from.CubeCoord.X || to.CubeCoord.Y == from.CubeCoord.Y || to.CubeCoord.Z == from.CubeCoord.Z)
+                return true;
+            else return false;
+        }
+        Vector3 GetDir(Tile from, Tile to)
+        {
+            Vector3 retVec = Vector3.Normalize(to.CubeCoord - from.CubeCoord);
+            retVec.X = (float)Math.Round(retVec.X, 5);
+            retVec.Y = (float)Math.Round(retVec.Y, 5);
+            retVec.Z = (float)Math.Round(retVec.Z, 5);
+            return retVec;
+        }
+
         public void Draw (SpriteBatch sb) //for debug visualisation of tile check order
         {
-            for (int i = 0; i < pathFindSteps.Count; i++)
-                sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(pathFindSteps[i]), Color.PeachPuff);
+            //Vector2 drawPosBonus = new Vector2(0, -18);
+            //Vector2 drawPosBonus1 = new Vector2(-8, 0);
+            //Vector2 drawPosBonus2 = new Vector2(-8, 12);
+            //for (int i = 0; i < pathFindSteps.Count; i++)
+            //    sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(pathFindSteps[i].MapCoord) + drawPosBonus, pathFindSteps[i].LockedWaypoint ? Color.Red : Color.PeachPuff);
+            //for (int i = 0; i < stringpullStepsG.Count; i++)
+            //    sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(stringpullStepsG[i].MapCoord) + drawPosBonus1, Color.GreenYellow);
+            //for (int i = 0; i < stringpullStepsS.Count; i++)
+            //    sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(stringpullStepsS[i].MapCoord) + drawPosBonus2, Color.Orange);
+
+            sb.DrawString(CurrentGame.font, "Path total distance: " + Environment.NewLine + Math.Round(pathTotalDist, 1) + Environment.NewLine + Math.Round(ResolvedList[0].F, 1), Vector2.Zero, Color.AliceBlue);
         }
     }
 }

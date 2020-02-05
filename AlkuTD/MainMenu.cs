@@ -179,7 +179,7 @@ namespace AlkuTD
                 //try
                 //{
                     string[] read;
-					HexMap loadedMap = new HexMap(ParentGame, new char[1, 1], null, null, CurrentGame.players);
+					HexMap loadedMap = new HexMap(ParentGame, mapButton.Text, new char[1, 1], null, null, CurrentGame.players);
                     char[,] layout = new char[11, 21];
                     List<Point> spawnPoints = new List<Point>();
                     List<Point> goalPoints = new List<Point>();
@@ -239,7 +239,7 @@ namespace AlkuTD
 						read = reader.ReadLine().Split(':', ',');
                         initGenePoints = new int[] { int.Parse(read[1]), int.Parse(read[2]), int.Parse(read[3]) };
 
-						loadedMap = new HexMap(ParentGame, layout, spawnPoints.ToArray(), goalPoints.ToArray(), CurrentGame.players);
+						loadedMap = new HexMap(ParentGame, loadedMap.Name, layout, spawnPoints.ToArray(), goalPoints.ToArray(), CurrentGame.players);
 						CurrentGame.currentMap = loadedMap;
 						CurrentGame.HUD.ParentMap = loadedMap;
                         for (int i = 0; i < initTowers.Count; i++)
@@ -480,10 +480,20 @@ namespace AlkuTD
 				CurrentGame.gameState = GameState.MapEditor;
 				CurrentGame.HUD.MapEditorSpawnPoints = new List<Point>();
 				CurrentGame.HUD.MapEditorGoalPoints = new List<Point>();
-				CurrentGame.currentMap = new HexMap(ParentGame, new char[11, 21], new Point[1], new Point[1], new Player[] { new Player("map editor person") }); //-----------------------------------------------täällä !;
+				CurrentGame.currentMap = new HexMap(ParentGame, "newMap", new char[11, 21], new Point[1], new Point[1], new Player[] { new Player("map editor person") }); //-----------------------------------------------täällä !;
 				CurrentGame.HUD.ParentMap = CurrentGame.currentMap;
 				CurrentGame.currentMap.MapEditorTempWaves = new List<Wave>();
-				CurrentGame.HUD.EditorMapLoad(MapButtons[0]);
+                //CurrentGame.HUD.EditorMapLoad(MapButtons[1]);
+                int rightIndex = 0;
+                for (int i = 0; i < MapButtons.Length; i++)
+                {
+                    if (MapButtons[i].Text == "Monimaailma1")
+                    {
+                        rightIndex = i;
+                        break;
+                    }
+                }
+                CurrentGame.HUD.EditorMapLoad(MapButtons[rightIndex]);
 			}
 
             if (keyboard.IsKeyDown(Keys.Escape)) menuState = MenuState.Main;
@@ -592,7 +602,7 @@ namespace AlkuTD
                         CurrentGame.gameState = GameState.MapEditor;
 						CurrentGame.HUD.MapEditorSpawnPoints = new List<Point>();
 						CurrentGame.HUD.MapEditorGoalPoints = new List<Point>();
-						CurrentGame.currentMap = new HexMap(ParentGame, new char[11, 21], new Point[1], new Point[1], new Player[] { new Player("map editor person") }); //-----------------------------------------------täällä !;
+						CurrentGame.currentMap = new HexMap(ParentGame, "newMap", new char[11, 21], new Point[1], new Point[1], new Player[] { new Player("map editor person") }); //-----------------------------------------------täällä !;
 						CurrentGame.HUD.ParentMap = CurrentGame.currentMap;
 						CurrentGame.currentMap.MapEditorTempWaves = new List<Wave>();
 						CurrentGame.HUD.EditorMapLoad(MapButtons[m]);
@@ -608,7 +618,7 @@ namespace AlkuTD
                     for (int dim1 = 0; dim1 < emptyLayout.GetLength(0); dim1++)
                         for (int dim2 = 0; dim2 < emptyLayout.GetLength(1); dim2++)
                             emptyLayout[dim1, dim2] = ' ';
-                    HexMap TempMap = new HexMap(ParentGame, emptyLayout, new Point[1], new Point[1], new Player[]{new Player("map editor person")}); //-----------------------------------------------täällä temp mappia ku static CoordToScrLoc puuttuu!
+                    HexMap TempMap = new HexMap(ParentGame, "newMap", emptyLayout, new Point[1], new Point[1], new Player[]{new Player("map editor person")}); //-----------------------------------------------täällä temp mappia ku static CoordToScrLoc puuttuu!
 					CurrentGame.HUD.MapEditorSpawnPoints = new List<Point>();
 					CurrentGame.HUD.MapEditorGoalPoints = new List<Point>();
                     TempMap.MapEditorTempWaves = new List<Wave>();
@@ -634,7 +644,7 @@ namespace AlkuTD
                     MapButtons[m].Update(CurrentGame.mouse, CurrentGame.prevMouse);
                     if (MapButtons[m].State == ButnState.Released)
                     {
-                        HexMap TempMap = new HexMap(ParentGame, new char[11, 21], null, null, new Player[] { new Player("map editor person") }); //----------täällä temp mappia ku static CoordToScrLoc puuttuu!
+                        HexMap TempMap = new HexMap(ParentGame, "newMap", new char[11, 21], null, null, new Player[] { new Player("map editor person") }); //----------täällä temp mappia ku static CoordToScrLoc puuttuu!
 						CurrentGame.currentMap = TempMap;
                         LoadMap(MapButtons[m]);
                     }

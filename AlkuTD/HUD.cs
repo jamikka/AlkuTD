@@ -386,6 +386,7 @@ namespace AlkuTD
                         List<Point> goalPoints = new List<Point>();
 
                         MapNameBox.Text = mapButton.Text;
+                        ParentMap.Name = mapButton.Text;
 
                         for (int row = 0; row < 11; row++)
                         {
@@ -960,17 +961,23 @@ namespace AlkuTD
             else
                 #region MAP EDITOR
             {
+                
+
                 #region ---------------------------   BUTTON UPDATES   --------------------------------
-				#region MENU BUTTONS
-				for (int m = 0; m < MapEditorMenuButtons.Length; m++)
+                #region MENU BUTTONS
+                for (int m = 0; m < MapEditorMenuButtons.Length; m++)
                 {
                     MapEditorMenuButtons[m].Update(mouse, prevMouse);
+
+                    if (keyboard.IsKeyDown(Keys.F5) && prevKeyboard.IsKeyUp(Keys.F5)) // F5 starts mapTest
+                        MapEditorMenuButtons[0].State = ButnState.Released;
+
                     if (MapEditorMenuButtons[m].State == ButnState.Released)
                     {
                         switch (m)
 						{
-							case 0:
-								#region LOAD TEST
+							case 0: 
+								    #region LOAD TEST
 									ParentMap.SpawnPoints = MapEditorSpawnPoints.ToArray(); // case 0: TEST
                                     ParentMap.GoalPoints = MapEditorGoalPoints.ToArray();
                                     Array.Copy(ParentMap.Layout, ParentMap.InitLayout, ParentMap.Layout.Length);
@@ -1026,7 +1033,7 @@ namespace AlkuTD
                                     }   break;
 							#endregion
 							case 1:
-								#region SAVE IF NOT EXISTING
+								    #region SAVE IF NOT EXISTING
 								if (MapNameBox.Text == "")
                                         fileName = "unnamed";
                                     else fileName = MapNameBox.Text;
