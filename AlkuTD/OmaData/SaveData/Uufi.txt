@@ -1,6 +1,0 @@
-CompletedLevels:
-2
-HighScores:
-530
-670
-0

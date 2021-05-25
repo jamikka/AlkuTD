@@ -81,9 +81,9 @@ namespace AlkuTD
 		public float FireRateSec;
         public float BulletSpeed;
         public Texture2D[] Textures;
-        Vector2 texOrigin;
+        internal Vector2 texOrigin;
         internal Texture2D bulletTexture;
-        Texture2D[] radiusTextures;
+        internal Texture2D[] radiusTextures;
         internal List<Bullet> Bullets;
         internal float angle;
         internal float angleOffset;
@@ -93,7 +93,7 @@ namespace AlkuTD
         public int BuildTime;
         public int buildTimer;
         public int buildFinishedCounter;
-        int buildFinishedInit = 50; //------------------------------is this the real life?
+        internal int buildFinishedInit = 50; //------------------------------is this the real life?
         //public Element Element;
 		public GeneSpecs GeneSpecs;
 		public ColorPriority ElemPriority;
@@ -521,6 +521,7 @@ namespace AlkuTD
 			}
 			return false;
 		}
+
 		public void Disassemble()
 		{
 			int energyYield = 0;
@@ -539,6 +540,7 @@ namespace AlkuTD
 		internal Creature currentTarget;
 		internal List<Creature> previousTargets;
 		internal Creature prevTarget;
+
 		internal virtual void Hunt(List<Creature> aliveCreatures)
         {
 			if (aliveCreatures.Count == 0)
@@ -864,6 +866,8 @@ namespace AlkuTD
             Type checkedType = t.GetType();
             if (checkedType == typeof(SniperTower))
                 return new SniperTower(t.MapCoord, t.UpgradeLvl, false);
+            else if (checkedType == typeof(ParticleEaterTower))
+                return new ParticleEaterTower(t.MapCoord, t.UpgradeLvl, false);
             else
                 return new Tower(t.Symbol, t.Name, t.mapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false);
         }
@@ -879,6 +883,8 @@ namespace AlkuTD
             Tower tempTower;
             if (checkedType == typeof(SniperTower))
                 tempTower = new SniperTower(mapCoord, t.UpgradeLvl, false);
+            else if (checkedType == typeof(ParticleEaterTower))
+                tempTower = new ParticleEaterTower(mapCoord, t.UpgradeLvl, false);
             else
                 tempTower = new Tower(t.Symbol, t.Name, mapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false);
             tempTower.buildTimer = 0;

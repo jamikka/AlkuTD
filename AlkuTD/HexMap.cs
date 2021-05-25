@@ -51,6 +51,7 @@ namespace AlkuTD
         public int[] PlayerInitGenePoints;
         public Player[] Players;
         public List<Creature> AliveCreatures;
+        public List<FloatingParticle> FloatingParticles;
         //public List<Tower> Towers;
 
         //public int[] SpawnTimes;
@@ -91,10 +92,10 @@ namespace AlkuTD
                                             ParentGame.Content.Load<Texture2D>("Tilering\\ringpartFill2"),
                                             ParentGame.Content.Load<Texture2D>("Tilering\\tileringPohj")};*/
 
-            wallTextures = new Texture2D[]{ ParentGame.Content.Load<Texture2D>("Tiles\\patternhex-66-57BOU2"/*"hex-66-57-04e"*/),
+            wallTextures = new Texture2D[]{ ParentGame.Content.Load<Texture2D>("Tiles\\hex-66-57-02"),//patternhex-66-57BOU2"/*"hex-66-57-04e"*/),
                                             ParentGame.Content.Load<Texture2D>("Tiles\\hex-66-57-04c"), //----1: Seinä2
                                             ParentGame.Content.Load<Texture2D>("Tiles\\hex-66-57-outline")}; //------grid
-            pathTexture = ParentGame.Content.Load<Texture2D>("Tiles\\polkuhex-66-57borderless"/*"hex-66-57-00"*/);
+            pathTexture = ParentGame.Content.Load<Texture2D>("Tiles\\hex-66-57-00");//polkuhex-66-57borderless"/*"hex-66-57-00"*/);
 
             tileTexCenter = new Vector2((float)Math.Round(wallTextures[0].Width / 2f), (float)Math.Round(wallTextures[0].Height / 2f));
 
@@ -127,6 +128,7 @@ namespace AlkuTD
             Pathfinder = new Pathfinder(this);
 
             AliveCreatures = new List<Creature>(); //before: max 20 (why?)
+            FloatingParticles = new List<FloatingParticle>();
             currentWave = -1;
             //ExampleTowers = new Tower[6] { new Tower("0", this, ParentGame.HUD.activeTileCoord, 75, 55, new Texture2D[] { game.Content.Load<Texture2D>("Towers\\TORN-66-57-väri1") }, (float)Math.PI * 0.5f, CurrentGame.pixel, 12f, 1, 0, new int[] { 0, 0 }, Element.None, 10, 200),
             //                               new Tower("1", this, ParentGame.HUD.activeTileCoord, 110, 20, new Texture2D[] { game.Content.Load<Texture2D>("Towers\\TORN-66-57-väri1") }, (float)Math.PI * 0.5f, CurrentGame.pixel, 12f, 25, 0, new int[] { 0, 0 }, Element.None, 100, 200),
@@ -140,15 +142,17 @@ namespace AlkuTD
                                            new SniperTower(Point.Zero, UpgLvl.Basic, true),
                                            //new Tower('I', "Sniper 1", Point.Zero, 200, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 5, 0, 0, new float[] {0,0}, 30, 200, true),
                                            new Tower('O', "Slower 1", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.2f,200}, 10, 200, true),
-                                           new Tower('U', "Grabber 1", Point.Zero, 120, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
+                                           new ParticleEaterTower(Point.Zero, UpgLvl.Basic, true),
+                                           //new Tower('U', "Grabber 1", Point.Zero, 120, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
                                            new Tower('|', "Booster 1", Point.Zero, 350, 60, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 8f, 1, 0, 0, new float[] {0,0}, 15, 200, true),
 
-                                           new Tower('Ä', "Pruiter 2", Point.Zero, 75, 55, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri6") }, new GeneSpecs(), CurrentGame.ball, 12f, 0, 0, 0, new float[] {0,0}, 10, 200, true),
+                                           new Tower('Ä', "Pruiter 2", Point.Zero, 90, 55, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri6") }, new GeneSpecs(), CurrentGame.ball, 12f, 2, 0, 0, new float[] {0,0}, 8, 300, true),
                                            new Tower('Ë', "Splasher 2", Point.Zero, 250, 50, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN2") }, new GeneSpecs(), CurrentGame.ball, 2f, 3, DmgType.Splash, 25, new float[] {0,0}, 20, 200, true),
                                            new SniperTower(Point.Zero, UpgLvl.Advanced, true),
                                            //new Tower('Ï', "Sniper 2", Point.Zero, 225, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 15, 0, 0, new float[] {0,0}, 30, 200, true),
                                            new Tower('Ö', "Slower 2", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.4f,200}, 10, 200, true),
-                                           new Tower('Ü', "Grabber 2", Point.Zero, 125, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
+                                           new ParticleEaterTower(Point.Zero, UpgLvl.Advanced, true),
+                                           //new Tower('Ü', "Grabber 2", Point.Zero, 125, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
                                            new Tower('†', "Booster 2", Point.Zero, 155, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 15, 200, true),
 
                                            new Tower('Â', "Pruiter 3", Point.Zero, 125, 70, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri7") }, new GeneSpecs(), CurrentGame.ball, 18f, 3, 0, 0, new float[] {0,0}, 10, 200, true),
@@ -156,7 +160,8 @@ namespace AlkuTD
                                            new SniperTower(Point.Zero, UpgLvl.Max, true),
                                            //new Tower('Î', "Sniper 3", Point.Zero, 250, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 25, 0, 0, new float[] {0,0}, 30, 200, true),
                                            new Tower('Ô', "Slower 3", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.6f,200}, 10, 200, true),
-                                           new Tower('Û', "Grabber 3", Point.Zero, 130, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
+                                           new ParticleEaterTower(Point.Zero, UpgLvl.Max, true),
+                                           //new Tower('Û', "Grabber 3", Point.Zero, 130, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
                                            new Tower('‡', "Booster 3", Point.Zero, 160, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 15, 200, true)};
 
             Players = players;
@@ -322,6 +327,7 @@ namespace AlkuTD
             //waveTimer = 0;
             initSetupOn = true;
             AliveCreatures.Clear();
+            FloatingParticles.Clear();
 
             Players[0].Alive = true;
             Players[0].LifePoints = PlayerInitLife;
@@ -451,12 +457,15 @@ namespace AlkuTD
 				bool PKeyDown = CurrentGame.keyboard.IsKeyDown(Keys.P);
                 for (int w = 0; w < Waves.Length; w++)
                 {   for (int g = 0; g < Waves[w].Groups.Length; g++)
-                    {   for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
-                        {
-							Waves[w].Groups[g].Creatures[c].ShowingPath = PKeyDown;
-                        }
+                    {
+                        Waves[w].Groups[g].ShowingPath = PKeyDown;
+
+                        //             for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
+                        //                 {
+                        //Waves[w].Groups[g].Creatures[c].ShowingPath = PKeyDown;
+                        //                 }
                     }
-					if (w <= currentWave)
+                    if (w <= currentWave)
 						Waves[w].Update();
                 }
                 if (Waves[currentWave].Groups[0].spawnTimer == Waves[currentWave].Duration -1 && currentWave != Waves.GetUpperBound(0)) //------------------------------------------hmmmm
@@ -464,22 +473,33 @@ namespace AlkuTD
                     currentWave++;
 					HUD.UpdateWaveInfo();
                 }
+
+                for (int i = 0; i < FloatingParticles.Count; i++)
+                {
+                    FloatingParticles[i].Update();
+                }
+
                 mapTimer++;
             }
 			else //initSetupOn
 			{
 				for (int w = 0; w < Waves.Length; w++)
 				{   for (int g = 0; g < Waves[w].Groups.Length; g++)
-					{   for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
-						{
-							Waves[w].Groups[g].Creatures[c].ShowingPath = true;
-						}
-					}
+					{
+                        Waves[w].Groups[g].ShowingPath = true;
+                        //                  for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
+                        //{
+                        //	Waves[w].Groups[g].Creatures[c].ShowingPath = true;
+                        //}
+                    }
 				}
 			}
 
             for (int i = 0; i < Players[0].Towers.Count; i++)
+            {
                 Players[0].Towers[i].Update(AliveCreatures);
+                //Type chekType = Players[0].Towers[i].GetType();
+            }
         }
 
         public void Draw(SpriteBatch sb)
@@ -575,16 +595,22 @@ namespace AlkuTD
             }
             #endregion
 
+            for (int i = 0; i < FloatingParticles.Count; i++)
+            {
+                FloatingParticles[i].Draw(sb);
+            }
+
 			if (CurrentGame.gameState != GameState.MapEditor)
 			{
 				for (int w = 0; w < Waves.Length; w++)
 				{
 					for (int g = 0; g < Waves[w].Groups.Length; g++)
 					{
-						for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
-						{
-							Waves[w].Groups[g].Creatures[c].ShowPath(sb);
-						}
+						Waves[w].Groups[g].ShowPath(sb);
+						//for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
+						//{
+						//	Waves[w].Groups[g].Creatures[c].ShowPath(sb);
+						//}
 					}
 					Waves[w].Draw(sb);
 				}

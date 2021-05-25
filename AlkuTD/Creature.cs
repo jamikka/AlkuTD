@@ -46,7 +46,7 @@ namespace AlkuTD
 
         public bool Born;
         public bool Alive;
-        public bool ShowingPath;
+        //public bool ShowingPath;
 
         public Texture2D Spritesheet { get; set; }
         Vector2 Origin;
@@ -189,45 +189,45 @@ namespace AlkuTD
 			}
         }
 
-        float showPathFadeCycles = 5;
-        int showPathFade;
-        public void ShowPath(SpriteBatch sb)
-        {
-            if (ShowingPath)
-            {
-                if (showPathFade < showPathFadeCycles)
-                    showPathFade++;
-                for (int i = 0; i < Path.Count -1; i++)
-                {
-                    if (i < nextWaypoint -1)
-                        continue;
-                    //liukukatkoviiva (dashLine -tekstuurilla)
-                    sb.Draw(ParentGame.dashLine, new Rectangle((int)OrigPath[i].X, (int)OrigPath[i].Y, (int)Vector2.Distance(OrigPath[i], OrigPath[i+1]) /*ParentMap.TileHeight +1*/, 2),
-                            new Rectangle((int)(CurrentGame.gameTimer % 49.5f / 1.5f), 0, 33, 1), //old: ParentGame.GameTime.TotalGameTime.TotalMilliseconds % 825 / 25
-                            Color.White * 0.3f * (showPathFade / showPathFadeCycles),
-                            (float)Math.Atan2(OrigPath[i + 1].Y - OrigPath[i].Y, OrigPath[i + 1].X - OrigPath[i].X),
-                            Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
-                    //sb.Draw(healthbarTexture, new Rectangle((int)OrigPath[i].X, (int)OrigPath[i].Y, ParentMap.TileHeight, 1), null, Color.White * (showPathFade / showPathFadeCycles) * 0.4f, (float)Math.Atan2(OrigPath[i + 1].Y - OrigPath[i].Y, OrigPath[i + 1].X - OrigPath[i].X), Vector2.Zero, SpriteEffects.None, 0f);
-                    //sb.DrawString(ParentMap.ParentGame.font,"" +(int)(ParentGame.GameTime.TotalGameTime.TotalMilliseconds % 600 / 50), new Vector2(1200, 300), Color.Wheat);
-                }
-            }
-            else if (showPathFade > 0)
-            {
-                for (int i = 0; i < Path.Count - 1; i++)
-                {
-                    if (i < nextWaypoint - 1)
-                        continue;
-                    //liukukatkoviiva (dashLine -tekstuurilla)
-                    sb.Draw(ParentGame.dashLine, new Rectangle((int)OrigPath[i].X, (int)OrigPath[i].Y, ParentMap.TileHeight, 2),
-							new Rectangle((int)(CurrentGame.gameTimer % 49.5f / 1.5f), 0, 33, 1), 
-                            Color.White * 0.3f * (showPathFade / showPathFadeCycles),
-                            (float)Math.Atan2(OrigPath[i + 1].Y - OrigPath[i].Y, OrigPath[i + 1].X - OrigPath[i].X),
-                            Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
-                    //sb.Draw(healthbarTexture, new Rectangle((int)OrigPath[i].X, (int)OrigPath[i].Y, ParentMap.TileHeight, 1), null, Color.White * (showPathFade / showPathFadeCycles) * 0.4f, (float)Math.Atan2(OrigPath[i + 1].Y - OrigPath[i].Y, OrigPath[i + 1].X - OrigPath[i].X), Vector2.Zero, SpriteEffects.None, 0f);
-                }
-                showPathFade--;
-            }
-        }
+       // float showPathFadeCycles = 5;
+       // int showPathFade;
+       // public void ShowPath(SpriteBatch sb)
+       // {
+       //     if (ShowingPath)
+       //     {
+       //         if (showPathFade < showPathFadeCycles)
+       //             showPathFade++;
+       //         for (int i = 0; i < Path.Count -1; i++)
+       //         {
+       //             if (i < nextWaypoint -1)
+       //                 continue;
+       //             //liukukatkoviiva (dashLine -tekstuurilla)
+       //             sb.Draw(ParentGame.dashLine, new Rectangle((int)OrigPath[i].X, (int)OrigPath[i].Y, (int)Vector2.Distance(OrigPath[i], OrigPath[i+1]) /*ParentMap.TileHeight +1*/, 2),
+       //                     new Rectangle((int)(CurrentGame.gameTimer % 49.5f / 1.5f), 0, 33, 1), //old: ParentGame.GameTime.TotalGameTime.TotalMilliseconds % 825 / 25
+       //                     Color.White * 0.3f * (showPathFade / showPathFadeCycles),
+       //                     (float)Math.Atan2(OrigPath[i + 1].Y - OrigPath[i].Y, OrigPath[i + 1].X - OrigPath[i].X),
+       //                     Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+       //             //sb.Draw(healthbarTexture, new Rectangle((int)OrigPath[i].X, (int)OrigPath[i].Y, ParentMap.TileHeight, 1), null, Color.White * (showPathFade / showPathFadeCycles) * 0.4f, (float)Math.Atan2(OrigPath[i + 1].Y - OrigPath[i].Y, OrigPath[i + 1].X - OrigPath[i].X), Vector2.Zero, SpriteEffects.None, 0f);
+       //             //sb.DrawString(ParentMap.ParentGame.font,"" +(int)(ParentGame.GameTime.TotalGameTime.TotalMilliseconds % 600 / 50), new Vector2(1200, 300), Color.Wheat);
+       //         }
+       //     }
+       //     else if (showPathFade > 0)
+       //     {
+       //         for (int i = 0; i < Path.Count - 1; i++)
+       //         {
+       //             if (i < nextWaypoint - 1)
+       //                 continue;
+       //             //liukukatkoviiva (dashLine -tekstuurilla)
+       //             sb.Draw(ParentGame.dashLine, new Rectangle((int)OrigPath[i].X, (int)OrigPath[i].Y, ParentMap.TileHeight, 2),
+							//new Rectangle((int)(CurrentGame.gameTimer % 49.5f / 1.5f), 0, 33, 1), 
+       //                     Color.White * 0.3f * (showPathFade / showPathFadeCycles),
+       //                     (float)Math.Atan2(OrigPath[i + 1].Y - OrigPath[i].Y, OrigPath[i + 1].X - OrigPath[i].X),
+       //                     Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+       //             //sb.Draw(healthbarTexture, new Rectangle((int)OrigPath[i].X, (int)OrigPath[i].Y, ParentMap.TileHeight, 1), null, Color.White * (showPathFade / showPathFadeCycles) * 0.4f, (float)Math.Atan2(OrigPath[i + 1].Y - OrigPath[i].Y, OrigPath[i + 1].X - OrigPath[i].X), Vector2.Zero, SpriteEffects.None, 0f);
+       //         }
+       //         showPathFade--;
+       //     }
+       // }
         
         public void TakeAHit(Bullet bullet)
         {
@@ -240,7 +240,7 @@ namespace AlkuTD
 					GeneType creaturePrimaryArmor = ElemArmors.GetPrimaryElem();
 					float bStr = bullet.ElemSpecs.GetPrimaryElemStrength();
 					float cArm = ElemArmors.GetPrimaryElemStrength();
-					float armorReducedNormalDmg = (bullet.dmg * (1 - bStr)) * (1 - cArm); // normal vs armor = (dmg * (1-spec)) * (1-armor)
+					float armorReducedNormalDmg = (bullet.dmg /** (1 - bStr)*/) * (1 - cArm); // normal vs armor = (dmg * (1-spec)) * (1-armor)
 					float penetratingDmg = bullet.dmg * bStr; //----------------------- penetration = dmg * specialization
 
 					if (bulletPrimarySpec == creaturePrimaryArmor) // match
@@ -260,11 +260,12 @@ namespace AlkuTD
 				{
 					hp = 0;
 					Alive = false;
-					ParentMap.Players[0].GenePoints[0] += (int)Math.Round(ElemArmors[GeneType.Red] * 10);
-					ParentMap.Players[0].GenePoints[1] += (int)Math.Round(ElemArmors[GeneType.Green] * 10);
-					ParentMap.Players[0].GenePoints[2] += (int)Math.Round(ElemArmors[GeneType.Blue] * 10);
-					CurrentGame.HUD.UpdateGeneBars();
-					ParentMap.Players[0].EnergyPoints += EnergyBounty;
+                    //ParentMap.Players[0].GenePoints[0] += (int)Math.Round(ElemArmors[GeneType.Red] * 10);
+                    //ParentMap.Players[0].GenePoints[1] += (int)Math.Round(ElemArmors[GeneType.Green] * 10);
+                    //ParentMap.Players[0].GenePoints[2] += (int)Math.Round(ElemArmors[GeneType.Blue] * 10);
+                    //CurrentGame.HUD.UpdateGeneBars();
+                    //ParentMap.Players[0].EnergyPoints += EnergyBounty;
+                    ParentMap.FloatingParticles.Add(new FloatingParticle(this));
 					ParentMap.AliveCreatures.Remove(this);
 					BugInfoBox bugBox = HUD.BugBoxes.Find(bb => bb.Target == this);
 					if (bugBox != null)

@@ -39,7 +39,8 @@ namespace AlkuTD
         bool isLoaded;
         bool charging;
 
-        public SniperTower(Point pos, UpgLvl upgLvl, bool isExample) : base(defChar[(int)upgLvl], defName[(int)upgLvl], pos, defRange[(int)upgLvl], defFirerate[(int)upgLvl], new Texture2D[] { CurrentGame.currentMap.ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, defBulletspeed, defDmg[(int)upgLvl], DmgType.Basic, defSplashRange, new float[] {0,0}, defCost[(int)upgLvl], defBuildTime[(int)upgLvl], isExample)
+        public SniperTower(Point pos, UpgLvl upgLvl, bool isExample) 
+            : base(defChar[(int)upgLvl], defName[(int)upgLvl], pos, defRange[(int)upgLvl], defFirerate[(int)upgLvl], new Texture2D[] { CurrentGame.currentMap.ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, defBulletspeed, defDmg[(int)upgLvl], DmgType.Basic, defSplashRange, new float[] {0,0}, defCost[(int)upgLvl], defBuildTime[(int)upgLvl], isExample)
         {
             ParentMap = CurrentGame.currentMap;
             UpgradeLvl = upgLvl;

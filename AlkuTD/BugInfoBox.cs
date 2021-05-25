@@ -42,6 +42,8 @@ namespace AlkuTD
 			string hpString = ((int)Target.Hp).ToString();
 			hpStringWidth = CurrentGame.font.MeasureString(hpString).X;
 			float nameStringWidth = CurrentGame.font.MeasureString(Target.Name).X;
+			float resStringWidth = CurrentGame.font.MeasureString("RES 10%").X;
+			float biggestWidth = nameStringWidth > resStringWidth ? nameStringWidth : resStringWidth;
 			Lines = new List<string>();
 			LineColors = new List<Color>();
 			Lines.Add(/*"Name: " + */Target.Name);
@@ -56,12 +58,12 @@ namespace AlkuTD
 				Width = Padding * 2 + (int)Math.Max(hpStringWidth + slashCharWidth + initHpStringWidth, nameStringWidth);
 			}
 			else
-				Width = Padding * 2 + (int)nameStringWidth;
+				Width = Padding * 2 + (int)biggestWidth;
 
 			if (Target.ElemArmors.HasAny)
 			{
 				GeneType gt = Target.ElemArmors.GetPrimaryElem();
-				Lines.Add(/*target.ElemArmors.GetPrimaryElem().ToString() + ": " + */enter + enter + ((int)((Target.ElemArmors.GetPrimaryElemStrength()) * 100)).ToString() + "%");
+				Lines.Add(/*target.ElemArmors.GetPrimaryElem().ToString() + ": " + */enter + enter + "RES " + ((int)((Target.ElemArmors.GetPrimaryElemStrength()) * 100)).ToString() + "%");
 				lines++;
 				switch (gt)
 				{

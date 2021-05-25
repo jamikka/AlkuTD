@@ -297,8 +297,6 @@ namespace AlkuTD
                         NEighbCheck.InOpenList = true; // omamod
                         OpenList.Add(NEighbCheck); // omamod
                     }
-                    Found:
-					    currentTile.NewNeighbors.Remove(NEighbCheck);
                 }
                 OpenList.Remove(currentTile);
                 currentTile.Checked = true;
@@ -655,7 +653,7 @@ namespace AlkuTD
             //for (int i = 0; i < stringpullStepsS.Count; i++)
             //    sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(stringpullStepsS[i].MapCoord) + drawPosBonus2, Color.Orange);
 
-            sb.DrawString(CurrentGame.font, "Path total distance: " + Environment.NewLine + Math.Round(pathTotalDist, 1) + Environment.NewLine + Math.Round(ResolvedList[0].F, 1), Vector2.Zero, Color.AliceBlue);
+            //sb.DrawString(CurrentGame.font, "Path total distance: " + Environment.NewLine + Math.Round(pathTotalDist, 1) + Environment.NewLine + Math.Round(ResolvedList[0].F, 1), Vector2.Zero, Color.AliceBlue);
         }
     }
 }

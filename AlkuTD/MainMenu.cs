@@ -276,7 +276,7 @@ namespace AlkuTD
                                                                                                                 int.Parse(read[9]),
                                                                                                                 1f), // SCALE HARDCODED-----------------------------------------------------------------
                                                                                                     int.Parse(read[13]),
-                                                                                                    int.Parse(read[14])));
+                                                                                                    int.Parse(read[14]), waves[w].TempGroups.Count, w));
                             }
                             waves[w].Groups = waves[w].TempGroups.ToArray();
                             waves[w].Initialize();
@@ -475,26 +475,26 @@ namespace AlkuTD
         {
             // AUTOMATED LEVEL SELECTOR.................................................................................................................................................!
             //LoadPlayerData(0); LoadMap(MapButtons[5]);
-			if (CurrentGame.gameState != GameState.MapEditor)
-			{
-				CurrentGame.gameState = GameState.MapEditor;
-				CurrentGame.HUD.MapEditorSpawnPoints = new List<Point>();
-				CurrentGame.HUD.MapEditorGoalPoints = new List<Point>();
-				CurrentGame.currentMap = new HexMap(ParentGame, "newMap", new char[11, 21], new Point[1], new Point[1], new Player[] { new Player("map editor person") }); //-----------------------------------------------täällä !;
-				CurrentGame.HUD.ParentMap = CurrentGame.currentMap;
-				CurrentGame.currentMap.MapEditorTempWaves = new List<Wave>();
-                //CurrentGame.HUD.EditorMapLoad(MapButtons[1]);
-                int rightIndex = 0;
-                for (int i = 0; i < MapButtons.Length; i++)
-                {
-                    if (MapButtons[i].Text == "Monimaailma1")
-                    {
-                        rightIndex = i;
-                        break;
-                    }
-                }
-                CurrentGame.HUD.EditorMapLoad(MapButtons[rightIndex]);
-			}
+			//if (CurrentGame.gameState != GameState.MapEditor)
+			//{
+			//	CurrentGame.gameState = GameState.MapEditor;
+			//	CurrentGame.HUD.MapEditorSpawnPoints = new List<Point>();
+			//	CurrentGame.HUD.MapEditorGoalPoints = new List<Point>();
+			//	CurrentGame.currentMap = new HexMap(ParentGame, "newMap", new char[11, 21], new Point[1], new Point[1], new Player[] { new Player("map editor person") }); //-----------------------------------------------täällä !;
+			//	CurrentGame.HUD.ParentMap = CurrentGame.currentMap;
+			//	CurrentGame.currentMap.MapEditorTempWaves = new List<Wave>();
+   //             //CurrentGame.HUD.EditorMapLoad(MapButtons[1]);
+   //             int rightIndex = 0;
+   //             for (int i = 0; i < MapButtons.Length; i++)
+   //             {
+   //                 if (MapButtons[i].Text == "Nykymap1")
+   //                 {
+   //                     rightIndex = i;
+   //                     break;
+   //                 }
+   //             }
+   //             CurrentGame.HUD.EditorMapLoad(MapButtons[rightIndex]);
+			//}
 
             if (keyboard.IsKeyDown(Keys.Escape)) menuState = MenuState.Main;
 

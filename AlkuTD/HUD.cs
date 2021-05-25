@@ -504,7 +504,8 @@ namespace AlkuTD
 																										read[9] == "" ? 0 : int.Parse(read[9]),
 																										1f), // SCALE HARDCODED-----------------------------------------------------------------
 																							read[13] == "" ? 0 : int.Parse(read[13]),
-																							read[14] == "" ? 0 : int.Parse(read[14])));
+																							read[14] == "" ? 0 : int.Parse(read[14]), 
+                                                                                            currWave.TempGroups.Count, w));
 
 
 								for (int c = 0; c < (MapEditorTableCols - 1); c++)
@@ -831,7 +832,7 @@ namespace AlkuTD
 		//Vector2 dirFromTile;  //-..................uutta kaggaa
 		Creature hoveredCreature;
 		public int bugHoverCounter;
-		public const int bugHoverFade = 200;
+		public const int bugHoverFade = 160;
 		#endregion
 		public void Update(MouseState mouse, MouseState prevMouse, KeyboardState keyboard, KeyboardState prevKeyboard)
         {
@@ -876,11 +877,13 @@ namespace AlkuTD
 
 						for (int w = 0; w < ParentMap.Waves.Length; w++)
 						{   for (int g = 0; g < ParentMap.Waves[w].Groups.Length; g++)
-							{   for (int c = 0; c < ParentMap.Waves[w].Groups[g].Creatures.Length; c++)
-								{
-									ParentMap.Waves[w].Groups[g].Creatures[c].ShowingPath = false;
-								}
-							}
+							{
+                                ParentMap.Waves[w].Groups[g].ShowingPath = false;
+                                //for (int c = 0; c < ParentMap.Waves[w].Groups[g].Creatures.Length; c++)
+                                //{
+                                //	ParentMap.Waves[w].Groups[g].Creatures[c].ShowingPath = false;
+                                //}
+                            }
 						}
                     }
                     else if (ParentMap.currentWave + 1 < ParentMap.Waves.Length)
@@ -987,10 +990,10 @@ namespace AlkuTD
                                     {
                                         int groupRow = 0;
                                         ParentMap.Waves = ParentMap.MapEditorTempWaves.ToArray();
-                                        for (int i = 0; i < ParentMap.Waves.Length; i++)
+                                        for (int w = 0; w < ParentMap.Waves.Length; w++)
                                         {
-                                            ParentMap.Waves[i].Groups = ParentMap.MapEditorTempWaves[i].TempGroups.ToArray();
-                                            for (int g = 0; g < ParentMap.MapEditorTempWaves[i].Groups.Length; g++)
+                                            ParentMap.Waves[w].Groups = ParentMap.MapEditorTempWaves[w].TempGroups.ToArray();
+                                            for (int g = 0; g < ParentMap.MapEditorTempWaves[w].Groups.Length; g++)
                                             {
                                                 int indexRow = groupRow * (MapEditorTableCols - 1);
 
@@ -1011,12 +1014,12 @@ namespace AlkuTD
 												int spwnFrq = MapEditorTableCells[13 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[13 + indexRow].Text);
 												int spwnDur = MapEditorTableCells[14 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[14 + indexRow].Text);
 
-                                                ParentMap.Waves[i].Groups[g] = new SpawnGroup(creAmt, new Creature(type, name, ParentMap, texName, spIndex, gpIndex, hp, spd, armors, ldmg, nrg, 1f), spwnFrq, spwnDur);
+                                                ParentMap.Waves[w].Groups[g] = new SpawnGroup(creAmt, new Creature(type, name, ParentMap, texName, spIndex, gpIndex, hp, spd, armors, ldmg, nrg, 1f), spwnFrq, spwnDur, g, w);
                                                                                                             
                                                 groupRow++;
                                             }
 
-                                            ParentMap.Waves[i].Initialize();
+                                            ParentMap.Waves[w].Initialize();
                                         }
                                         ParentMap.PlayerInitEnergy = int.Parse(MapEditorResourceCells[0].Text);
 										ParentMap.PlayerInitGenePoints = new int[] { int.Parse(MapEditorResourceCells[1].Text), int.Parse(MapEditorResourceCells[2].Text), int.Parse(MapEditorResourceCells[3].Text) };
@@ -1048,47 +1051,6 @@ namespace AlkuTD
                                     }
                                     ParentMap.SaveMap(CurrentGame.MapDir + fileName + ".txt");
 
-                                #region OLDSAVE
-                                    //using (StreamWriter writer = new StreamWriter(CurrentGame.MapDir + fileName + ".txt"))
-                                    /*{
-                                            for (int y = 0; y < ParentMap.Layout.GetLength(0); y++)
-                                            {   for (int x = 0; x < ParentMap.Layout.GetLength(1); x++)
-                                                {
-                                                    writer.Write(ParentMap.Layout[y,x]);
-                                                }
-                                                writer.WriteLine();
-                                            }
-                                        
-                                            //writer.Write(ParentMap.Layout);
-
-                                            //writer.WriteLine(Environment.NewLine + "Life/Energy/Genes:" + Environment.NewLine);
-                                            writer.WriteLine();
-                                            writer.WriteLine("Life:".PadRight(8) + MapEditorResourceCells[2].Text);
-                                            writer.WriteLine("Energy:".PadRight(8) + MapEditorResourceCells[0].Text);
-                                            writer.WriteLine("Genes:".PadRight(8) + MapEditorResourceCells[1].Text);
-
-                                            writer.WriteLine();
-                                            writer.WriteLine("\tCreamt\tType\tName\t\tTexture\t\tSpawnP\tGoals\tHP\tElem\tSPD\tCellDmg\tLifeDmg\tEnergy\tGenes\tSpawnD\tDuration");
-                                        
-                                            int tableRow = 0;
-                                            for (int w = 0; w < ParentMap.MapEditorTempWaves.Count; w++)
-                                            {
-                                                writer.WriteLine("Wave " + (w+1) + "------------------------------------------------------------------------------------------------------------------------------------------");
-                                                for (int g = 0; g < ParentMap.MapEditorTempWaves[w].WaveTempGroups.Count; g++)
-                                                {   for (int c = tableRow*(MapEditorTableCols-1); c < tableRow*(MapEditorTableCols-1) + (MapEditorTableCols-1); c++)
-                                                    {
-                                                        if ((c % (MapEditorTableCols-1) == 2 || c % (MapEditorTableCols-1) == 3) && MapEditorTableCells[c].Text.Length < 8)
-                                                            writer.Write('\t' + MapEditorTableCells[c].Text + '\t');
-                                                        //else if (c % (MapEditorTableCols-1) == 7) 
-                                                        //    writer.Write("\t" +MapEditorTableCells[c].SelectedItem);
-                                                        else writer.Write('\t'+MapEditorTableCells[c].Text);
-                                                    }
-                                                    tableRow++;
-                                                    writer.WriteLine();
-                                                }
-                                            }
-                                        }*/
-                                #endregion
                                     break;
 								#endregion
                             case 2: break; // LOAD MAP HAPPENS BELOW (oh why...
@@ -1667,30 +1629,6 @@ namespace AlkuTD
             #endregion
         }
 
-		//OLD HARDCODED
-		void DrawWaveInfo(SpriteBatch sb)
-		{
-			int boxWidth = GroupInfoBox.boxWidth;
-			int creAmt;
-			List<SpawnGroup> spawnpointGroups = new List<SpawnGroup>();
-			for (int i = 0; i < ParentMap.SpawnPoints.Length; i++)
-			{
-				if (ParentMap.currentWave >= 0) //------------------------------------------------Current wave info (at hud top)
-				{
-					int currGroupAmt = ParentMap.Waves[ParentMap.currentWave].Groups.Length;
-					//Vector2 pos = new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.5f, 45);
-					//sb.Draw(ParentGame.pixel, new Rectangle((int)pos.X - currGroupAmt*boxWidth/2, (int)pos.Y, currGroupAmt*boxWidth, font.LineSpacing + boxWidth -5), Color.White * 0.1f);
-					for (int g = 0; g < currGroupAmt; g++)
-					{
-						creAmt = ParentMap.Waves[ParentMap.currentWave].Groups[g].Creatures.Length;
-						Texture2D currWaveInfoTex = ParentMap.Waves[ParentMap.currentWave].Groups[g].InfoTexture;
-						sb.DrawString(font, creAmt.ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.5f, 50) - new Vector2(boxWidth * currGroupAmt / 2 + font.MeasureString(creAmt.ToString()).X * 0.66f / 2 - g * boxWidth - boxWidth / 2, 0), Color.WhiteSmoke, 0, Vector2.Zero, 0.66f, SpriteEffects.None, 0f);
-						sb.Draw(currWaveInfoTex, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.5f, 65) - new Vector2(boxWidth * currGroupAmt / 2 + currWaveInfoTex.Width - g * boxWidth - boxWidth / 2, 0), null, Color.WhiteSmoke, 0, Vector2.Zero, 2f, SpriteEffects.None, 0); //---------suhteuta infoTex.Width scaleen!
-					}
-				}
-			}
-		}
-
 		#region DRAWVARIABLES
 		public bool newTileRingActive;
         public bool towerTileRingActive;
@@ -1711,8 +1649,14 @@ namespace AlkuTD
         Tower selectedTower;
 		Vector2[] extendedPoints;
 		Vector2[] tileCorners;
-		#endregion
-		public void Draw(SpriteBatch sb, GameTime gameTime, MouseState mouse)
+        private Vector2 LOSFromTilePos;
+        private bool isTileChecked;
+        private Vector2 LOSCollisionPos;
+        private int LOSPixelDistanceCounter;
+
+        public Vector2 PrevLOSCollisionPos { get; private set; }
+        #endregion
+        public void Draw(SpriteBatch sb, GameTime gameTime, MouseState mouse)
         {
             mousePos = new Vector2(mouse.X, mouse.Y);
 
@@ -1728,55 +1672,6 @@ namespace AlkuTD
                 for (int i = 0; i < HUDbuttons.Length; i++)
                     HUDbuttons[i].Draw(sb);
 
-
-                #region AWFUL TILE BORDER ANIMATION (MOVED TO HEXMAP)
-                /*
-                //Draw spawntimer lines around spawnpoints
-                if (ParentMap.currentWave >= 0)
-                {
-                    float wavePhase = ParentMap.Waves[ParentMap.currentWave].spawnTimer / (float)ParentMap.Waves[ParentMap.currentWave].Duration;
-                    if (ParentMap.Waves[ParentMap.currentWave].spawnTimer < ParentMap.Waves[ParentMap.currentWave].Duration && ParentMap.currentWave != ParentMap.Waves.GetUpperBound(0))
-                    {
-                        Color lineColor = Color.Yellow;
-                        Color borderColor = Color.Black * 0.6f;
-                        if (wavePhase > 0.84f) lineColor = Color.White;
-                        //lineColor *= buildFinishedCounter / (float)buildFinishedInit;
-                        Vector2 spawnTilePos = ParentMap.ToScreenLocation(ParentMap.SpawnPoints[ParentMap.Waves[ParentMap.currentWave + 1].SpawnPointIndex].X, ParentMap.SpawnPoints[ParentMap.Waves[ParentMap.currentWave + 1].SpawnPointIndex].Y);
-
-                        sb.Draw(ParentGame.pixel, new Rectangle((int)(spawnTilePos.X - ParentMap.TileWidth / 4 - 1), (int)spawnTilePos.Y - ParentMap.TileHeight / 2 - 1, ParentMap.TileWidth / 2, 4),
-                                null, borderColor, 0f, Vector2.Zero, SpriteEffects.None, 0);
-                        sb.Draw(ParentGame.pixel, new Rectangle((int)(spawnTilePos.X + ParentMap.TileWidth / 4 + 2), (int)spawnTilePos.Y - ParentMap.TileHeight / 2, ParentMap.TileWidth / 2, 4),
-                                null, borderColor, MathHelper.ToRadians(60.9f), Vector2.Zero, SpriteEffects.None, 0);
-                        sb.Draw(ParentGame.pixel, new Rectangle((int)(spawnTilePos.X + ParentMap.TileWidth / 2 + 1), (int)spawnTilePos.Y, ParentMap.TileWidth / 2, 4),
-                                null, borderColor, MathHelper.ToRadians(118.2f), Vector2.Zero, SpriteEffects.None, 0);
-                        sb.Draw(ParentGame.pixel, new Rectangle((int)(spawnTilePos.X + ParentMap.TileWidth / 4 + 1), (int)spawnTilePos.Y + ParentMap.TileHeight / 2 + 2, ParentMap.TileWidth / 2 + 1, 4),
-                                null, borderColor, (float)Math.PI, Vector2.Zero, SpriteEffects.None, 0);
-                        sb.Draw(ParentGame.pixel, new Rectangle((int)(spawnTilePos.X - ParentMap.TileWidth / 4 - 2), (int)spawnTilePos.Y + ParentMap.TileHeight / 2 + 2, ParentMap.TileWidth / 2 + 1, 4),
-                                null, borderColor, MathHelper.ToRadians(240.8f), Vector2.Zero, SpriteEffects.None, 0);
-                        sb.Draw(ParentGame.pixel, new Rectangle((int)(spawnTilePos.X - ParentMap.TileWidth / 2 - 1), (int)spawnTilePos.Y, ParentMap.TileWidth / 2, 4),
-                                null, borderColor, (float)Math.PI * (5 / 3f), Vector2.Zero, SpriteEffects.None, 0);
-
-                        sb.Draw(ParentGame.pixel, new Rectangle((int)(spawnTilePos.X - ParentMap.TileWidth / 4 - 1), (int)(spawnTilePos.Y - ParentMap.TileHeight / 2),
-                                (int)Math.Min(ParentMap.TileWidth / 2, ParentMap.TileWidth / 2 * wavePhase * 6), 2), null, lineColor, 0f, Vector2.Zero, SpriteEffects.None, 0);
-                        if (wavePhase >= 1 / 6f)
-                            sb.Draw(ParentGame.pixel, new Vector2(spawnTilePos.X + ParentMap.TileWidth / 4 + 1, spawnTilePos.Y - ParentMap.TileHeight / 2), null, lineColor, MathHelper.ToRadians(60.9f),
-                                    Vector2.Zero, new Vector2(Math.Min(ParentMap.TileWidth / 2, ParentMap.TileWidth / 2 * (wavePhase - 1 / 6f) * 6), 2), SpriteEffects.None, 0);
-                        if (wavePhase >= 2 / 6f)
-                            sb.Draw(ParentGame.pixel, new Vector2(spawnTilePos.X + ParentMap.TileWidth / 2, spawnTilePos.Y), null, lineColor, MathHelper.ToRadians(118.2f), //(float)Math.PI * (1.98f / 3f), //118.95f
-                                    Vector2.Zero, new Vector2(Math.Min(ParentMap.TileWidth / 2, ParentMap.TileWidth / 2 * (wavePhase - 2 / 6f) * 6), 2), SpriteEffects.None, 0);
-                        if (wavePhase >= 3 / 6f)
-                            sb.Draw(ParentGame.pixel, new Vector2(spawnTilePos.X + ParentMap.TileWidth / 4, spawnTilePos.Y + ParentMap.TileHeight / 2 + 1), null, lineColor, (float)Math.PI,
-                                    Vector2.Zero, new Vector2(Math.Min(ParentMap.TileWidth / 2, ParentMap.TileWidth / 2 * (wavePhase - 3 / 6f) * 6), 2), SpriteEffects.None, 0);
-                        if (wavePhase >= 4 / 6f)
-                            sb.Draw(ParentGame.pixel, new Vector2(spawnTilePos.X - ParentMap.TileWidth / 4 - 1, spawnTilePos.Y + ParentMap.TileHeight / 2 + 1), null, lineColor, MathHelper.ToRadians(240.8f),//(float)Math.PI * (4f / 3f)
-                                    Vector2.Zero, new Vector2(Math.Min(ParentMap.TileWidth / 2, ParentMap.TileWidth / 2 * (wavePhase - 4 / 6f) * 6), 2), SpriteEffects.None, 0);
-                        if (wavePhase >= 5 / 6f)
-                            sb.Draw(ParentGame.pixel, new Vector2(spawnTilePos.X - ParentMap.TileWidth / 2, spawnTilePos.Y), null, lineColor, (float)Math.PI * (5 / 3f),
-                                    Vector2.Zero, new Vector2(Math.Min(ParentMap.TileWidth / 2 - 1, ParentMap.TileWidth / 2 * (wavePhase - 5 / 6f) * 6), 2), SpriteEffects.None, 0);
-                    }
-                }*/
-                #endregion
-
                 //-------!!
                 #region OIKEESTI UPDATEEN KUULUVA MOUSELOGIC
                 if (newTileRingActive || towerTileRingActive || priorityRingActive)
@@ -1787,158 +1682,9 @@ namespace AlkuTD
 
                     //foreach (Vector2 point in tileCorners) sb.Draw(CurrentGame.pixel, point, null, new Color(150, 150, 150, 150));
 
-                    //--------------------------------------------------------------------------------------------------------------------------------------EIKÖS TÄMÄN PITÄS OLLA UPDATESSA?!
-                    #region NOW FUNCTIONALIZED MOUSE RESTRICT & MAGNETISM
-                    //Vector2 dirFromTile = mousePos - activeTilePos; //--------------------äpp äpp, tee itsenäinen muuttuja jotta hienovaraiset pos-updatemuutokset toimii!
-                    //float angle = (float)Math.Atan2(dirFromTile.Y, dirFromTile.X);
-                    //float angleOffset = (float)(Math.Abs(angle % (Math.PI / 3)) / (Math.PI / 6));
-
-                    //if (angleOffset > 1)
-                    //    angleOffset = 2 - angleOffset;                      //hex corners zero -- side centers one
-                    //angleOffset = (float)Math.Round(angleOffset * 4.5f); //TileWidth/2f - TileHeight/2f;
-                    //if (dirFromTile.Length() > ParentMap.TileHalfWidth - angleOffset) //if out of tile
-                    //{
-                    //    //Pyöristeles------------------------------------------------------------------------------------------------------------------------------------!
-                    //    dirFromTile = (ParentMap.TileHalfWidth - angleOffset) * (dirFromTile / dirFromTile.Length());
-                    //    //Mouse.SetPosition((int)Math.Round(dirFromTile.X + activeTilePos.X), (int)Math.Round(dirFromTile.Y +activeTilePos.Y));
-                    //}
-                    //dirFromTile += activeTilePos;
-                    //Vector2 partDist = mousePos - tileCorners[selectedRingPart];
-                    //Vector2 dir = partDist / partDist.Length();
-                    //if (partDist.Length() <= 1)
-                    //    dirFromTile = tileCorners[selectedRingPart];
-                    //else if (/*partDist.Length() < 18 && */ParentGame.gameTimer % 2 == 0)
-                    //    dirFromTile -= dir * 0.8f;
-
-                    //Mouse.SetPosition((int)Math.Round(dirFromTile.X), (int)Math.Round(dirFromTile.Y));
-                    #endregion
-
-                    //sb.Draw(tileringGlow, dirFromTile - new Vector2(tileringGlow.Width / 2), Color.White * 0.7f); //restricted & magnetized object
-
-                    #region OLDCOLLISION
-                    //sb.Draw(ParentGame.pixel, hoveredTilePos, Color.Red);
-                    //sb.DrawString(font, selectedRingPart.ToString(), new Vector2(mouse.X + 10, mouse.Y), Color.Wheat);
-
-                    //SIMPL-VETOVOIMA
-                    /*Mouse.SetPosition(Mouse.GetState().X + (tileringPartAreas[selectedRingPart].Center.X - Mouse.GetState().X) / 7, Mouse.GetState().Y + (tileringPartAreas[selectedRingPart].Center.Y - Mouse.GetState().Y) / 7);
-                    sb.Draw(tileTextures[5], new Vector2(tileringPartAreas[selectedRingPart].Center.X - tileTextures[5].Width / 2, tileringPartAreas[selectedRingPart].Center.Y - tileTextures[5].Height / 2), Color.SaddleBrown);
-                    */
-                    //if (Math.Abs(Mouse.GetState().X - tileringPartAreas[selectedRingPart].Center.X) < 5 && Math.Abs(Mouse.GetState().Y - tileringPartAreas[selectedRingPart].Center.Y) < 5)
-                    //    Mouse.SetPosition(tileringPartAreas[selectedRingPart].Center.X, tileringPartAreas[selectedRingPart].Center.Y);
-
-                    //sb.DrawString(ParentGame.font, angleOffset + " ", activeTilePos + new Vector2(30), Color.Beige);
-                    //sb.DrawString(ParentGame.font, Math.Abs(angle % (Math.PI/3)) / (Math.PI/6) + " ", activeTilePos + new Vector2(60), Color.Beige);
-                    //sb.Draw(ParentGame.pixel, new Rectangle((int)activeTilePos.X, (int)activeTilePos.Y, (int)eri.Length(), 6), null, Color.Red, (float)Math.Atan2(eri.Y, eri.X), Vector2.Zero, SpriteEffects.None, 0);
-                    //sb.DrawString(ParentGame.font, ballDist + " ", activeTilePos + new Vector2(30), Color.Beige);
-
-
-                    //foreach (Vector2 cornerPos in tileCorners)
-                    //    sb.Draw(ParentGame.pixel, cornerPos, Color.Red);
-
-                    //KOMPROMIS
-                    /*Vector2 suunta = mousePos - activeTilePos;
-                    suunta.Normalize();
-                    selectionBall = new Vector2(selectionBall.X + (tileCorners[selectedRingPart].X - selectionBall.X) / 5, selectionBall.Y + (tileCorners[selectedRingPart].Y - selectionBall.Y) / 5);
-
-                    if (Vector2.Distance(mousePos, activeTilePos) > TileWidth/2) Mouse.SetPosition((int)(activeTilePos.X + (TileWidth/2) * suunta.X), (int)(activeTilePos.Y + (TileWidth/2) * suunta.Y));
-                    
-                    Vector2 ringPartDist = new Vector2(selectionBall.X - tileCorners[selectedRingPart].X, selectionBall.Y - tileCorners[selectedRingPart].Y);
-                    if (Math.Abs(ringPartDist.X) < 2 && Math.Abs(ringPartDist.Y) < 2) selectionBall = tileCorners[selectedRingPart];*/
-
-                    //sb.DrawString(ParentGame.font, ballDist + " ", activeTilePos + new Vector2(30), Color.Beige);
-                    //Mouse.SetPosition((int)(mousePos.X + (tileCorners[selectedRingPart].X - mousePos.X) / 30), (int)(mousePos.Y + (tileCorners[selectedRingPart].Y - mousePos.Y) / 30));
-                    //sb.Draw(tileTextures[5], mousePos - new Vector2(tileTextures[5].Width / 2), Color.White * 0.2f);
-
-                    // COLLISION / WALL SLIDE attempt
-                    /*Vector2 liike = new Vector2(mousePos.X - prevMousePos.X, mousePos.Y - prevMousePos.Y);
-                    Vector2 ballDist = new Vector2(selectionBall.X - activeTilePos.X, selectionBall.Y - activeTilePos.Y);
-                    
-                    
-                    int xZone = 0;
-                    if (ballDist.X == TileWidth / -2) xZone = -3;
-                    else if (ballDist.X < TileWidth/-4 -1) xZone = -2;
-                    else if (ballDist.X == TileWidth/-4 -1) xZone = -1;
-                    else if (ballDist.X == TileWidth/4) xZone = 1;
-                    else if (ballDist.X == TileWidth/2 -1) xZone = 3;
-                    else if (ballDist.X > TileWidth/4) xZone = 2;
-                    
-                    int yHalf = 0;
-                    if (ballDist.Y > 0) yHalf = 1;
-                    else if (ballDist.Y < 0) yHalf = -1;
-
-                    //sb.DrawString(ParentGame.font, xZone.ToString() + " " + yHalf.ToString(), activeTilePos + new Vector2(10), Color.Beige);
-
-                    Vector2 velNorm = liike / liike.Length();
-                    
-                    if (ToMapCoordinate(mousePos) != activeTileCoords && liike != Vector2.Zero)
-                    {
-                        Vector2 move = Vector2.Zero;
-
-                        if (xZone == 0 || (xZone == -1 && liike.X > 0) || (xZone == 1 && liike.X < 0))
-                            move = new Vector2(liike.X, 0); // "/"
-                        else if ((xZone == -2 && yHalf == -1) || 
-                                 (xZone == 2 && yHalf == 1) ||
-                                 (xZone == -1 && yHalf == -1 && liike.X < 0) ||
-                                 (xZone == 1 && yHalf == 1 && liike.X > 0) ||
-                                 (xZone == -3 && liike.Y < 0) || (xZone == 3 && liike.Y > 0)) 
-                            move = wallPerpNorm * liike.Length() * Vector2.Dot(velNorm, wallPerpNorm);
-                        else move = wallNorm * liike.Length() * Vector2.Dot(velNorm, wallNorm); // "\"
-
-                        if (Vector2.Distance(selectionBall + move, activeTilePos) < TileWidth / 2)
-                            selectionBall += move;
-                    }
-                    else if (Vector2.Distance(selectionBall + liike, activeTilePos) < TileWidth/2) selectionBall += liike;
-
-                    Mouse.SetPosition((int)Math.Round(selectionBall.X), (int)Math.Round(selectionBall.Y));
-
-                    Vector2 partDist = new Vector2(Math.Abs(selectionBall.X - tileCorners[selectedRingPart].X), Math.Abs(selectionBall.Y - tileCorners[selectedRingPart].Y));
-                    if (partDist.X < 2 && partDist.Y < 2)
-                        selectionBall = tileCorners[selectedRingPart];
-                    else if (partDist.X < 8 && partDist.Y < 8)
-                        selectionBall -= (selectionBall - tileCorners[selectedRingPart]) / 20;
-                    
-                    //sb.DrawString(ParentGame.font, partDist.ToString(), activeTilePos + new Vector2(30), Color.Beige);
-                    //sb.DrawString(ParentGame.font, selectionBall.ToString(), activeTilePos + new Vector2(50), Color.Beige);*/
-
-                    //sb.Draw(tileTextures[5], selectionBall - new Vector2(tileTextures[5].Width/2), Color.SaddleBrown);
-                    //sb.Draw(tileTextures[5], new Vector2(tileCorners[selectedRingPart].X - tileTextures[5].Width / 2, tileCorners[selectedRingPart].Y - tileTextures[5].Height / 2), Color.DarkKhaki);
-
-
-                    /*if (activeTilePos.X - mouse.X < -3 && Math.Abs(activeTilePos.Y - mouse.Y) < 1)
-                    {
-                        selectedRingPart = 1;
-                        activeRingPart = new Vector2(activeTilePos.X + 31, activeTilePos.Y);
-                    }
-                    else if (activeTilePos.X - mouse.X < 0 && activeTilePos.Y - mouse.Y > 3)
-                    {
-                        selectedRingPart = 2;
-                        activeRingPart = new Vector2(activeTilePos.X + 17, activeTilePos.Y - 28);
-                    }
-                    else if (activeTilePos.X - mouse.X > 0 && activeTilePos.Y - mouse.Y > 3)
-                    {
-                        selectedRingPart = 3;
-                        activeRingPart = new Vector2(activeTilePos.X - 17, activeTilePos.Y - 28);
-                    }
-                    else if (activeTilePos.X - mouse.X > 3 && Math.Abs(activeTilePos.Y - mouse.Y) < 1)
-                    {
-                        selectedRingPart = 4;
-                        activeRingPart = new Vector2(activeTilePos.X - 31, activeTilePos.Y);
-                    }
-                    else if (activeTilePos.X - mouse.X > 0 && activeTilePos.Y - mouse.Y < -3)
-                    {
-                        selectedRingPart = 5;
-                        activeRingPart = new Vector2(activeTilePos.X - 17, activeTilePos.Y + 28);
-                    }
-                    else if (activeTilePos.X - mouse.X < 0 && activeTilePos.Y - mouse.Y < -3)
-                    {
-                        selectedRingPart = 6;
-                        activeRingPart = new Vector2(activeTilePos.X + 17, activeTilePos.Y + 28);
-                    }*/
-                    #endregion
-
                     #region TILERING LOGIC
                     #region NEW TOWER TILERING
-                    if (newTileRingActive)  //--------------------------------------------------------------------------------------------------------------------------------------JA TÄMÄN?!
+                    if (newTileRingActive)  //----------------------------------------------------------------------------------------------------EIKÖS TÄMÄN PITÄISI OLLA UPDATESSA?!
                     {
 						selectedRingPart = CheckNearestPoint(tileCorners);
 						if (selectedRingPart > 0)
@@ -2349,6 +2095,28 @@ namespace AlkuTD
 
                 #endregion
 
+                #region INFOBOXES
+                if (newTileRingActive && selectedRingPart > 0 && TileRingInfoBox != null)
+                    TileRingInfoBox.Draw(sb, 1);
+                else if (towerTileRingActive && TileRingInfoBox != null)
+                    TileRingInfoBox.Draw(sb, 1);
+                else if (HoveredTowerInfoBox != null && selectedTower != null && !(towerTileRingActive || newTileRingActive || priorityRingActive))
+                {
+                    HoveredTowerInfoBox.Draw(sb, Math.Min(towerHoverCounter / towerHoverCycles, 1));
+                }
+                for (int i = 0; i < BugBoxes.Count; i++)
+                {
+                    if (!BugBoxes[i].locked)
+                        BugBoxes[i].Draw(sb, Math.Min((float)bugHoverCounter / (bugHoverFade * 0.333f), 1));
+                    else
+                        BugBoxes[i].Draw(sb, 1);
+                }
+                for (int i = 0; i < NexWaveInfoBoxes.Count; i++)
+                    NexWaveInfoBoxes[i].Draw(sb, 1);
+                for (int i = 0; i < CurrWaveInfoBoxes.Count; i++)
+                    CurrWaveInfoBoxes[i].Draw(sb, 1);
+                #endregion
+
                 #region HARDCODED TEXTS
                 string waveXofN = "Wave " + (ParentMap.currentWave + 1) + " / " + (ParentMap.Waves == null ? 0 : ParentMap.Waves.Length);
 
@@ -2358,13 +2126,17 @@ namespace AlkuTD
                 else sb.DrawString(font, "Setup phase", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.5f - (int)font.MeasureString("Setup phase").X / 2, 50), Color.Orange);
                 sb.DrawString(font, "Life:   " + ParentMap.Players[0].LifePoints, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.7f, 20), Color.IndianRed);
                 sb.DrawString(font, "Energy: " + ParentMap.Players[0].EnergyPoints, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.7f, 40), Color.LightSeaGreen);
+                sb.DrawString(font, "Genes: ", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.8f, 20), Color.LightGray);
+                sb.DrawString(font, ParentMap.Players[0].GenePoints[0].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.8f, 40), Color.Red);
+                sb.DrawString(font, ParentMap.Players[0].GenePoints[1].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.83f, 40), Color.Green);
+                sb.DrawString(font, ParentMap.Players[0].GenePoints[2].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.86f, 40), Color.Blue);
                 //sb.DrawString(font, "Genes:  " + ParentMap.Players[0].UpgradePoints, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.7f, 60), Color.Plum);
                 //sb.DrawString(font, Environment.CurrentDirectory, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.3f, 70), Color.Plum);
                 //sb.DrawString(font, "Td, aT, at, dT, a7, AVAK T;, zgj", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.4f, 90), Color.Plum);
                 //sb.DrawString(font, "mapTime:  " + CurrentMap.mapTimer, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.7f, 80), Color.Wheat);
                 #endregion
 
-				//DrawWaveInfo(sb);
+                //DrawWaveInfo(sb);
 
                 if (CurrentGame.gameState == GameState.MapTest || (CurrentGame.prevState == GameState.MapTest && CurrentGame.gameState == GameState.Paused))
                 #region MAPTEST WAVETABLE
@@ -2509,6 +2281,7 @@ namespace AlkuTD
                             if (tileRingFade < tileRingFadeCycles) tileRingFade++;
                             if (selectedRingPart > 0)
                             {
+								TileRingInfoBox = new TowerInfoBox(HexMap.ExampleTowers[selectedRingPart - 1], activeTilePos, true);
                                 HexMap.ExampleTowers[selectedRingPart - 1].ShowRadius = true;
                                 HexMap.ExampleTowers[selectedRingPart - 1].MapCoord = activeTileCoord;
                                 HexMap.ExampleTowers[selectedRingPart - 1].Draw(sb);
@@ -2706,71 +2479,56 @@ namespace AlkuTD
             }
             #endregion
 
-			#region LOStest
-			//if (Keyboard.GetState().IsKeyDown(Keys.A))
-			//{
-			//    checkVisTile = hoveredTilePos;
-			//    tileVisChecked = false;
-			//    tvi = 0;
-			//}
-			//if (Keyboard.GetState().IsKeyDown(Keys.D) && !tileVisChecked)
-			//{
-			//    Vector2 pixel = checkVisTile;
-			//    Vector2 broadPixel;
-			//    Vector2 dir = Vector2.Normalize(hoveredTilePos - checkVisTile);
-			//    pixel += (ParentMap.TileHalfHeight + 6) * dir;
-			//    int targetDist = (int)Vector2.Distance(hoveredTilePos, pixel);
-			//    while (!tileVisChecked && tvi < targetDist)
-			//    {
-			//        broadPixel = tvi % 2 == 1 ? pixel + new Vector2(0, 1) : pixel - new Vector2(0, 1);
-			//        Point coord = ParentMap.ToMapCoordinate(broadPixel);
-			//        if (ParentMap.Layout[coord.Y, coord.X] != '.' && ParentMap.Layout[coord.Y, coord.X] != '\'')
-			//        {
-			//            tileVisChecked = true;
-			//            collision = pixel;
-			//        }
-			//        else
-			//            pixel += dir;
-			//        tvi++;
-			//    }
-			//}
+            #region LOStest
+            //if (Keyboard.GetState().IsKeyDown(Keys.A))
+            //{
+            //    LOSFromTilePos = hoveredTilePos;
+            //    //LOSCollisionPos = Vector2.Zero;
+            //    isTileChecked = false;
+            //    LOSPixelDistanceCounter = 0;
+            //}
+            //if (Keyboard.GetState().IsKeyDown(Keys.D))
+            //{
+            //    if (hoveredTilePos != PrevLOSCollisionPos)
+            //    {
+            //        Vector2 lookPixel = LOSFromTilePos;
+            //        Vector2 broadLookPixel;
+            //        Vector2 dir = Vector2.Normalize(hoveredTilePos - LOSFromTilePos);
+            //        lookPixel += (ParentMap.TileHalfHeight + 6) * dir;
+            //        int targetDist = (int)Vector2.Distance(hoveredTilePos, lookPixel);
+            //        while (hoveredTilePos != PrevLOSCollisionPos && LOSPixelDistanceCounter < targetDist)
+            //        {
+            //            broadLookPixel = LOSPixelDistanceCounter % 2 == 1 ? lookPixel + new Vector2(0, 1) : lookPixel - new Vector2(0, 1);
+            //            Point coord = ParentMap.ToMapCoordinate(broadLookPixel);
+            //            if (ParentMap.Layout[coord.Y, coord.X] != '.' && ParentMap.Layout[coord.Y, coord.X] != '\'')
+            //            {
+            //                isTileChecked = true;
+            //                PrevLOSCollisionPos = hoveredTilePos;
+            //                LOSCollisionPos = lookPixel;
+            //            }
+            //            else
+            //                lookPixel += dir;
+            //            LOSPixelDistanceCounter++;
+            //        } 
+            //    }
+            //}
 
-			//sb.Draw(CurrentGame.pixel, new Rectangle((int)checkVisTile.X, (int)checkVisTile.Y, (int)Vector2.Distance(checkVisTile, hoveredTilePos), 1), null, Color.Wheat, (float)Math.Atan2(hoveredTilePos.Y - checkVisTile.Y, hoveredTilePos.X - checkVisTile.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
-			//if (tileVisChecked)
-			//{
-			//    sb.Draw(CurrentGame.ball, collision, Color.Red);
-			//    sb.DrawString(font, tvi.ToString(), collision, Color.PowderBlue);
-			//}
-			#endregion
+            //sb.Draw(CurrentGame.pixel, new Rectangle((int)LOSFromTilePos.X, (int)LOSFromTilePos.Y, (int)Vector2.Distance(LOSFromTilePos, hoveredTilePos), 1), null, Color.Wheat, (float)Math.Atan2(hoveredTilePos.Y - LOSFromTilePos.Y, hoveredTilePos.X - LOSFromTilePos.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+            //if (isTileChecked)
+            //{
+            //    sb.Draw(CurrentGame.ball, LOSCollisionPos, Color.Red);
+            //    sb.DrawString(font, LOSPixelDistanceCounter.ToString(), LOSCollisionPos, Color.PowderBlue);
+            //}
+            #endregion
 
 
-			//GeneBars[0].Draw(sb);
-			//GeneBars[1].Draw(sb);
-			//GeneBars[2].Draw(sb);
+            //GeneBars[0].Draw(sb);
+            //GeneBars[1].Draw(sb);
+            //GeneBars[2].Draw(sb);
 
-			prevRingPart = selectedRingPart;
+            prevRingPart = selectedRingPart;
 
-            #region INFOBOXES
-            if (newTileRingActive && selectedRingPart > 0)
-                TileRingInfoBox.Draw(sb, 1);
-            else if (towerTileRingActive && TileRingInfoBox != null)
-                TileRingInfoBox.Draw(sb, 1);
-            else if (HoveredTowerInfoBox != null && selectedTower != null && !(towerTileRingActive || newTileRingActive || priorityRingActive))
-            {
-                HoveredTowerInfoBox.Draw(sb, Math.Min(towerHoverCounter / towerHoverCycles, 1));
-            }
-			for (int i = 0; i < BugBoxes.Count; i++)
-			{
-				if (!BugBoxes[i].locked)
-					BugBoxes[i].Draw(sb, Math.Min((float)bugHoverCounter / (bugHoverFade * 0.333f), 1));
-				else
-				    BugBoxes[i].Draw(sb, 1);
-			}
-			for (int i = 0; i < NexWaveInfoBoxes.Count; i++)
-				NexWaveInfoBoxes[i].Draw(sb, 1);
-			for (int i = 0; i < CurrWaveInfoBoxes.Count; i++)
-				CurrWaveInfoBoxes[i].Draw(sb, 1);
-			#endregion
+            
 		}
     }
 }

@@ -1,6 +1,0 @@
-CompletedLevels: 
-0
-HighScores:
-0
-0
-0

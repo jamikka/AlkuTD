@@ -60,7 +60,7 @@ namespace AlkuTD
 
             sb.DrawString(CurrentGame.font, creatureCount, numTexPos, Color.White * fadeAmt, 0, Vector2.Zero, textScale, SpriteEffects.None, 0);
 			sb.Draw(SmallBugTex, new Vector2(Bounds.Center.X, Bounds.Bottom - SmallBugTex.Height), null, Color.White * fadeAmt, 0, TexOrigin, bugScale, SpriteEffects.None, 0); //---------vanhakomment: suhteuta infoTex.Width scaleen!
-			if (hoveredOver || locked)
+			if (hoveredOver || locked || CurrentGame.currentMap.initSetupOn)
 			{
 				BugBox.Draw(sb, 1);
 			}

@@ -51,6 +51,7 @@
     <Compile Include="Creature.cs" />
     <Compile Include="ElementInfo.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="FloatingParticle.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GeneSpecs.cs" />
     <Compile Include="GroupInfoBox.cs" />
@@ -63,11 +64,13 @@
     <Compile Include="MainMenu.cs" />
     <Compile Include="MapEditor.cs" />
     <Compile Include="Particle.cs" />
+    <Compile Include="ParticleEaterTower.cs" />
     <Compile Include="ParticleEngine.cs" />
     <Compile Include="Pathfinder.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PseudoPod.cs" />
     <Compile Include="Slider.cs" />
     <Compile Include="SniperTower.cs" />
     <Compile Include="SpawnGroup.cs" />

@@ -24,13 +24,14 @@ namespace AlkuTD
         public int GroupDuration;
         public int spawnTimer = 0;
 		public bool IsWholeGroupBorn;
+        private Creature LastCreature;
 
         public SpawnGroup()
         {
 
         }
 
-        public SpawnGroup(int numberOfCreatures, Creature creature, int spawnFrequency, int spawnDuration)
+        public SpawnGroup(int numberOfCreatures, Creature creature, int spawnFrequency, int spawnDuration, int groupNumber, int waveNumber)
         {
             ParentGame = creature.ParentGame;
 			ParentMap = CurrentGame.currentMap;
@@ -59,6 +60,10 @@ namespace AlkuTD
 
             SpawnFrequency = spawnFrequency;
             GroupDuration = spawnDuration;
+
+            LastCreature = Creatures[numberOfCreatures - 1];
+            GroupNumberColorMultiplier = 1 - (groupNumber * 0.3f);
+            WaveNumberColorMultiplier = Math.Max(1 - (waveNumber * 0.3f), 0.3f);
         }
 
         public void FindPath()
@@ -72,6 +77,50 @@ namespace AlkuTD
                 c.Path.Clear();
                 c.Path.AddRange(c.OrigPath);
                 c.IndividualizePath();
+            }
+        }
+
+        public float GroupNumberColorMultiplier { get; }
+
+        private float WaveNumberColorMultiplier;
+        public bool ShowingPath;
+        float showPathFadeCycles = 5;
+        int showPathFade;
+        public void ShowPath(SpriteBatch sb)
+        {
+            if (ShowingPath)
+            {
+                if (showPathFade < showPathFadeCycles)
+                    showPathFade++;
+                for (int i = 0; i < LastCreature.Path.Count - 1; i++)
+                {
+                    if (i < LastCreature.nextWaypoint - 1)
+                        continue;
+                    //liukukatkoviiva (dashLine -tekstuurilla)
+                    sb.Draw(ParentGame.dashLine, new Rectangle((int)LastCreature.OrigPath[i].X, (int)LastCreature.OrigPath[i].Y, (int)Vector2.Distance(LastCreature.OrigPath[i], LastCreature.OrigPath[i + 1]) /*ParentMap.TileHeight +1*/, 2),
+                            new Rectangle((int)(CurrentGame.gameTimer % 49.5f / 1.5f), 0, 33, 1), //old: ParentGame.GameTime.TotalGameTime.TotalMilliseconds % 825 / 25
+                            Color.White * WaveNumberColorMultiplier * (showPathFade / showPathFadeCycles),
+                            (float)Math.Atan2(LastCreature.OrigPath[i + 1].Y - LastCreature.OrigPath[i].Y, LastCreature.OrigPath[i + 1].X - LastCreature.OrigPath[i].X),
+                            Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+                    //sb.Draw(healthbarTexture, new Rectangle((int)OrigPath[i].X, (int)OrigPath[i].Y, ParentMap.TileHeight, 1), null, Color.White * (showPathFade / showPathFadeCycles) * 0.4f, (float)Math.Atan2(OrigPath[i + 1].Y - OrigPath[i].Y, OrigPath[i + 1].X - OrigPath[i].X), Vector2.Zero, SpriteEffects.None, 0f);
+                    //sb.DrawString(ParentMap.ParentGame.font,"" +(int)(ParentGame.GameTime.TotalGameTime.TotalMilliseconds % 600 / 50), new Vector2(1200, 300), Color.Wheat);
+                }
+            }
+            else if (showPathFade > 0)
+            {
+                for (int i = 0; i < LastCreature.Path.Count - 1; i++)
+                {
+                    if (i < Creatures[0].nextWaypoint - 1)
+                        continue;
+                    //liukukatkoviiva (dashLine -tekstuurilla)
+                    sb.Draw(ParentGame.dashLine, new Rectangle((int)LastCreature.OrigPath[i].X, (int)LastCreature.OrigPath[i].Y, ParentMap.TileHeight, 2),
+                            new Rectangle((int)(CurrentGame.gameTimer % 49.5f / 1.5f), 0, 33, 1),
+                            Color.White * WaveNumberColorMultiplier * (showPathFade / showPathFadeCycles),
+                            (float)Math.Atan2(LastCreature.OrigPath[i + 1].Y - LastCreature.OrigPath[i].Y, LastCreature.OrigPath[i + 1].X - LastCreature.OrigPath[i].X),
+                            Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+                    //sb.Draw(healthbarTexture, new Rectangle((int)OrigPath[i].X, (int)OrigPath[i].Y, ParentMap.TileHeight, 1), null, Color.White * (showPathFade / showPathFadeCycles) * 0.4f, (float)Math.Atan2(OrigPath[i + 1].Y - OrigPath[i].Y, OrigPath[i + 1].X - OrigPath[i].X), Vector2.Zero, SpriteEffects.None, 0f);
+                }
+                showPathFade--;
             }
         }
 
@@ -95,6 +144,8 @@ namespace AlkuTD
             }
             spawnTimer++;
         }
+
+
 
         public void Draw(SpriteBatch spritebatch)
         {
