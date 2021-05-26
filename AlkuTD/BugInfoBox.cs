@@ -42,28 +42,37 @@ namespace AlkuTD
 			string hpString = ((int)Target.Hp).ToString();
 			hpStringWidth = CurrentGame.font.MeasureString(hpString).X;
 			float nameStringWidth = CurrentGame.font.MeasureString(Target.Name).X;
-			float resStringWidth = CurrentGame.font.MeasureString("RES 10%").X;
+			float resStringWidth = 0;
+			string elemValueString = ((int)((Target.ElemArmors.GetPrimaryElemStrength()) * 100)).ToString();
+			if (Target.ElemArmors.HasAny)
+				resStringWidth = CurrentGame.font.MeasureString(elemValueString + "%" + " RES").X;
 			float biggestWidth = nameStringWidth > resStringWidth ? nameStringWidth : resStringWidth;
 			Lines = new List<string>();
 			LineColors = new List<Color>();
 			Lines.Add(/*"Name: " + */Target.Name);
 			LineColors.Add(Color.SlateGray);
-			Lines.Add(/*"HP: " + */enter + Target.Hp); //+ "/" + target.InitHp);
-			LineColors.Add(Color.Orange);
 			if (IsMovingTarget)
 			{
-				Lines.Add(/*enter + hpDigits + */enter + '/' + Target.InitHp.ToString());
+				Lines.Add(/*enter + hpDigits + */enter + Target.Hp + '/' + Target.InitHp.ToString());
 				LineColors.Add(Color.SlateGray);
 
 				Width = Padding * 2 + (int)Math.Max(hpStringWidth + slashCharWidth + initHpStringWidth, nameStringWidth);
 			}
 			else
+			{
+				Lines.Add(/*"HP: " + */enter + Target.Hp + " HP"); //+ "/" + target.InitHp);
+				LineColors.Add(Color.Orange);
+
 				Width = Padding * 2 + (int)biggestWidth;
+			}
 
 			if (Target.ElemArmors.HasAny)
 			{
 				GeneType gt = Target.ElemArmors.GetPrimaryElem();
-				Lines.Add(/*target.ElemArmors.GetPrimaryElem().ToString() + ": " + */enter + enter + "RES " + ((int)((Target.ElemArmors.GetPrimaryElemStrength()) * 100)).ToString() + "%");
+				if (IsMovingTarget)
+					Lines.Add(enter + enter + elemValueString + "%");
+				else
+					Lines.Add(enter + enter + elemValueString + "%" + " RES");
 				lines++;
 				switch (gt)
 				{
@@ -74,8 +83,9 @@ namespace AlkuTD
 			}
             if (Target.isSlowed)
             {
-                lines++;
-                Lines.Add(enter + enter + enter + "Spd ." + (int)((Target.Speed / Target.defSpeed) * 100));
+				string enters = string.Concat(Enumerable.Repeat<string>(enter, lines));
+				lines++;
+				Lines.Add(enters + "Spd ." + (int)((Target.Speed / Target.defSpeed) * 100));
                 LineColors.Add(Color.Aquamarine);
                 Width = Padding * 2 + (int)Math.Max(Width, CurrentGame.font.MeasureString(Lines.Last<string>()).X);
             }

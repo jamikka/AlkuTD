@@ -25,6 +25,7 @@ namespace AlkuTD
         public int spawnTimer = 0;
 		public bool IsWholeGroupBorn;
         private Creature LastCreature;
+        public BugInfoBox BugBox;
 
         public SpawnGroup()
         {
@@ -64,6 +65,7 @@ namespace AlkuTD
             LastCreature = Creatures[numberOfCreatures - 1];
             GroupNumberColorMultiplier = 1 - (groupNumber * 0.3f);
             WaveNumberColorMultiplier = Math.Max(1 - (waveNumber * 0.3f), 0.3f);
+            BugBox = new BugInfoBox(Vector2.Zero);
         }
 
         public void FindPath()

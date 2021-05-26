@@ -40,6 +40,7 @@ namespace AlkuTD
 				PosY += 1;
 				BugBox = new BugInfoBox(new Vector2(Bounds.Center.X - DefaultWidth * 0.5f, Bounds.Bottom), Group.ExampleCreature, false, aboveSpawnPoint, this);
 			}
+			spg.BugBox = this.BugBox;
 		}
 
 		public override void Update(MouseState mouse, MouseState prevMouse)

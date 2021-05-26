@@ -460,6 +460,10 @@ namespace AlkuTD
                     {
                         Waves[w].Groups[g].ShowingPath = PKeyDown;
 
+                        if (Waves[w].Groups[g].BugBox.locked)
+                            Waves[w].Groups[g].ShowingPath = true;
+                        
+
                         //             for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
                         //                 {
                         //Waves[w].Groups[g].Creatures[c].ShowingPath = PKeyDown;
@@ -483,16 +487,27 @@ namespace AlkuTD
             }
 			else //initSetupOn
 			{
+                bool isNoneLocked = true;
 				for (int w = 0; w < Waves.Length; w++)
 				{   for (int g = 0; g < Waves[w].Groups.Length; g++)
 					{
-                        Waves[w].Groups[g].ShowingPath = true;
+                        if (Waves[w].Groups[g].BugBox.locked)
+                        {
+                            Waves[w].Groups[g].ShowingPath = true;
+                            isNoneLocked = false;
+                            continue;
+                        }
+
+                        if (isNoneLocked)
+                            Waves[w].Groups[g].ShowingPath = true;
+                        else
+                            Waves[w].Groups[g].ShowingPath = false;
                         //                  for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
                         //{
                         //	Waves[w].Groups[g].Creatures[c].ShowingPath = true;
                         //}
                     }
-				}
+                }
 			}
 
             for (int i = 0; i < Players[0].Towers.Count; i++)
