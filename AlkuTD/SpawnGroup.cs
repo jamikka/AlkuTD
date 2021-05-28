@@ -136,8 +136,8 @@ namespace AlkuTD
                     //Creatures[i].FindPath();//-----------------------------------------------------------------------------TURH? (map restart?)
                     Creatures[i].Location = Creatures[i].Path[0];
 					ParentMap.AliveCreatures.Add(Creatures[i]);
-                    ParentMap.creatureCue = CurrentGame.soundBank.GetCue("geiger1");
-					ParentMap.creatureCue.Play();
+                    //ParentMap.creatureCue = CurrentGame.soundBank.GetCue("geiger1");
+					//ParentMap.creatureCue.Play();
 
 					if (i == Creatures.GetUpperBound(0))
 						IsWholeGroupBorn = true;

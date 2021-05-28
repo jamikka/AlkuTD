@@ -117,7 +117,9 @@ namespace AlkuTD
 
 			HpBarColor = new Color(0, 255, 0);
 
-        }
+			Angle = (float)(ParentMap.rnd.NextDouble());
+
+		}
         public Creature(HexMap map, string creatureType, int spawnPointIndex, int goalPointIndex, Texture2D spriteSheet, int spritesheetRows, int spritesheetColumns)
             : this(map, creatureType, spawnPointIndex, goalPointIndex, spriteSheet)
         {
@@ -672,8 +674,8 @@ namespace AlkuTD
 				{
 					if (nextWaypoint >= Path.Count - 1)
 					{
-						ParentMap.creatureCue = CurrentGame.soundBank.GetCue("plurrp0");
-						ParentMap.creatureCue.Play();
+						//ParentMap.creatureCue = CurrentGame.soundBank.GetCue("plurrp0");
+						//ParentMap.creatureCue.Play();
 						TakeLifePoints(ParentMap.Players);
 						return;
 					}

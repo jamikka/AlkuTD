@@ -46,7 +46,7 @@ namespace AlkuTD
         public static Tower[] ExampleTowers;
         public List<Tower> InitTowers;
         public byte[] AvailableTowers;
-        public byte PlayerInitLife;
+        public short PlayerInitLife;
         public int PlayerInitEnergy;
         public int[] PlayerInitGenePoints;
         public Player[] Players;
@@ -493,6 +493,11 @@ namespace AlkuTD
 					{
                         if (Waves[w].Groups[g].BugBox.locked)
                         {
+                            foreach (SpawnGroup sg in Waves[w].Groups)
+                            {
+                                if (!sg.BugBox.locked)
+                                    sg.ShowingPath = false;
+                            }
                             Waves[w].Groups[g].ShowingPath = true;
                             isNoneLocked = false;
                             continue;
@@ -526,15 +531,19 @@ namespace AlkuTD
                 switch (Layout[y, x])
                 {
                     case ' ': if (CurrentGame.gameState == GameState.MapEditor) sb.Draw(wallTextures[2], screenPos, null, Color.White * 0.1f, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //3=VOID
-                    case '0': sb.Draw(wallTextures[0], screenPos, null, Color.Cyan /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //0=OPEN TILES (light)
+                    case '0': sb.Draw(wallTextures[0], screenPos, null, Color.Cyan /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //0=OPEN WALL TILES (light)
 					case '.': //1=PATHTILES
-                    case '\'': sb.Draw(pathTexture, screenPos, null, Color.DarkSlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //1=PATH
-                    case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': //4=SPAWNPOINTS 
+                    case '\'': if ((y>0 && y<Layout.GetUpperBound(0)) && (x > 0 && x < Layout.GetUpperBound(1)) &&
+                                Layout[y-1,x] != '0' && Layout[y-1, x-1] != '0' && Layout[y-1, x+1] != '0' && Layout[y, x+1] != '0' && Layout[y, x-1] != '0' && Layout[y+1, x+1] != '0') 
+                                sb.Draw(pathTexture, screenPos, null, Color.DarkSlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); //1=PATH IN THE OPEN
+                            else
+                                sb.Draw(pathTexture, screenPos, null, Color.SlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //1=PATH CLOSE TO WALL
+                        case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': //4=SPAWNPOINTS 
 					case '9': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, new Color(62, 51, 129), 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //4=SPAWNPOINTS
                     case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': //5=GOALPOINTS
 					case 'i': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, Color.Salmon * 0.7f, 0, tileTexCenter, 1, SpriteEffects.None, 0); break; //5=GOALPOINTS
-                    default: sb.Draw(wallTextures[0], screenPos, null, Color.Cyan, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //0=OPEN TILES (light)
-                }
+                    default: sb.Draw(wallTextures[0], screenPos, null, Color.Cyan, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //0=OPEN WALL TILES (light)
+                    }
 				//sb.DrawString(CurrentGame.font, x + "," + y, screenPos + new Vector2(-20,0), Color.White *0.2f); //---COOOOOOOOORDS
 				//sb.DrawString(CurrentGame.font, cubeCoords[k].X.ToString() + "," + cubeCoords[k].Y.ToString() + "," + cubeCoords[k].Z.ToString(), screenPos - new Vector2(25,5), Color.White * 0.2f);
               }

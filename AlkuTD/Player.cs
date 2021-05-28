@@ -15,7 +15,7 @@ namespace AlkuTD
         public int Score;
         public int EnergyPoints;
 		public int[] GenePoints;
-        public byte LifePoints;
+        public short LifePoints;
         public List<Tower> Towers;
         public bool Alive;
 

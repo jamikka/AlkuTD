@@ -1023,7 +1023,7 @@ namespace AlkuTD
                                         }
                                         ParentMap.PlayerInitEnergy = int.Parse(MapEditorResourceCells[0].Text);
 										ParentMap.PlayerInitGenePoints = new int[] { int.Parse(MapEditorResourceCells[1].Text), int.Parse(MapEditorResourceCells[2].Text), int.Parse(MapEditorResourceCells[3].Text) };
-                                        ParentMap.PlayerInitLife = byte.Parse(MapEditorResourceCells[4].Text);
+                                        ParentMap.PlayerInitLife = short.Parse(MapEditorResourceCells[4].Text);
 
 										for (int i = 0; i < AvailableTowersCells.Length; i++)
 											byte.TryParse(AvailableTowersCells[i].Text, out ParentMap.AvailableTowers[i]);
