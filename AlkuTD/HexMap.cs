@@ -532,9 +532,13 @@ namespace AlkuTD
                 {
                     case ' ': if (CurrentGame.gameState == GameState.MapEditor) sb.Draw(wallTextures[2], screenPos, null, Color.White * 0.1f, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //3=VOID
                     case '0': sb.Draw(wallTextures[0], screenPos, null, Color.Cyan /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //0=OPEN WALL TILES (light)
-					case '.': //1=PATHTILES
+					case '.': if ((y > 0 && y < Layout.GetUpperBound(0)) && (x > 0 && x < Layout.GetUpperBound(1)) &&
+                              Layout[y-1, x] != '0' && Layout[y, x+1] != '0' && Layout[y+1, x+1] != '0' && Layout[y+1, x] != '0' && Layout[y+1, x-1] != '0' && Layout[y, x-1] != '0')
+                                sb.Draw(pathTexture, screenPos, null, Color.DarkSlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); //1=PATH IN THE OPEN
+                            else
+                                sb.Draw(pathTexture, screenPos, null, Color.SlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //1=PATH CLOSE TO WALL
                     case '\'': if ((y>0 && y<Layout.GetUpperBound(0)) && (x > 0 && x < Layout.GetUpperBound(1)) &&
-                                Layout[y-1,x] != '0' && Layout[y-1, x-1] != '0' && Layout[y-1, x+1] != '0' && Layout[y, x+1] != '0' && Layout[y, x-1] != '0' && Layout[y+1, x+1] != '0') 
+                                Layout[y-1,x] != '0' && Layout[y-1, x+1] != '0' && Layout[y, x+1] != '0' && Layout[y+1, x] != '0' && Layout[y, x-1] != '0' && Layout[y-1, x-1] != '0') 
                                 sb.Draw(pathTexture, screenPos, null, Color.DarkSlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); //1=PATH IN THE OPEN
                             else
                                 sb.Draw(pathTexture, screenPos, null, Color.SlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //1=PATH CLOSE TO WALL
