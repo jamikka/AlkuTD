@@ -64,7 +64,8 @@ namespace AlkuTD
 
         int tableButtonYDist;
         int onePadding;
-        int buttonHeight;
+        int menuButtonHeight;
+        int cellButtonHeight;
         int topButtonX;
         int topButtonY;
         int menuButtonWidth;
@@ -127,12 +128,13 @@ namespace AlkuTD
 
             tileringCenter = new Vector2((float)Math.Round(tilering.Width / 2f), (float)Math.Round(tilering.Height / 2f));
 
-            onePadding = 10;
-            buttonHeight = font.LineSpacing + onePadding -2;
+            onePadding = 9; //orig 10
+            menuButtonHeight = font.LineSpacing + onePadding -2;
+            cellButtonHeight = font.LineSpacing;
             menuButtonWidth = (int)Math.Round(font.MeasureString("MENU").X) + 2 * onePadding;
             toolButtonWidth = (int)Math.Round(font.MeasureString("00").X) + 2 * onePadding;
             menuButtonX = menuButtonWidth / 2;
-            menuButtonY = (int)(game.GraphicsDevice.Viewport.Height * 0.5f - 2.5 * buttonHeight);
+            menuButtonY = (int)(game.GraphicsDevice.Viewport.Height * 0.5f - 2.5 * menuButtonHeight);
             topButtonX = (int)(menuButtonWidth * 1.5f);
             topButtonY = 20;
             toolButtonX = game.GraphicsDevice.Viewport.Width - toolButtonWidth * 2;
@@ -143,8 +145,8 @@ namespace AlkuTD
 
             MapEdited = true;
 
-            HUDbuttons = new Button[] { new Button("Start the waves", topButtonX, topButtonY, (int)font.MeasureString("Start the waves").X + 2*onePadding, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
-                                        new Button("Restart", (int)(game.GraphicsDevice.Viewport.Height*0.4f), topButtonY, (int)font.MeasureString("Restart").X + 2*onePadding, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel)};
+            HUDbuttons = new Button[] { new Button("Start the waves", topButtonX, topButtonY, (int)font.MeasureString("Start the waves").X + 2*onePadding, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
+                                        new Button("Restart", (int)(game.GraphicsDevice.Viewport.Height*0.4f), topButtonY, (int)font.MeasureString("Restart").X + 2*onePadding, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel)};
 			extendedPoints = new Vector2[20];
 
 			GeneColors = new Dictionary<string, Color>();
@@ -156,11 +158,11 @@ namespace AlkuTD
 
             #region MAP EDITOR INITIALIZATIONS
             drawMode = HUD.DrawMode.WallPath;
-            MapEditorMenuButtons = new Button[] { new Button("TEST", menuButtonX, menuButtonY, menuButtonWidth, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
-                                                  new Button("SAVE", menuButtonX, menuButtonY + buttonHeight, menuButtonWidth, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
-                                                  new Button("LOAD", menuButtonX, menuButtonY + 2*buttonHeight, menuButtonWidth, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
-                                                  new Button("MENU", menuButtonX, menuButtonY + 3*buttonHeight, menuButtonWidth, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
-                                                  new Button("QUIT", menuButtonX, menuButtonY + 4*buttonHeight, menuButtonWidth, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel)};
+            MapEditorMenuButtons = new Button[] { new Button("TEST", menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
+                                                  new Button("SAVE", menuButtonX, menuButtonY + menuButtonHeight, menuButtonWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
+                                                  new Button("LOAD", menuButtonX, menuButtonY + 2*menuButtonHeight, menuButtonWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
+                                                  new Button("MENU", menuButtonX, menuButtonY + 3*menuButtonHeight, menuButtonWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
+                                                  new Button("QUIT", menuButtonX, menuButtonY + 4*menuButtonHeight, menuButtonWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel)};
 
             //MapEditorMenuButtons[1].InToggleMode = true;            
             MapEditorMenuButtons[1].DDMenuPos = DropDownMenuPos.Right;
@@ -189,29 +191,29 @@ namespace AlkuTD
 
 			int mapNameBoxXPOS = (int)(game.GraphicsDevice.Viewport.Width*0.17f) - (int)font.MeasureString("Map name:").X - 2*onePadding;
 			int resCellWidth = (int)font.MeasureString("200").X + onePadding;
-			Rectangle nrgLabelBOUNDS = new Rectangle((int)(game.GraphicsDevice.Viewport.Width * 0.5f), topButtonY, (int)font.MeasureString("Energy: ").X, buttonHeight);
-			Rectangle geneLabelBOUNDS = new Rectangle(nrgLabelBOUNDS.Right + resCellWidth + onePadding*2, topButtonY, (int)font.MeasureString("Genes: ").X, buttonHeight);
-			Rectangle lifeLabelBOUNDS = new Rectangle(geneLabelBOUNDS.Right + resCellWidth * 3 + onePadding*2, topButtonY, (int)font.MeasureString("Life: ").X, buttonHeight);
-            MapEditorTopButtons = new Button[] { new Button("Map name:", mapNameBoxXPOS, topButtonY, (int)font.MeasureString("Map name:").X + 2*onePadding, buttonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
+			Rectangle nrgLabelBOUNDS = new Rectangle((int)(game.GraphicsDevice.Viewport.Width * 0.5f), topButtonY, (int)font.MeasureString("Energy: ").X, menuButtonHeight);
+			Rectangle geneLabelBOUNDS = new Rectangle(nrgLabelBOUNDS.Right + resCellWidth + onePadding*2, topButtonY, (int)font.MeasureString("Genes: ").X, menuButtonHeight);
+			Rectangle lifeLabelBOUNDS = new Rectangle(geneLabelBOUNDS.Right + resCellWidth * 3 + onePadding*2, topButtonY, (int)font.MeasureString("Life: ").X, menuButtonHeight);
+            MapEditorTopButtons = new Button[] { new Button("Map name:", mapNameBoxXPOS, topButtonY, (int)font.MeasureString("Map name:").X + 2*onePadding, menuButtonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
                                                  //new Button("Edit waves", game.GraphicsDevice.Viewport.Width/2 - ((int)font.MeasureString("Edit waves").X + 2*padding) /2 /*(int)(game.GraphicsDevice.Viewport.Width*0.43f)*/, topButtonY, (int)font.MeasureString("Edit waves").X + 2*padding, buttonHeight, padding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
                                                  //new Button("Energy:", (int)(game.GraphicsDevice.Viewport.Width*0.597f), topButtonY, (int)font.MeasureString("200").X + 2*padding, buttonHeight, padding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
                                                  //new Button("Genes:", (int)(game.GraphicsDevice.Viewport.Width*0.7035f), topButtonY, (int)font.MeasureString("200").X + 2*padding, buttonHeight, padding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
-												 new Button("Edit waves", (int)(game.GraphicsDevice.Viewport.Width * 0.4f) - ((int)font.MeasureString("Edit waves").X + 2*onePadding) /2 /*(int)(game.GraphicsDevice.Viewport.Width*0.43f)*/, topButtonY, (int)font.MeasureString("Edit waves").X + 2*onePadding, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
-                                                 new Button("Energy:", nrgLabelBOUNDS.X, topButtonY, nrgLabelBOUNDS.Width, buttonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
-                                                 new Button("Genes:", geneLabelBOUNDS.X, topButtonY, geneLabelBOUNDS.Width, buttonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
+												 new Button("Edit waves", (int)(game.GraphicsDevice.Viewport.Width * 0.4f) - ((int)font.MeasureString("Edit waves").X + 2*onePadding) /2 /*(int)(game.GraphicsDevice.Viewport.Width*0.43f)*/, topButtonY, (int)font.MeasureString("Edit waves").X + 2*onePadding, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
+                                                 new Button("Energy:", nrgLabelBOUNDS.X, topButtonY, nrgLabelBOUNDS.Width, menuButtonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
+                                                 new Button("Genes:", geneLabelBOUNDS.X, topButtonY, geneLabelBOUNDS.Width, menuButtonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
                                                  //new Button("Life:", (int)(game.GraphicsDevice.Viewport.Width*0.807f), topButtonY, (int)font.MeasureString("200").X + 2*padding, buttonHeight, padding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel)};
-                                                 new Button("Life:", lifeLabelBOUNDS.X, topButtonY, lifeLabelBOUNDS.Width, buttonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel)};
+                                                 new Button("Life:", lifeLabelBOUNDS.X, topButtonY, lifeLabelBOUNDS.Width, menuButtonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel)};
             MapEditorTopButtons[1].InToggleMode = true;
 
             mapEditWTEditPos = MapEditorTopButtons[1].Pos;
 
-            MapNameBox = new TextCell("", MapEditorTopButtons[0].Bounds.Right, topButtonY, (int)(menuButtonWidth*2.4f), buttonHeight, onePadding, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.text, false, false);
+            MapNameBox = new TextCell("", MapEditorTopButtons[0].Bounds.Right, topButtonY, (int)(menuButtonWidth*2.4f), menuButtonHeight, onePadding, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.text, false, false);
 
-            MapEditorResourceCells = new TextCell[] { new TextCell("0", nrgLabelBOUNDS.Right, topButtonY, resCellWidth, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
-													  new TextCell("0", geneLabelBOUNDS.Right, topButtonY, resCellWidth, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
-                                                      new TextCell("0", geneLabelBOUNDS.Right + resCellWidth, topButtonY, resCellWidth, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
-                                                      new TextCell("0", geneLabelBOUNDS.Right + resCellWidth*2, topButtonY, resCellWidth, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
-                                                      new TextCell("0", lifeLabelBOUNDS.Right, topButtonY, resCellWidth, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true)};
+            MapEditorResourceCells = new TextCell[] { new TextCell("0", nrgLabelBOUNDS.Right, topButtonY, resCellWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
+													  new TextCell("0", geneLabelBOUNDS.Right, topButtonY, resCellWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
+                                                      new TextCell("0", geneLabelBOUNDS.Right + resCellWidth, topButtonY, resCellWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
+                                                      new TextCell("0", geneLabelBOUNDS.Right + resCellWidth*2, topButtonY, resCellWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
+                                                      new TextCell("0", lifeLabelBOUNDS.Right, topButtonY, resCellWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true)};
 
 			MapEditorResourceCells[1].ButtonColors = new Color[] { new Color(60, 10, 20), new Color(70, 20, 30), new Color(80, 30, 40) }; //----passive,hovered,pressed
 			MapEditorResourceCells[2].ButtonColors = new Color[] { new Color(20, 60, 30), new Color(30, 70, 40), new Color(40, 80, 50) };
@@ -220,13 +222,13 @@ namespace AlkuTD
 			for (int i = 1; i < 4; i++)
 				MapEditorResourceCells[i].InputMade += new TextInputDelegate(InitGenesChanged);
 
-            MapEditorTableRows = 22;
+            MapEditorTableRows = 30; //orig 22
             MapEditorTableCols = 16;
             int tableButtonWidth = (int)(game.GraphicsDevice.Viewport.Width * 0.8f / MapEditorTableCols);
-            tableButtonYDist = (int)(game.GraphicsDevice.Viewport.Height * 0.8f / (MapEditorTableRows-2));
+            tableButtonYDist = (int)(game.GraphicsDevice.Viewport.Height * 0.8f / (MapEditorTableRows-2)); //orig -2
 
-            int cellWideWidth = (int)(game.GraphicsDevice.Viewport.Width * 0.8f / MapEditorTableCols * 1.6f);
-            int cellSmallWidth = (int)(game.GraphicsDevice.Viewport.Width * 0.8f / MapEditorTableCols * 0.9143f); //0.8846 = jäljellejäävä kuudestoistaosa kolmen leveän solun jälkeen
+            int cellWideWidth = (int)(game.GraphicsDevice.Viewport.Width * 0.8f / MapEditorTableCols * 2.2f);
+            int cellSmallWidth = (int)(game.GraphicsDevice.Viewport.Width * 0.8f / MapEditorTableCols * 0.78);//0.9143f); //0.8846 = jäljellejäävä kuudestoistaosa kolmen leveän solun jälkeen
             int cellGap = 3;
 
             int tableButtonY = (int)(game.GraphicsDevice.Viewport.Height * 0.1f) + tableButtonYDist;
@@ -235,33 +237,34 @@ namespace AlkuTD
             Color[] tableLabelColors = new Color[] { Color.DarkSlateGray, Color.Transparent, Color.Transparent }; //----passive,hovered,pressed
             Color[] tableLabelTextColors = new Color[] { Color.BlanchedAlmond, Color.Orange, Color.Orange };//----passive,hovered,pressed
             tableCellColors = new Color[] { new Color(15,25,35), new Color(25,35,45), new Color(35,45,55) }; //----passive,hovered,pressed
-            
+
+            int tableCellPadding = 6;
             MapEditorLabelButtons = new Button[15];
             for (int i = 0; i < MapEditorLabelButtons.Length; i++)
             {
                 switch (i)
                 {
-                    case 0: MapEditorLabelButtons[i] = new Button("Amt", tableLabelButtonX + i*cellSmallWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
-                    case 1: MapEditorLabelButtons[i] = new Button("Type", tableLabelButtonX + i*cellSmallWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.text, false); break;
-                    case 2: MapEditorLabelButtons[i] = new Button("Name", tableLabelButtonX + i*cellSmallWidth, tableLabelButtonY, cellWideWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.text, false); break;
-                    case 3: MapEditorLabelButtons[i] = new Button("Texture", tableLabelButtonX + (i-1)*cellSmallWidth + cellWideWidth, tableLabelButtonY, cellWideWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.text, true); break;
-                    case 4: MapEditorLabelButtons[i] = new Button("SpwP", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, true); break;
-                    case 5: MapEditorLabelButtons[i] = new Button("Goals", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.text, true); break;
-                    case 6: MapEditorLabelButtons[i] = new Button("HP", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
+                    case 0: MapEditorLabelButtons[i] = new Button("Amt", tableLabelButtonX + i*cellSmallWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding /*onePadding*/, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
+                    case 1: MapEditorLabelButtons[i] = new Button("Type", tableLabelButtonX + i*cellSmallWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.text, false); break;
+                    case 2: MapEditorLabelButtons[i] = new Button("Name", tableLabelButtonX + i*cellSmallWidth, tableLabelButtonY, cellWideWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.text, false); break;
+                    case 3: MapEditorLabelButtons[i] = new Button("Texture", tableLabelButtonX + (i-1)*cellSmallWidth + cellWideWidth, tableLabelButtonY, cellWideWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.text, true); break;
+                    case 4: MapEditorLabelButtons[i] = new Button("SpwP", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, true); break;
+                    case 5: MapEditorLabelButtons[i] = new Button("Goals", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.text, true); break;
+                    case 6: MapEditorLabelButtons[i] = new Button("HP", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
                     //case 7: MapEditorLabelButtons[i] = new Button("Elem", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, padding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, true); break;
 					//case 8: MapEditorLabelButtons[i] = new Button("SPD", tableLabelButtonX + (i - 2) * cellSmallWidth + 2 * cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, padding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.floating, false); break;
 					//case 9: MapEditorLabelButtons[i] = new Button("CDmg", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, padding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
 					//case 10: MapEditorLabelButtons[i] = new Button("LDmg", tableLabelButtonX + (i - 2) * cellSmallWidth + 2 * cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, padding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
 					//case 11: MapEditorLabelButtons[i] = new Button("Energ", tableLabelButtonX + (i - 2) * cellSmallWidth + 2 * cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, padding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
 					//case 12: MapEditorLabelButtons[i] = new Button("Genes", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, padding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
-					case 7: MapEditorLabelButtons[i] = new Button("SPD", tableLabelButtonX + (i - 2) * cellSmallWidth + 2 * cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.floating, false); break;
-                    case 8: MapEditorLabelButtons[i] = new Button("LDmg", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
-                    case 9: MapEditorLabelButtons[i] = new Button("Energ", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
-					case 10: MapEditorLabelButtons[i] = new Button("RRes", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.floating, false); break;
-					case 11: MapEditorLabelButtons[i] = new Button("GRes", tableLabelButtonX + (i - 2) * cellSmallWidth + 2 * cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.floating, false); break;
-					case 12: MapEditorLabelButtons[i] = new Button("BRes", tableLabelButtonX + (i - 2) * cellSmallWidth + 2 * cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.floating, false); break;
-                    case 13: MapEditorLabelButtons[i] = new Button("SpwD", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
-                    case 14: MapEditorLabelButtons[i] = new Button("Dur", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
+					case 7: MapEditorLabelButtons[i] = new Button("SPD", tableLabelButtonX + (i - 2) * cellSmallWidth + 2 * cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.floating, false); break;
+                    case 8: MapEditorLabelButtons[i] = new Button("LDmg", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
+                    case 9: MapEditorLabelButtons[i] = new Button("Energ", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
+					case 10: MapEditorLabelButtons[i] = new Button("RRes", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.floating, false); break;
+					case 11: MapEditorLabelButtons[i] = new Button("GRes", tableLabelButtonX + (i - 2) * cellSmallWidth + 2 * cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.floating, false); break;
+					case 12: MapEditorLabelButtons[i] = new Button("BRes", tableLabelButtonX + (i - 2) * cellSmallWidth + 2 * cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.floating, false); break;
+                    case 13: MapEditorLabelButtons[i] = new Button("SpwD", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth - cellGap, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
+                    case 14: MapEditorLabelButtons[i] = new Button("Dur", tableLabelButtonX + (i-2)*cellSmallWidth + 2*cellWideWidth, tableLabelButtonY, cellSmallWidth, cellButtonHeight, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false); break;
                 }
             }
             //foreach (Button b in MapEditorLabelButtons)
@@ -273,8 +276,8 @@ namespace AlkuTD
                                                       MapEditorLabelButtons[i % (MapEditorTableCols-1)].Pos.X,
                                                       tableButtonY + i/(MapEditorTableCols-1)%MapEditorTableRows * tableButtonYDist,
                                                       MapEditorLabelButtons[i % (MapEditorTableCols-1)].Width,
-                                                      buttonHeight,
-                                                      onePadding,
+                                                      cellButtonHeight,
+                                                      tableCellPadding,
                                                       TextAlignment.Center,
                                                       i%(MapEditorTableCols-1) % 2 == 0? (Color[])buttonColors.Clone() : (Color[])tableCellColors.Clone(),
                                                       tableLabelTextColors,
@@ -300,7 +303,7 @@ namespace AlkuTD
             MapEditorWaveLabels = new Button[MapEditorTableRows];
             int WaveLabelWidth = (int)font.MeasureString("Wave 2").X + 2*onePadding;
             for (int i = 0; i < MapEditorWaveLabels.Length; i++)
-                MapEditorWaveLabels[i] = new Button("Wave 1", menuButtonX + menuButtonWidth + cellGap, tableButtonY + i * tableButtonYDist, WaveLabelWidth - cellGap, buttonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
+                MapEditorWaveLabels[i] = new Button("Wave 1", menuButtonX + menuButtonWidth + cellGap, tableButtonY + i * tableButtonYDist, WaveLabelWidth - cellGap, menuButtonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
             
             MapEditorWaveLabels[1].Text = "Add";
 
@@ -309,19 +312,19 @@ namespace AlkuTD
             MapEditorTableAddButtons = new Button[MapEditorTableRows +1];
             for (int i = 0; i < MapEditorTableAddButtons.Length; i++)
             {
-                MapEditorTableAddButtons[i] = new Button("+", addButtonX, (int)(tableButtonY - 0.4 * tableButtonYDist + i*tableButtonYDist), addButtonWidth, addButtonWidth, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
+                MapEditorTableAddButtons[i] = new Button("+", addButtonX, (int)(tableButtonY - 0.5 * tableButtonYDist + i*tableButtonYDist), addButtonWidth, addButtonWidth, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
                 MapEditorTableAddButtons[i].YPadding = 2;
                 MapEditorTableAddButtons[i].RealignText();
             }
             int delButtonX = tableLabelButtonX + (MapEditorTableCols-3) * cellSmallWidth + 2*cellWideWidth + cellGap;
             MapEditorTableDelButtons = new Button[MapEditorTableRows];
             for (int i = 0; i < MapEditorTableDelButtons.Length; i++)
-                MapEditorTableDelButtons[i] = new Button("x", delButtonX, 2 + tableButtonY + i * tableButtonYDist, addButtonWidth, addButtonWidth, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
+                MapEditorTableDelButtons[i] = new Button("x", delButtonX, tableButtonY + i * tableButtonYDist, addButtonWidth, addButtonWidth, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
 
-            TableBackground = new Rectangle(topButtonX, topButtonY + buttonHeight *2, ParentGame.GraphicsDevice.Viewport.Width - topButtonX * 2 + 15, ParentGame.GraphicsDevice.Viewport.Height - (buttonHeight +7) * 2);
-            TableBackground1 = new Rectangle(MapEditorTopButtons[0].Pos.X, topButtonY, MapEditorTopButtons[0].Width + MapNameBox.Width, buttonHeight);
-            TableBackground2 = new Rectangle(menuButtonX, menuButtonY, menuButtonWidth, buttonHeight*5);
-            TableBackground3 = new Rectangle(MapEditorTopButtons[2].Pos.X -5, topButtonY, (int)(ParentGame.GraphicsDevice.Viewport.Width*0.3f), buttonHeight);
+            TableBackground = new Rectangle(topButtonX, topButtonY + menuButtonHeight *2, ParentGame.GraphicsDevice.Viewport.Width - topButtonX * 2 + 15, ParentGame.GraphicsDevice.Viewport.Height - (menuButtonHeight +7) * 2);
+            TableBackground1 = new Rectangle(MapEditorTopButtons[0].Pos.X, topButtonY, MapEditorTopButtons[0].Width + MapNameBox.Width, menuButtonHeight);
+            TableBackground2 = new Rectangle(menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight*5);
+            TableBackground3 = new Rectangle(MapEditorTopButtons[2].Pos.X -5, topButtonY, (int)(ParentGame.GraphicsDevice.Viewport.Width*0.3f), menuButtonHeight);
             TableBackground4 = TableBackground3;
             TableBackground5 = TableBackground3;
 
@@ -332,20 +335,20 @@ namespace AlkuTD
 
             ErrorButtons = new List<Button>();
 
-            BackToEditButton = new Button("Back to edit", menuButtonX, HUDbuttons[0].Bounds.Bottom + 5, (int)CurrentGame.font.MeasureString("Back to edit").X + onePadding*2, buttonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel);
+            BackToEditButton = new Button("Back to edit", menuButtonX, HUDbuttons[0].Bounds.Bottom + 5, (int)CurrentGame.font.MeasureString("Back to edit").X + onePadding*2, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel);
 
             mapTestWTEditPos = new Point(BackToEditButton.Bounds.Right + cellGap, BackToEditButton.Pos.Y);
 
-            Vector2[] tileCorners = new Vector2[6] { new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 - buttonHeight/2, MapEditorToolButtons[3].Pos.Y - buttonHeight/2 + 2), //up-L
-                                                     new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 * 3 +1 - buttonHeight/2, MapEditorToolButtons[3].Pos.Y - buttonHeight/2 +2),  //up-R
-                                                     new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width -1 - buttonHeight/2, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height/2 - buttonHeight/2),         //R
-                                                     new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 * 3 +1 - buttonHeight/2, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height -1 - buttonHeight/2),    //lo-R
-                                                     new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 - buttonHeight/2, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height -1 - buttonHeight/2), //lo-L
-                                                     new Vector2(MapEditorToolButtons[3].Pos.X +1 - buttonHeight/2, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height/2 - buttonHeight/2)};        //L
+            Vector2[] tileCorners = new Vector2[6] { new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 - menuButtonHeight/2, MapEditorToolButtons[3].Pos.Y - menuButtonHeight/2 + 2), //up-L
+                                                     new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 * 3 +1 - menuButtonHeight/2, MapEditorToolButtons[3].Pos.Y - menuButtonHeight/2 +2),  //up-R
+                                                     new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width -1 - menuButtonHeight/2, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height/2 - menuButtonHeight/2),         //R
+                                                     new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 * 3 +1 - menuButtonHeight/2, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height -1 - menuButtonHeight/2),    //lo-R
+                                                     new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 - menuButtonHeight/2, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height -1 - menuButtonHeight/2), //lo-L
+                                                     new Vector2(MapEditorToolButtons[3].Pos.X +1 - menuButtonHeight/2, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height/2 - menuButtonHeight/2)};        //L
             AvailableTowersCells = new TextCell[6];
             for (int i = 0; i < AvailableTowersCells.Length; i++)
             {
-                AvailableTowersCells[i] = new TextCell("3", (int)tileCorners[i].X, (int)tileCorners[i].Y, buttonHeight, buttonHeight, onePadding, TextAlignment.Center, new Color[] { Color.Transparent, Color.Transparent, buttonColors[1] }, buttonTextColors, CurrentGame.pixel, InputType.integer, true, true);
+                AvailableTowersCells[i] = new TextCell("3", (int)tileCorners[i].X, (int)tileCorners[i].Y, menuButtonHeight, menuButtonHeight, onePadding, TextAlignment.Center, new Color[] { Color.Transparent, Color.Transparent, buttonColors[1] }, buttonTextColors, CurrentGame.pixel, InputType.integer, true, true);
                 AvailableTowersCells[i].PopulateDropDownMenu(new string[] { "-", "1", "2", "3" });
             }
 
@@ -425,6 +428,8 @@ namespace AlkuTD
 								
                             }
                         }
+                        ParentMap.CurrentLayout = new MapLayout(ParentMap.Layout);
+                        ParentMap.InitialLayout = new MapLayout(ParentMap.Layout);
 
 						if (initTowers != null)
 						{
@@ -563,13 +568,13 @@ namespace AlkuTD
             {
                 valid = false;
                 ErrorShow = true;
-                ErrorButtons.Add(new Button("No spawnpoints", MapEditorMenuButtons[0].Bounds.Right, menuButtonY + ErrorButtons.Count * buttonHeight, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel));
+                ErrorButtons.Add(new Button("No spawnpoints", MapEditorMenuButtons[0].Bounds.Right, menuButtonY + ErrorButtons.Count * menuButtonHeight, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel));
             }
             if (MapEditorGoalPoints.Count < 1)
             {
                 valid = false;
                 ErrorShow = true;
-                ErrorButtons.Add(new Button("No goalpoints", MapEditorMenuButtons[0].Bounds.Right, menuButtonY + ErrorButtons.Count * buttonHeight, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel));
+                ErrorButtons.Add(new Button("No goalpoints", MapEditorMenuButtons[0].Bounds.Right, menuButtonY + ErrorButtons.Count * menuButtonHeight, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel));
             }
             if (MapEditorSpawnPoints.Count > 0 && MapEditorGoalPoints.Count > 0)
             {
@@ -602,7 +607,7 @@ namespace AlkuTD
                         ParentMap.Pathfinder.FindPath(ParentMap.SpawnPoints[int.Parse(MapEditorTableCells[4 + i * (MapEditorTableCols-1)].Text) -1],
                                                       ParentMap.GoalPoints[(int)char.Parse(MapEditorTableCells[5 + i * (MapEditorTableCols-1)].Text) -97]).Count < 1)
                     {
-                        ErrorButtons.Add(new Button("Path not found (group " + (i+1).ToString() + ")", MapEditorMenuButtons[0].Bounds.Right, menuButtonY + ErrorButtons.Count * buttonHeight, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel));
+                        ErrorButtons.Add(new Button("Path not found (group " + (i+1).ToString() + ")", MapEditorMenuButtons[0].Bounds.Right, menuButtonY + ErrorButtons.Count * menuButtonHeight, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel));
                     }
                 }
 
@@ -614,8 +619,8 @@ namespace AlkuTD
                         ErrorShow = true;
 
                         if (invalidLists[m].Count > 1)
-                            ErrorButtons.Add(new Button(listDefinitions[m] + " (groups ", MapEditorMenuButtons[0].Bounds.Right, menuButtonY + ErrorButtons.Count * buttonHeight, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel));
-                        else ErrorButtons.Add(new Button(listDefinitions[m] + " (group ", MapEditorMenuButtons[0].Bounds.Right, menuButtonY + ErrorButtons.Count * buttonHeight, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel));
+                            ErrorButtons.Add(new Button(listDefinitions[m] + " (groups ", MapEditorMenuButtons[0].Bounds.Right, menuButtonY + ErrorButtons.Count * menuButtonHeight, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel));
+                        else ErrorButtons.Add(new Button(listDefinitions[m] + " (group ", MapEditorMenuButtons[0].Bounds.Right, menuButtonY + ErrorButtons.Count * menuButtonHeight, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel));
                         for (int i = 0; i < invalidLists[m].Count; i++)
                         {
                             if (i > 0)
@@ -847,7 +852,7 @@ namespace AlkuTD
                     HUDbuttons[i].Update(mouse, prevMouse);
 
 				#region MAPTEST
-				if (CurrentGame.gameState == GameState.MapTest)
+				if (CurrentGame.gameState == GameState.MapTestInGame)
                 {
                     BackToEditButton.Update(mouse, prevMouse);
                     if (BackToEditButton.State == ButnState.Released)
@@ -873,9 +878,13 @@ namespace AlkuTD
 						HUD.UpdateWaveInfo();
                         HUDbuttons[0].Text = "Send next wave";
                         //ButtonWords[0] = "Send next wave";
-                        ParentMap.initSetupOn = false;
+                        //ParentMap.initSetupOn = false;
+                        if (CurrentGame.gameState == GameState.MapTestInitSetup)
+                            CurrentGame.gameState = GameState.MapTestInGame;
+                        else
+                            CurrentGame.gameState = GameState.InGame;
 
-						for (int w = 0; w < ParentMap.Waves.Length; w++)
+                        for (int w = 0; w < ParentMap.Waves.Length; w++)
 						{   for (int g = 0; g < ParentMap.Waves[w].Groups.Length; g++)
 							{
                                 ParentMap.Waves[w].Groups[g].ShowingPath = false;
@@ -1032,7 +1041,6 @@ namespace AlkuTD
                                         //EditorMapLoad("temp");
                                         ParentMap.ResetMap();
                                         MapEditorTopButtons[1].Pos = mapTestWTEditPos;
-                                        CurrentGame.gameState = GameState.MapTest;
                                     }   break;
 							#endregion
 							case 1:
@@ -1731,7 +1739,7 @@ namespace AlkuTD
 
                             //Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
                             if (hudCue.IsPlaying) hudCue.Stop(AudioStopOptions.AsAuthored);
-                            if ((ParentMap.initSetupOn && selectedRingPart == 0) || !ParentMap.initSetupOn)
+                            if ((/*ParentMap.initSetupOn*/(CurrentGame.gameState == GameState.InitSetup || CurrentGame.gameState == GameState.MapTestInitSetup) && selectedRingPart == 0) || (CurrentGame.gameState != GameState.InitSetup && CurrentGame.gameState != GameState.MapTestInitSetup)/*!ParentMap.initSetupOn*/)
                             {
                                 hudCue = CurrentGame.soundBank.GetCue("buiRev");
                                 hudCue.Play();
@@ -1786,8 +1794,16 @@ namespace AlkuTD
 								case 6: Color?[] crs = null;
 										int geneYield = 0;
 										int energyYield = 0;
-										for (int i = 0; i <= (int)selectedTower.UpgradeLvl; i++)
-											energyYield += (int)Math.Round(HexMap.ExampleTowers[selectedTower.towerBranch + i * 6].Cost * CurrentGame.GeneSellRate);
+                                        if (CurrentGame.gameState != GameState.InitSetup && CurrentGame.gameState != GameState.MapTestInitSetup)
+                                        {
+                                            for (int i = 0; i <= (int)selectedTower.UpgradeLvl; i++)
+                                                energyYield += (int)Math.Round(HexMap.ExampleTowers[selectedTower.towerBranch + i * 6].Cost * CurrentGame.GeneSellRate);
+                                        }
+                                        else
+                                        {
+                                            for (int i = 0; i <= (int)selectedTower.UpgradeLvl; i++)
+                                                energyYield += HexMap.ExampleTowers[selectedTower.towerBranch + i * 6].Cost;
+                                        }
 										if (selectedTower.GeneSpecs.HasAny)
 										{
 											crs = new Color?[] { GeneColors[selectedTower.GeneSpecs.GetPrimaryElem().ToString()] };
@@ -1948,7 +1964,7 @@ namespace AlkuTD
                         //if (ParentMap.Players[0].EnergyPoints - ParentMap.ExampleTowers[selectedRingPart - 1].Cost >= 0)
                         //    sb.Draw(ParentMap.tileTextures[5], tileCorners[selectedRingPart] - new Vector2(ParentMap.tileTextures[5].Width / 2, ParentMap.tileTextures[5].Height / 2), Color.PowderBlue);
                         if (selectedRingPart < 7 && !priorityRingActive && ParentMap.AvailableTowers[selectedRingPart -1] > 0 && ParentMap.Players[0].EnergyPoints < HexMap.ExampleTowers[selectedRingPart - 1].Cost)
-                            sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.IndianRed);
+                            sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.IndianRed); //----------------------TODO: geneAffords & noRedsOnSellETC
                         //foreach (Vector2 point in tileCorners)
                         //    sb.Draw(ParentMap.tileTextures[4], point, null, new Color(150, 150, 150, 150));
 					}
@@ -2138,14 +2154,14 @@ namespace AlkuTD
 
                 //DrawWaveInfo(sb);
 
-                if (CurrentGame.gameState == GameState.MapTest || (CurrentGame.prevState == GameState.MapTest && CurrentGame.gameState == GameState.Paused))
+                if (CurrentGame.gameState == GameState.MapTestInGame || (CurrentGame.prevState == GameState.MapTestInGame && CurrentGame.gameState == GameState.Paused))
                 #region MAPTEST WAVETABLE
                 {
                     BackToEditButton.Draw(sb);
                     MapEditorTopButtons[1].Draw(sb);
                     if (MapEditorTopButtons[1].State == ButnState.Active)
                     {
-                        sb.Draw(CurrentGame.pixel, new Rectangle(topButtonX, topButtonY + buttonHeight, ParentGame.GraphicsDevice.Viewport.Width - topButtonX * 2, ParentGame.GraphicsDevice.Viewport.Height - (buttonHeight + 7) * 2), Color.Black * 0.9f);
+                        sb.Draw(CurrentGame.pixel, new Rectangle(topButtonX, topButtonY + menuButtonHeight, ParentGame.GraphicsDevice.Viewport.Width - topButtonX * 2, ParentGame.GraphicsDevice.Viewport.Height - (menuButtonHeight + 7) * 2), Color.Black * 0.9f);
                         for (int i = 0; i < MapEditorLabelButtons.Length; i++)
                         {
                             MapEditorLabelButtons[i].Draw(sb);
@@ -2206,7 +2222,7 @@ namespace AlkuTD
 
                 if (MapEditorTopButtons[1].State == ButnState.Active)
                 {
-                    sb.Draw(CurrentGame.pixel, new Rectangle(topButtonX, topButtonY + buttonHeight, ParentGame.GraphicsDevice.Viewport.Width - topButtonX * 2, ParentGame.GraphicsDevice.Viewport.Height - (buttonHeight + 7) * 2), Color.Black * 0.9f);
+                    sb.Draw(CurrentGame.pixel, new Rectangle(topButtonX, topButtonY + menuButtonHeight, ParentGame.GraphicsDevice.Viewport.Width - topButtonX * 2, ParentGame.GraphicsDevice.Viewport.Height - (menuButtonHeight + 7) * 2), Color.Black * 0.9f);
                     for (int i = 0; i < MapEditorLabelButtons.Length; i++)
                     {
                         MapEditorLabelButtons[i].Draw(sb);

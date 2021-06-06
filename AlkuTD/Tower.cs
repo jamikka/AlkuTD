@@ -525,8 +525,16 @@ namespace AlkuTD
 		public void Disassemble()
 		{
 			int energyYield = 0;
-			for (int i = 0; i <= (int)UpgradeLvl; i++)
-				energyYield += (int)Math.Round(HexMap.ExampleTowers[towerBranch + i * 6].Cost * CurrentGame.GeneSellRate);
+			if (CurrentGame.gameState != GameState.InitSetup && CurrentGame.gameState != GameState.MapTestInitSetup)
+			{
+				for (int i = 0; i <= (int)UpgradeLvl; i++)
+					energyYield += (int)Math.Round(HexMap.ExampleTowers[towerBranch + i * 6].Cost * CurrentGame.GeneSellRate);
+			}
+			else
+			{
+				for (int i = 0; i <= (int)UpgradeLvl; i++)
+					energyYield += HexMap.ExampleTowers[towerBranch + i * 6].Cost;
+			}
 
 			while (GeneSpecs.HasAny)
 				WithdrawMainGeneTier();
@@ -534,6 +542,7 @@ namespace AlkuTD
 			CurrentGame.players[0].EnergyPoints += energyYield;
 			CurrentGame.players[0].Towers.Remove(this);
 			ParentMap.Layout[mapCoord.Y, mapCoord.X] = '0';
+			ParentMap.CurrentLayout[mapCoord] = '0';
 		}
 
 		internal int firerateCounter = 0;		
@@ -712,7 +721,10 @@ namespace AlkuTD
         float oldRange;
         public virtual void Update(List<Creature> aliveCreatures)
         {
-            if (buildTimer == 0)
+            if (CurrentGame.gameState == GameState.InitSetup || CurrentGame.gameState == GameState.MapTestInitSetup/*ParentMap.initSetupOn*/) 
+				buildTimer = 0;
+
+			if (buildTimer == 0)
             {
                 if (firerateCounter > 0)
                     firerateCounter--;
@@ -735,7 +747,6 @@ namespace AlkuTD
                 }
 
             }
-            else if (ParentMap.initSetupOn) buildTimer = 0;
             else buildTimer--;
 
             if (Range != oldRange)

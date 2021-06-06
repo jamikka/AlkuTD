@@ -19,6 +19,8 @@ namespace AlkuTD
         //public byte[,] Layout;
         public char[,] InitLayout;
         public char[,] Layout;
+        public MapLayout CurrentLayout;
+        public MapLayout InitialLayout;
 
         public Random rnd;
         public Pathfinder Pathfinder;
@@ -114,6 +116,8 @@ namespace AlkuTD
             InitLayout = initLayout;
             Layout = new char[initLayout.GetLength(0), initLayout.GetLength(1)];            
             Array.Copy(InitLayout, Layout, InitLayout.Length);
+            CurrentLayout = new MapLayout(Layout);
+            InitialLayout = new MapLayout(initLayout);
             
             drawPos = new Point((int)(ParentGame.GraphicsDevice.Viewport.Width/2 - Layout.GetUpperBound(1)*stackedWidth /2),
                                 (int)(ParentGame.GraphicsDevice.Viewport.Height/2 - Layout.GetUpperBound(0)*TileHeight /2));
@@ -138,7 +142,7 @@ namespace AlkuTD
             //                               new Tower("5", this, ParentGame.HUD.activeTileCoord, 150, 20, new Texture2D[] { game.Content.Load<Texture2D>("Towers\\TORN-66-57-väri1") }, (float)Math.PI * 0.5f, CurrentGame.pixel, 12f, 25, 0, new int[] { 0, 0 }, Element.None, 100, 200)};
             //new Tower(ParentGame, "2", this, ParentGame.HUD.activeTileCoord, 100, 20, tileTextures[6], (float)Math.PI * 0.5f, tileTextures[7], null, 12f, 25, 0, new int[] { 0, 0 }, 0, 0, 0, 100, 200),
             ExampleTowers = new Tower[18] {new Tower('A', "Pruiter 1", Point.Zero, 75, 55, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri1") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 10, 200, true),
-                                           new Tower('E', "Splasher 1", Point.Zero, 110, 50, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN1") }, new GeneSpecs(), CurrentGame.ball, 2f, 2, DmgType.Splash, 15, new float[] {0,0}, 20, 200, true),
+                                           new Tower('E', "Splasher 1", Point.Zero, 110, 70, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN1") }, new GeneSpecs(), CurrentGame.ball, 2f, 1, DmgType.Splash, 15, new float[] {0,0}, 20, 200, true),
                                            new SniperTower(Point.Zero, UpgLvl.Basic, true),
                                            //new Tower('I', "Sniper 1", Point.Zero, 200, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 5, 0, 0, new float[] {0,0}, 30, 200, true),
                                            new Tower('O', "Slower 1", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.2f,200}, 10, 200, true),
@@ -146,8 +150,8 @@ namespace AlkuTD
                                            //new Tower('U', "Grabber 1", Point.Zero, 120, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
                                            new Tower('|', "Booster 1", Point.Zero, 350, 60, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 8f, 1, 0, 0, new float[] {0,0}, 15, 200, true),
 
-                                           new Tower('Ä', "Pruiter 2", Point.Zero, 90, 55, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri6") }, new GeneSpecs(), CurrentGame.ball, 12f, 2, 0, 0, new float[] {0,0}, 8, 300, true),
-                                           new Tower('Ë', "Splasher 2", Point.Zero, 250, 50, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN2") }, new GeneSpecs(), CurrentGame.ball, 2f, 3, DmgType.Splash, 25, new float[] {0,0}, 20, 200, true),
+                                           new Tower('Ä', "Pruiter 2", Point.Zero, 90, 64, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri6") }, new GeneSpecs(), CurrentGame.ball, 12f, 2, 0, 0, new float[] {0,0}, 10, 300, true),
+                                           new Tower('Ë', "Splasher 2", Point.Zero, 250, 70, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN2") }, new GeneSpecs(), CurrentGame.ball, 2f, 2, DmgType.Splash, 25, new float[] {0,0}, 20, 200, true),
                                            new SniperTower(Point.Zero, UpgLvl.Advanced, true),
                                            //new Tower('Ï', "Sniper 2", Point.Zero, 225, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 15, 0, 0, new float[] {0,0}, 30, 200, true),
                                            new Tower('Ö', "Slower 2", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.4f,200}, 10, 200, true),
@@ -156,7 +160,7 @@ namespace AlkuTD
                                            new Tower('†', "Booster 2", Point.Zero, 155, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 15, 200, true),
 
                                            new Tower('Â', "Pruiter 3", Point.Zero, 125, 70, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri7") }, new GeneSpecs(), CurrentGame.ball, 18f, 3, 0, 0, new float[] {0,0}, 10, 200, true),
-                                           new Tower('Ê', "Splasher 3", Point.Zero, 120, 50, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN4") }, new GeneSpecs(), CurrentGame.ball, 12f, 4, DmgType.Splash, 360, new float[] {0,0}, 20, 200, true),
+                                           new Tower('Ê', "Splasher 3", Point.Zero, 120, 70, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN4") }, new GeneSpecs(), CurrentGame.ball, 12f, 4, DmgType.Splash, 360, new float[] {0,0}, 20, 200, true),
                                            new SniperTower(Point.Zero, UpgLvl.Max, true),
                                            //new Tower('Î', "Sniper 3", Point.Zero, 250, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 25, 0, 0, new float[] {0,0}, 30, 200, true),
                                            new Tower('Ô', "Slower 3", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.6f,200}, 10, 200, true),
@@ -297,6 +301,7 @@ namespace AlkuTD
         public void BuildTower(Tower t)
         {
             Layout[t.MapCoord.Y, t.MapCoord.X] = t.Symbol;
+            CurrentLayout[t.MapCoord] = t.Symbol;
             Players[0].EnergyPoints -= t.Cost;
             Players[0].Towers.Add(t);
             //Players[0].Towers.Insert(Players[0].Towers.Count, t);  //---- joku vanha numerotorni-idea?
@@ -311,6 +316,8 @@ namespace AlkuTD
         public void ResetMap()
         {
             Array.Copy(InitLayout, Layout, InitLayout.Length);
+            CurrentLayout = new MapLayout(Layout);
+            InitialLayout = new MapLayout(InitLayout);
             /*for (int y = 0; y <= Layout.GetUpperBound(0); y++)
             { for (int x = 0; x <= Layout.GetUpperBound(1); x++)
               {
@@ -325,7 +332,11 @@ namespace AlkuTD
             mapTimer = 0;
             currentWave = -1;
             //waveTimer = 0;
-            initSetupOn = true;
+            //initSetupOn = true;
+            if (CurrentGame.gameState == GameState.MapEditor || CurrentGame.gameState == GameState.MapTestInGame)
+                CurrentGame.gameState = GameState.MapTestInitSetup;
+            else
+                CurrentGame.gameState = GameState.InitSetup;
             AliveCreatures.Clear();
             FloatingParticles.Clear();
 
@@ -437,31 +448,56 @@ namespace AlkuTD
                 //else
                    // CurrentGame.gameState = GameState.GameOver;
             }
-            if (!initSetupOn)
+            if (CurrentGame.gameState == GameState.InitSetup || CurrentGame.gameState == GameState.MapTestInitSetup/*!initSetupOn*/)
             {
-                /*for (int o = 1; o < GoalPointTimetable.Length; o++)
-                {
-                    if (mapTimer == GoalPointTimetable[o]) //----------------------------------------------------------------------------------------HUOM maptimer ei huomioi wave-aikaistuksia
+                bool isNoneLocked = true;
+                for (int w = 0; w < Waves.Length; w++)
+                {   for (int g = 0; g < Waves[w].Groups.Length; g++)
                     {
-                        foreach (Creature c in AliveCreatures)
+                        if (Waves[w].Groups[g].BugBox.locked)
                         {
-                            //if (c.GoalPointIndex.Length > 1)
-                                c.FindPath();
+                            foreach (SpawnGroup sg in Waves[w].Groups)
+                            {
+                                if (!sg.BugBox.locked)
+                                    sg.ShowingPath = false;
+                            }
+                            Waves[w].Groups[g].ShowingPath = true;
+                            isNoneLocked = false;
+                            continue;
                         }
-                        creatureCue = ParentGame.soundBank.GetCue("plurputus1");
-                        creatureCue.Play();
+                        if (isNoneLocked)
+                            Waves[w].Groups[g].ShowingPath = true;
+                        else
+                            Waves[w].Groups[g].ShowingPath = false;
                     }
-                }*/
-
+                }
+            }
+            else //INGAME
+            {
                 //---------------------------------------------------------------eikös tänkin vois laittaa on-demand, öröjen vastuulle
 				bool PKeyDown = CurrentGame.keyboard.IsKeyDown(Keys.P);
+                //bool isNoneLocked = true;
                 for (int w = 0; w < Waves.Length; w++)
                 {   for (int g = 0; g < Waves[w].Groups.Length; g++)
                     {
                         Waves[w].Groups[g].ShowingPath = PKeyDown;
 
                         if (Waves[w].Groups[g].BugBox.locked)
+                        {
+                            foreach (SpawnGroup sg in Waves[w].Groups)
+                            {
+                                if (!sg.BugBox.locked)
+                                    sg.ShowingPath = false;
+                            }
                             Waves[w].Groups[g].ShowingPath = true;
+                            //isNoneLocked = false;
+                            continue;
+                        }
+
+                        //if (isNoneLocked)
+                        //    Waves[w].Groups[g].ShowingPath = true;
+                        //else
+                        //    Waves[w].Groups[g].ShowingPath = false;
                         
 
                         //             for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
@@ -472,7 +508,7 @@ namespace AlkuTD
                     if (w <= currentWave)
 						Waves[w].Update();
                 }
-                if (Waves[currentWave].Groups[0].spawnTimer == Waves[currentWave].Duration -1 && currentWave != Waves.GetUpperBound(0)) //------------------------------------------hmmmm
+                if (currentWave >= 0 && Waves[currentWave].Groups[0].spawnTimer == Waves[currentWave].Duration -1 && currentWave != Waves.GetUpperBound(0)) //------------------------------------------hmmmm
                 {
                     currentWave++;
 					HUD.UpdateWaveInfo();
@@ -485,35 +521,6 @@ namespace AlkuTD
 
                 mapTimer++;
             }
-			else //initSetupOn
-			{
-                bool isNoneLocked = true;
-				for (int w = 0; w < Waves.Length; w++)
-				{   for (int g = 0; g < Waves[w].Groups.Length; g++)
-					{
-                        if (Waves[w].Groups[g].BugBox.locked)
-                        {
-                            foreach (SpawnGroup sg in Waves[w].Groups)
-                            {
-                                if (!sg.BugBox.locked)
-                                    sg.ShowingPath = false;
-                            }
-                            Waves[w].Groups[g].ShowingPath = true;
-                            isNoneLocked = false;
-                            continue;
-                        }
-
-                        if (isNoneLocked)
-                            Waves[w].Groups[g].ShowingPath = true;
-                        else
-                            Waves[w].Groups[g].ShowingPath = false;
-                        //                  for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
-                        //{
-                        //	Waves[w].Groups[g].Creatures[c].ShowingPath = true;
-                        //}
-                    }
-                }
-			}
 
             for (int i = 0; i < Players[0].Towers.Count; i++)
             {
@@ -528,25 +535,30 @@ namespace AlkuTD
             { for (int x = 0; x < Layout.GetLength(1); x++)
               {
                 Vector2 screenPos = ToScreenLocation(x, y);
+                char tile = Layout[y, x];
                 switch (Layout[y, x])
                 {
-                    case ' ': if (CurrentGame.gameState == GameState.MapEditor) sb.Draw(wallTextures[2], screenPos, null, Color.White * 0.1f, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //3=VOID
-                    case '0': sb.Draw(wallTextures[0], screenPos, null, Color.Cyan /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //0=OPEN WALL TILES (light)
-					case '.': if ((y > 0 && y < Layout.GetUpperBound(0)) && (x > 0 && x < Layout.GetUpperBound(1)) &&
-                              Layout[y-1, x] != '0' && Layout[y, x+1] != '0' && Layout[y+1, x+1] != '0' && Layout[y+1, x] != '0' && Layout[y+1, x-1] != '0' && Layout[y, x-1] != '0')
-                                sb.Draw(pathTexture, screenPos, null, Color.DarkSlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); //1=PATH IN THE OPEN
-                            else
-                                sb.Draw(pathTexture, screenPos, null, Color.SlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //1=PATH CLOSE TO WALL
-                    case '\'': if ((y>0 && y<Layout.GetUpperBound(0)) && (x > 0 && x < Layout.GetUpperBound(1)) &&
-                                Layout[y-1,x] != '0' && Layout[y-1, x+1] != '0' && Layout[y, x+1] != '0' && Layout[y+1, x] != '0' && Layout[y, x-1] != '0' && Layout[y-1, x-1] != '0') 
-                                sb.Draw(pathTexture, screenPos, null, Color.DarkSlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); //1=PATH IN THE OPEN
-                            else
-                                sb.Draw(pathTexture, screenPos, null, Color.SlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //1=PATH CLOSE TO WALL
-                        case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': //4=SPAWNPOINTS 
-					case '9': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, new Color(62, 51, 129), 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //4=SPAWNPOINTS
-                    case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': //5=GOALPOINTS
-					case 'i': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, Color.Salmon * 0.7f, 0, tileTexCenter, 1, SpriteEffects.None, 0); break; //5=GOALPOINTS
-                    default: sb.Draw(wallTextures[0], screenPos, null, Color.Cyan, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //0=OPEN WALL TILES (light)
+                    case ' ': if (CurrentGame.gameState == GameState.MapEditor) sb.Draw(wallTextures[2], screenPos, null, Color.White * 0.1f, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //VOID
+                    case '0': sb.Draw(wallTextures[0], screenPos, null, Color.Cyan /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //OPEN WALL TILES (light)
+                    case '\'': //EVEN COL PATH
+                    case '.': for (int i = 0; i < 6; i++) //ODD COL PATH
+                                {
+                                    char adjacentChar = InitialLayout[y, x, (MapLayout.Adjacent)i];
+                                    if (adjacentChar != '0' && !(adjacentChar >= 64 && adjacentChar <= 90) && !(adjacentChar >= 124)) //if no tower or wall adjacent, proceed to draw path in the open
+                                        continue;
+                                    else
+                                    {
+                                        sb.Draw(pathTexture, screenPos, null, Color.SlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); //PATH CLOSE TO WALL
+                                        goto skip_anotherDraw;
+                                    }
+                                }
+                                sb.Draw(pathTexture, screenPos, null, Color.DarkSlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); //PATH IN THE OPEN
+                                skip_anotherDraw: break;
+                    case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': //SPAWNPOINTS 
+					case '9': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, new Color(62, 51, 129), 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //SPAWNPOINTS
+                    case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': //GOALPOINTS
+					case 'i': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, Color.Salmon * 0.7f, 0, tileTexCenter, 1, SpriteEffects.None, 0); break; //GOALPOINTS
+                    default: sb.Draw(wallTextures[0], screenPos, null, Color.Cyan, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //TOWER TILES (light)
                     }
 				//sb.DrawString(CurrentGame.font, x + "," + y, screenPos + new Vector2(-20,0), Color.White *0.2f); //---COOOOOOOOORDS
 				//sb.DrawString(CurrentGame.font, cubeCoords[k].X.ToString() + "," + cubeCoords[k].Y.ToString() + "," + cubeCoords[k].Z.ToString(), screenPos - new Vector2(25,5), Color.White * 0.2f);

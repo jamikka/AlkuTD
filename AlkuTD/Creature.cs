@@ -262,12 +262,14 @@ namespace AlkuTD
 				{
 					hp = 0;
 					Alive = false;
-                    //ParentMap.Players[0].GenePoints[0] += (int)Math.Round(ElemArmors[GeneType.Red] * 10);
-                    //ParentMap.Players[0].GenePoints[1] += (int)Math.Round(ElemArmors[GeneType.Green] * 10);
-                    //ParentMap.Players[0].GenePoints[2] += (int)Math.Round(ElemArmors[GeneType.Blue] * 10);
-                    //CurrentGame.HUD.UpdateGeneBars();
-                    //ParentMap.Players[0].EnergyPoints += EnergyBounty;
-                    ParentMap.FloatingParticles.Add(new FloatingParticle(this));
+					//ParentMap.Players[0].GenePoints[0] += (int)Math.Round(ElemArmors[GeneType.Red] * 10);
+					//ParentMap.Players[0].GenePoints[1] += (int)Math.Round(ElemArmors[GeneType.Green] * 10);
+					//ParentMap.Players[0].GenePoints[2] += (int)Math.Round(ElemArmors[GeneType.Blue] * 10);
+					//CurrentGame.HUD.UpdateGeneBars();
+					//ParentMap.Players[0].EnergyPoints += EnergyBounty;
+					if (EnergyBounty > 0)
+						ParentMap.FloatingParticles.Add(new FloatingParticle(this));
+
 					ParentMap.AliveCreatures.Remove(this);
 					BugInfoBox bugBox = HUD.BugBoxes.Find(bb => bb.Target == this);
 					if (bugBox != null)

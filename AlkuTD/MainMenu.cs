@@ -260,23 +260,32 @@ namespace AlkuTD
                             reader.ReadLine();
                             while (reader.Peek() == 9) //group lines begin with a tab (9)
                             {
-                                read = reader.ReadLine().Split(new char[] { '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                                waves[w].TempGroups.Add(new SpawnGroup(int.Parse(read[0]),
-                                                                                                    new Creature(read[1],
-                                                                                                                read[2],
-                                                                                                                loadedMap,
-                                                                                                                read[3],
-                                                                                                                int.Parse(read[4]) - 1,
-                                                                                                                (int)(char.Parse(read[5])) - 97, //Goalpoint
-                                                                                                                int.Parse(read[6]),
-                                                                                                                //(Element)Enum.Parse(typeof(Element), read[7], true),
-                                                                                                                float.Parse(read[7], System.Globalization.NumberFormatInfo.InvariantInfo),
-																												new GeneSpecs(), //TÄHÄ VÄLIIN ELEMS
-                                                                                                                byte.Parse(read[8]),
-                                                                                                                int.Parse(read[9]),
-                                                                                                                1f), // SCALE HARDCODED-----------------------------------------------------------------
-                                                                                                    int.Parse(read[13]),
-                                                                                                    int.Parse(read[14]), waves[w].TempGroups.Count, w));
+                                read = reader.ReadLine().Split(new char[] { '\t', '\r', '\n' }/*, StringSplitOptions.RemoveEmptyEntries*/);
+                            if (read.Length == 18)
+                                read = new string[] { read[1], read[2], string.Concat(read[3], read[4]), string.Concat(read[5], read[6]), read[7], read[8], read[9], read[10], read[11], read[12], read[13], read[14], read[15], read[16], read[17] };
+                            else if (read.Length == 16)
+                                read = new string[] { read[1], read[2], read[3], read[4], read[5], read[6], read[7], read[8], read[9], read[10], read[11], read[12], read[13], read[14], read[15] };
+                            else if (read[3].Length > 7)
+                                read = new string[] { read[1], read[2], read[3], string.Concat(read[4], read[5]), read[6], read[7], read[8], read[9], read[10], read[11], read[12], read[13], read[14], read[15], read[16] };
+                            else if (read[5].Length > 7)
+                                read = new string[] { read[1], read[2], string.Concat(read[3], read[4]), read[5], read[6], read[7], read[8], read[9], read[10], read[11], read[12], read[13], read[14], read[15], read[16] };
+                            waves[w].TempGroups.Add(new SpawnGroup(read[0] == "" ? 0 : int.Parse(read[0]),
+																						   new Creature(read[1],
+																										read[2],
+																										loadedMap,
+																										read[3],
+																										read[4] == "" ? 0 : int.Parse(read[4]) - 1,
+																										read[5] == "" ? 0 : (int)(char.Parse(read[5])) - 97, //Goalpoint
+																										read[6] == "" ? 0 : int.Parse(read[6]),
+																										//read[7] == "" ? Element.None : (Element)Enum.Parse(typeof(Element), read[7], true),
+																										read[7] == "" ? 0 : float.Parse(read[7], System.Globalization.NumberFormatInfo.InvariantInfo),
+																										new GeneSpecs(float.Parse(read[10].ZeroIfEmpty(), System.Globalization.NumberFormatInfo.InvariantInfo), float.Parse(read[11].ZeroIfEmpty(), System.Globalization.NumberFormatInfo.InvariantInfo), float.Parse(read[12].ZeroIfEmpty(), System.Globalization.NumberFormatInfo.InvariantInfo)),
+																										read[8] == "" ? (byte)0 : byte.Parse(read[8]),
+																										read[9] == "" ? 0 : int.Parse(read[9]),
+																										1f), // SCALE HARDCODED-----------------------------------------------------------------
+																							read[13] == "" ? 0 : int.Parse(read[13]),
+																							read[14] == "" ? 0 : int.Parse(read[14]), 
+                                                                                            waves[w].TempGroups.Count, w));
                             }
                             waves[w].Groups = waves[w].TempGroups.ToArray();
                             waves[w].Initialize();
@@ -399,7 +408,7 @@ namespace AlkuTD
                     loadedMap.GoalPoints = goalPoints.ToArray();
                     loadedMap.AvailableTowers = availableTowers;
                     loadedMap.ResetMap();
-                    CurrentGame.gameState = GameState.InGame;
+                    CurrentGame.gameState = GameState.InitSetup;
 				//}
 				//catch (Exception)
 				//{

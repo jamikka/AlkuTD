@@ -61,7 +61,7 @@ namespace AlkuTD
 
             sb.DrawString(CurrentGame.font, creatureCount, numTexPos, Color.White * fadeAmt, 0, Vector2.Zero, textScale, SpriteEffects.None, 0);
 			sb.Draw(SmallBugTex, new Vector2(Bounds.Center.X, Bounds.Bottom - SmallBugTex.Height), null, Color.White * fadeAmt, 0, TexOrigin, bugScale, SpriteEffects.None, 0); //---------vanhakomment: suhteuta infoTex.Width scaleen!
-			if (hoveredOver || locked || CurrentGame.currentMap.initSetupOn)
+			if (hoveredOver || locked || (CurrentGame.gameState == GameState.InitSetup || CurrentGame.gameState == GameState.MapTestInitSetup)/*CurrentGame.currentMap.initSetupOn*/)
 			{
 				BugBox.Draw(sb, 1);
 			}
@@ -70,7 +70,11 @@ namespace AlkuTD
 
             // GroupDurationBars
             sb.Draw(CurrentGame.pixel, new Rectangle(PosX, (int)(numTexPos.Y + boxHeight - 5 - 1), boxWidth, 4), Color.Black); // black background
-            sb.Draw(CurrentGame.pixel, new Rectangle(PosX + 1, (int)(numTexPos.Y + boxHeight - 5), (int)((boxWidth - 2) * Math.Min((float)Group.spawnTimer / Group.GroupDuration, 1)), 2), Color.White);
-        }
+			float groupDurStatus = (float)Group.spawnTimer / Group.GroupDuration;
+			if (groupDurStatus > 0.9)
+				sb.Draw(CurrentGame.pixel, new Rectangle(PosX + 1, (int)(numTexPos.Y + boxHeight - 5), (int)((boxWidth - 2) * Math.Min(groupDurStatus, 1)), 2), Color.White);
+			else
+				sb.Draw(CurrentGame.pixel, new Rectangle(PosX + 1, (int)(numTexPos.Y + boxHeight - 5), (int)((boxWidth - 2) * Math.Min(groupDurStatus, 1)), 2), Color.Yellow);
+		}
 	}
 }

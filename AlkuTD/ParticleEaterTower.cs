@@ -17,6 +17,7 @@ namespace AlkuTD
         static int[] defCost = { 5, 30, 60 };
         static int[] defBuildTime = { 200, 300, 400 };
         static float[] defEnergyMultiplier = { 1, 1, 1.5f };
+        static float[] defGeneMultipliers = { 1, 1.5f, 2 };
         static float defBulletspeed = 3f;
         static short[] defDmg = { 0, 0, 0 };
         static int defSplashRange = 0;
@@ -29,6 +30,9 @@ namespace AlkuTD
         internal List<FloatingParticle> PreviousFloatingTargets;
 
         List<PseudoPod> EaterArms;
+        public float GeneMultiplier { get { return defGeneMultipliers[(int)UpgradeLvl]; } }
+        public float EnergyMultiplier { get { return defEnergyMultiplier[(int)UpgradeLvl]; } }
+
 
         public ParticleEaterTower(Point pos, UpgLvl upgLvl, bool isExample) 
             : base(defChar[(int)upgLvl], defName[(int)upgLvl], pos, defRange[(int)upgLvl], defFirerate[(int)upgLvl], new Texture2D[] { CurrentGame.currentMap.ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, defBulletspeed, defDmg[(int)upgLvl], DmgType.Basic, defSplashRange, new float[] { 0, 0 }, defCost[(int)upgLvl], defBuildTime[(int)upgLvl], isExample)
@@ -248,8 +252,13 @@ namespace AlkuTD
         }
 
         float oldRange;
+
+
         public override void Update(List<Creature> aliveCreatures)
         {
+            if (CurrentGame.gameState == GameState.InitSetup || CurrentGame.gameState == GameState.MapTestInitSetup/*ParentMap.initSetupOn*/)
+                buildTimer = 0;
+
             if (buildTimer == 0)
             {
                 //if (firerateCounter > 0)
@@ -271,7 +280,6 @@ namespace AlkuTD
                     EaterArms[i].Update();
                 }
             }
-            else if (ParentMap.initSetupOn) buildTimer = 0;
             else buildTimer--;
 
             if (Range != oldRange)

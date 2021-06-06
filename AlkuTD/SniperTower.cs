@@ -26,7 +26,7 @@ namespace AlkuTD
         static string[] defName = { "Sniper 1", "Sniper 2", "Sniper 3" };
         static float[] defRange = { 200, 225, 250 };
         static float[] defFirerate = { 100, 100, 100 };
-        static float defBulletspeed = 12f;
+        static float defBulletspeed = 14f;
         static short[] defDmg = { 5, 15, 25 };
         static int defSplashRange = 0;
         static int[] defCost = { 30, 50, 60 };

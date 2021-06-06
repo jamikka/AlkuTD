@@ -17,11 +17,13 @@ namespace AlkuTD
     {
         MainMenu,
         InGame,
+        InitSetup,
+        MapTestInitSetup,
+        MapTestInGame,
         Paused,
         GameOver,
         LevelComplete,
         MapEditor,
-        MapTest
     }
 
 
@@ -142,7 +144,9 @@ namespace AlkuTD
                         if (!IsMouseVisible) IsMouseVisible = true; //------------------------yöllinen örvellystarve
                         mainMenu.Update(mouse, keyboard);
                         break;
-                    case GameState.MapTest:
+                    case GameState.InitSetup:
+                    case GameState.MapTestInitSetup:
+                    case GameState.MapTestInGame:
                     case GameState.InGame:
                         if (keyboard.IsKeyDown(Keys.Escape) && !prevKeyboard.IsKeyDown(Keys.Escape)) gameState = GameState.Paused;
                         if (keyboard.IsKeyDown(Keys.S))
@@ -185,7 +189,7 @@ namespace AlkuTD
                         {
                             if (prevState == GameState.InGame)
                                 gameState = GameState.MainMenu;
-                            else if (prevState == GameState.MapTest)
+                            else if (prevState == GameState.MapTestInGame)
                             {
                                 currentMap.ResetMap();
                                 HUD.MapEditorTopButtons[1].Pos = HUD.mapEditWTEditPos;
@@ -209,7 +213,7 @@ namespace AlkuTD
                 base.Update(gameTime);
                 GameTime = gameTime;
                 gameTimer++;
-                if (gameState == GameState.InGame || gameState == GameState.MapTest)
+                if (gameState == GameState.InGame || gameState == GameState.MapTestInGame)
                     prevState = gameState;
             }
         }
@@ -257,7 +261,9 @@ namespace AlkuTD
                     currentMap.Draw(spriteBatch);
                     HUD.Draw(spriteBatch, gameTime, mouse);
                     break;
-                case GameState.MapTest:
+                case GameState.MapTestInGame:
+                case GameState.InitSetup:
+                case GameState.MapTestInitSetup:
                     currentMap.Draw(spriteBatch);
                     HUD.Draw(spriteBatch, gameTime, mouse);
                     break;

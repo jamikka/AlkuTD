@@ -61,6 +61,7 @@
     <Compile Include="ITower.cs" />
     <Compile Include="Jellybug.cs" />
     <Compile Include="KeyEventTest.cs" />
+    <Compile Include="Layout.cs" />
     <Compile Include="MainMenu.cs" />
     <Compile Include="MapEditor.cs" />
     <Compile Include="Particle.cs" />

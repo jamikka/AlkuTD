@@ -65,10 +65,10 @@ namespace AlkuTD
 
         public void ReleaseYieldAtEater(ParticleEaterTower eater)
         {
-			ParentMap.Players[0].EnergyPoints += EnergyBounty;
-            ParentMap.Players[0].GenePoints[0] += (int)Math.Round(Elems[GeneType.Red] * 10);
-            ParentMap.Players[0].GenePoints[1] += (int)Math.Round(Elems[GeneType.Green] * 10);
-            ParentMap.Players[0].GenePoints[2] += (int)Math.Round(Elems[GeneType.Blue] * 10);
+			ParentMap.Players[0].EnergyPoints += (int)Math.Round(EnergyBounty * eater.EnergyMultiplier);
+            ParentMap.Players[0].GenePoints[0] += (int)Math.Round(Elems[GeneType.Red] * 10 * eater.GeneMultiplier);
+            ParentMap.Players[0].GenePoints[1] += (int)Math.Round(Elems[GeneType.Green] * 10 * eater.GeneMultiplier);
+            ParentMap.Players[0].GenePoints[2] += (int)Math.Round(Elems[GeneType.Blue] * 10 * eater.GeneMultiplier);
             CurrentGame.HUD.UpdateGeneBars();
             ParentMap.FloatingParticles.Remove(this);
         }
