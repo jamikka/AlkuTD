@@ -66,6 +66,7 @@ namespace AlkuTD
             GroupNumberColorMultiplier = 1 - (groupNumber * 0.3f);
             WaveNumberColorMultiplier = Math.Max(1 - (waveNumber * 0.3f), 0.3f);
             BugBox = new BugInfoBox(Vector2.Zero);
+            //BugBox = new BugInfoBox(Vector2.Zero, Creatures[0], false, true, null);
         }
 
         public void FindPath()
@@ -86,8 +87,8 @@ namespace AlkuTD
 
         private float WaveNumberColorMultiplier;
         public bool ShowingPath;
-        float showPathFadeCycles = 5;
-        int showPathFade;
+        public readonly int showPathFadeCycles = 5;
+        public int showPathFade;
         public void ShowPath(SpriteBatch sb)
         {
             if (ShowingPath)

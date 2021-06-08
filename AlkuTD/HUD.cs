@@ -730,7 +730,8 @@ namespace AlkuTD
 			return selection;
 		}
 
-		public static void UpdateWaveInfo()
+        //------------------TODO: Real Smart waveInfoBox positioning
+		public static void UpdateWaveInfo() 
 		{
 			NexWaveInfoBoxes.Clear();
 			CurrWaveInfoBoxes.Clear();
@@ -794,6 +795,7 @@ namespace AlkuTD
 		{
 			activeTileCoord = new Point(hoveredCoord.X, hoveredCoord.Y);
 			Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
+            CurrentGame.soundEffects[0].Play(0.18f,0,0);
 			selectedRingPart = 0;
             if (!onOpenTile)
                 TileRingInfoBox = new TowerInfoBox(selectedTower, activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f)), false);
@@ -822,8 +824,8 @@ namespace AlkuTD
 			extendedPoints[18] = new Vector2(tileCorners[1].X - tileringSlot.Width + 5, tileCorners[1].Y - 15);
 			extendedPoints[19] = new Vector2(tileCorners[1].X, tileCorners[1].Y - tileringSlot.Width);
 
-			hudCue = CurrentGame.soundBank.GetCue("bui");
-			hudCue.Play();
+			//hudCue = CurrentGame.soundBank.GetCue("bui");
+			//hudCue.Play();
 		}
 
 		#region UPDATEVARIABLES
@@ -836,8 +838,9 @@ namespace AlkuTD
         string fileName;
 		//Vector2 dirFromTile;  //-..................uutta kaggaa
 		Creature hoveredCreature;
-		public int bugHoverCounter;
-		public const int bugHoverFade = 160;
+        SpawnGroup hoveredGroup;
+        public int bugHoverCounter;
+		public const int bugHoverFade = 120;
 		#endregion
 		public void Update(MouseState mouse, MouseState prevMouse, KeyboardState keyboard, KeyboardState prevKeyboard)
         {
@@ -851,8 +854,61 @@ namespace AlkuTD
                 for (int i = 0; i < HUDbuttons.Length; i++)
                     HUDbuttons[i].Update(mouse, prevMouse);
 
-				#region MAPTEST
-				if (CurrentGame.gameState == GameState.MapTestInGame)
+                //INITSETUP WAVEINFOBOXES
+                if (CurrentGame.gameState == GameState.InitSetup || CurrentGame.gameState == GameState.MapTestInitSetup/*!initSetupOn*/)
+                {
+                    bool isNoneLocked = true;
+                    for (int w = 0; w < ParentMap.Waves.Length; w++)
+                    {   for (int g = 0; g < ParentMap.Waves[w].Groups.Length; g++)
+                        {
+                            SpawnGroup spwnG = ParentMap.Waves[w].Groups[g];
+                            if (spwnG.BugBox.locked || spwnG.BugBox.hoveredOver)
+                            {
+                                foreach (SpawnGroup sg in ParentMap.Waves[w].Groups)
+                                {
+                                    if (!sg.BugBox.locked)
+                                        sg.ShowingPath = false;
+                                }
+                                spwnG.ShowingPath = true;
+                                isNoneLocked = false;
+                                continue;
+                            }
+                            if (isNoneLocked)
+                                spwnG.ShowingPath = true;
+                            else
+                                spwnG.ShowingPath = false;
+                        }
+                    }
+                }
+                else //INGAME WAVEINFOBOXES
+                {
+                    //---------------------------------------------------------------eikös tänkin vois laittaa on-demand, öröjen vastuulle
+                    bool PKeyDown = CurrentGame.keyboard.IsKeyDown(Keys.P);
+                    for (int w = 0; w < ParentMap.Waves.Length; w++)
+                    {   for (int g = 0; g < ParentMap.Waves[w].Groups.Length; g++)
+                        {
+                            SpawnGroup spwnG = ParentMap.Waves[w].Groups[g];
+                            if (!spwnG.BugBox.locked)
+                                spwnG.ShowingPath = false;
+                            if (PKeyDown)
+                                spwnG.ShowingPath = true;
+
+                            if (spwnG.BugBox.locked || spwnG.BugBox.hoveredOver)
+                            {
+                                foreach (SpawnGroup sg in ParentMap.Waves[w].Groups)
+                                {
+                                    if (!sg.BugBox.locked)
+                                        sg.ShowingPath = false;
+                                }
+                                spwnG.ShowingPath = true;
+                                continue;
+                            }
+                        }
+                    }
+                }
+
+                #region MAPTEST
+                if (CurrentGame.gameState == GameState.MapTestInGame)
                 {
                     BackToEditButton.Update(mouse, prevMouse);
                     if (BackToEditButton.State == ButnState.Released)
@@ -884,16 +940,16 @@ namespace AlkuTD
                         else
                             CurrentGame.gameState = GameState.InGame;
 
-                        for (int w = 0; w < ParentMap.Waves.Length; w++)
-						{   for (int g = 0; g < ParentMap.Waves[w].Groups.Length; g++)
-							{
-                                ParentMap.Waves[w].Groups[g].ShowingPath = false;
-                                //for (int c = 0; c < ParentMap.Waves[w].Groups[g].Creatures.Length; c++)
-                                //{
-                                //	ParentMap.Waves[w].Groups[g].Creatures[c].ShowingPath = false;
-                                //}
-                            }
-						}
+      //                  for (int w = 0; w < ParentMap.Waves.Length; w++)
+						//{   for (int g = 0; g < ParentMap.Waves[w].Groups.Length; g++)
+						//	{
+      //                          ParentMap.Waves[w].Groups[g].ShowingPath = false;
+      //                          //for (int c = 0; c < ParentMap.Waves[w].Groups[g].Creatures.Length; c++)
+      //                          //{
+      //                          //	ParentMap.Waves[w].Groups[g].Creatures[c].ShowingPath = false;
+      //                          //}
+      //                      }
+						//}
                     }
                     else if (ParentMap.currentWave + 1 < ParentMap.Waves.Length)
                     {
@@ -908,48 +964,59 @@ namespace AlkuTD
                     ParentMap.ResetMap();
 				#endregion
 
-				#region WAVEINFO
+				#region WAVEINFOBOXES
 				for (int i = 0; i < CurrWaveInfoBoxes.Count; i++)
 					CurrWaveInfoBoxes[i].Update(mouse, prevMouse);
 				for (int i = 0; i < NexWaveInfoBoxes.Count; i++)
-					NexWaveInfoBoxes[i].Update(mouse, prevMouse);
+					 NexWaveInfoBoxes[i].Update(mouse, prevMouse);
 
 				#endregion
 
-				#region INFOBOXES
+				#region MOVING_INFOBOXES
 				for (int i = 0; i < ParentMap.AliveCreatures.Count; i++)
 				{
 					Creature currentCreature = ParentMap.AliveCreatures[i];
-					if (Vector2.Distance(mousePos, currentCreature.Location) <= 20)
-					{
-						if (BugBoxes.Count > 0)
-						{
-							if (!BugBoxes[0].locked)
-								BugBoxes[0] = new BugInfoBox(currentCreature.Location - new Vector2(66, 20), currentCreature, true, false, null);
-							else if (BugBoxes[0].Target != currentCreature)
-								BugBoxes.Insert(0, new BugInfoBox(currentCreature.Location - new Vector2(66, 20), currentCreature, true, false, null));
-						}
-						else
-							BugBoxes.Add(new BugInfoBox(currentCreature.Location - new Vector2(66, 20), currentCreature, true, false, null));
+                    //currentCreature.ParentGroup.ShowingPath = false;
+                    if (Vector2.Distance(mousePos, currentCreature.Location) <= 15)
+                    {
+                        if (BugBoxes.Count > 0)
+                        {
+                            if (!BugBoxes[0].locked)
+                                BugBoxes[0] = new BugInfoBox(currentCreature.Location - new Vector2(66, 20), currentCreature, true, false, null);
+                            else if (BugBoxes[0].Target != currentCreature)
+                                BugBoxes.Insert(0, new BugInfoBox(currentCreature.Location - new Vector2(66, 20), currentCreature, true, false, null));
+                        }
+                        else
+                            BugBoxes.Add(new BugInfoBox(currentCreature.Location - new Vector2(66, 20), currentCreature, true, false, null));
 
-						hoveredCreature = currentCreature;
-						bugHoverCounter = bugHoverFade;
-						if (mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton == ButtonState.Released)
-						{
-							BugBoxes[0].locked = !BugBoxes[0].locked;
-							BugBoxes[0].justRemoteLocked = true;
-							break;
-						}
-					}
+
+                        hoveredCreature = currentCreature;
+                        hoveredGroup = hoveredCreature.ParentGroup;
+                        hoveredCreature.ParentGroup.ShowingPath = true;
+
+                        //hoveredCreature.ParentGroup.showPathFade = hoveredCreature.ParentGroup.showPathFadeCycles;
+                        bugHoverCounter = bugHoverFade;
+                        if (mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton == ButtonState.Released)
+                        {
+                            BugBoxes[0].locked = !BugBoxes[0].locked;
+                            BugBoxes[0].justRemoteLocked = true;
+                            break;
+                        }
+                    }
+                    else
+                        hoveredCreature = null;
 				}
-				for (int i = 0; i < BugBoxes.Count; i++)
+
+                for (int i = 0; i < BugBoxes.Count; i++)
 				{
 					if (BugBoxes[i].locked)
 					{
 						BugBoxes[i].Pos = BugBoxes[i].Target.Location;
 						BugBoxes[i].Update(mouse, prevMouse);
+                        BugBoxes[i].Target.ParentGroup.ShowingPath = true;
 						if (!BugBoxes[i].locked)
 						{
+                            //BugBoxes[i].Target.ParentGroup.ShowingPath = false;
 							BugBoxes.Remove(BugBoxes[i]);
 						}
 					}
@@ -957,18 +1024,22 @@ namespace AlkuTD
 					{
 						BugBoxes[i].Pos = BugBoxes[i].Target.Location;
 						bugHoverCounter--;
-						if (bugHoverCounter <= 0)
-						{
-							BugBoxes.Remove(BugBoxes[i]);
-						}
-						else
-							BugBoxes[i].Update(mouse, prevMouse);
-					}
+                        if (bugHoverCounter <= 0)
+                        {
+                            BugBoxes[i].Target.ParentGroup.ShowingPath = false;
+                            BugBoxes.Remove(BugBoxes[i]);
+                        }
+                        else
+                        {
+                            BugBoxes[i].Update(mouse, prevMouse);
+                            //BugBoxes[i].Target.ParentGroup.ShowingPath = BugBoxes[i].hoveredOver;
+                        }
+                    }
 				}
-				#endregion
+                #endregion
 
-				// TÄNNE KUULUISI MOUSEUPDATELOGIIKAT (erottelua tiedossa, Drawit pois ja kommunikaatio siihen luuppiin)
-			}
+                // TÄNNE KUULUISI MOUSEUPDATELOGIIKAT (erottelua tiedossa, Drawit pois ja kommunikaatio siihen luuppiin)
+            }
                 #endregion
             else
                 #region MAP EDITOR
@@ -1734,16 +1805,20 @@ namespace AlkuTD
                                     Tower t = Tower.Clone(HexMap.ExampleTowers[selectedRingPart -1]);
                                     t.MapCoord = activeTileCoord;
                                     ParentMap.BuildTower(t);
+                                    CurrentGame.soundEffects[0].Play(0.18f, -1, 0);
+                                    goto skip_TileringExitSound;
                                 }
                             }
 
                             //Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
-                            if (hudCue.IsPlaying) hudCue.Stop(AudioStopOptions.AsAuthored);
+                            //if (hudCue.IsPlaying) hudCue.Stop(AudioStopOptions.AsAuthored);
                             if ((/*ParentMap.initSetupOn*/(CurrentGame.gameState == GameState.InitSetup || CurrentGame.gameState == GameState.MapTestInitSetup) && selectedRingPart == 0) || (CurrentGame.gameState != GameState.InitSetup && CurrentGame.gameState != GameState.MapTestInitSetup)/*!ParentMap.initSetupOn*/)
                             {
-                                hudCue = CurrentGame.soundBank.GetCue("buiRev");
-                                hudCue.Play();
+                                //hudCue = CurrentGame.soundBank.GetCue("buiRev");
+                                //hudCue.Play();
+                                CurrentGame.soundEffects[1].Play(0.1f, -0.1f, 0);
                             }
+                            skip_TileringExitSound:
                             newTileRingActive = false;
                         }
 						sb.Draw(tileringGlow, Magnetize(tileCorners), Color.White * 0.7f); //restricted & magnetized object
@@ -1972,7 +2047,7 @@ namespace AlkuTD
 					#endregion
 				}
                 else if (hoveredCoord.X >= 0 && hoveredCoord.X < ParentMap.Layout.GetLength(1) && hoveredCoord.Y >= 0 && hoveredCoord.Y < ParentMap.Layout.GetLength(0)) // HOVERING OVER THE MAP
-                #region HOVER & CLICK
+                #region MAP HOVER & CLICK
                 {
                     ParentGame.IsMouseVisible = true;
                     char tileChar = ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X];

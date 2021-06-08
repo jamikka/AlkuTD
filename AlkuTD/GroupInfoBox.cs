@@ -46,7 +46,7 @@ namespace AlkuTD
 		public override void Update(MouseState mouse, MouseState prevMouse)
 		{
 			base.Update(mouse, prevMouse);
-
+			BugBox.hoveredOver = hoveredOver;
 			if (hoveredOver && mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton == ButtonState.Released)
 				BugBox.locked = locked;
 		}

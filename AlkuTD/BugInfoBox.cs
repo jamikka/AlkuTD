@@ -11,7 +11,7 @@ namespace AlkuTD
 	public class BugInfoBox : InfoBox
 	{
 		public Creature Target;
-		GroupInfoBox ParentBox;
+		public GroupInfoBox ParentBox;
 		float hpStringWidth;
 		float initHpStringWidth;
 		readonly float slashCharWidth;
@@ -110,6 +110,7 @@ namespace AlkuTD
 		public override void Update(MouseState mouse, MouseState prevMouse)
 		{
 			base.Update(mouse, prevMouse);
+			hoveredOver = base.hoveredOver;
 			UpdateText();
 		}
 

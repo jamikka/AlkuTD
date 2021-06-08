@@ -558,6 +558,10 @@ namespace AlkuTD
 			return tempLocation;
 		}
 
+		public void ShowPath()
+		{
+		}
+
 		public Vector2 dir;
 		Vector2 dirPrev;
 		bool turning;

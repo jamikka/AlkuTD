@@ -448,66 +448,14 @@ namespace AlkuTD
                 //else
                    // CurrentGame.gameState = GameState.GameOver;
             }
-            if (CurrentGame.gameState == GameState.InitSetup || CurrentGame.gameState == GameState.MapTestInitSetup/*!initSetupOn*/)
+            if (CurrentGame.gameState == GameState.InGame || CurrentGame.gameState == GameState.MapTestInGame/*!initSetupOn*/)
             {
-                bool isNoneLocked = true;
                 for (int w = 0; w < Waves.Length; w++)
-                {   for (int g = 0; g < Waves[w].Groups.Length; g++)
-                    {
-                        if (Waves[w].Groups[g].BugBox.locked)
-                        {
-                            foreach (SpawnGroup sg in Waves[w].Groups)
-                            {
-                                if (!sg.BugBox.locked)
-                                    sg.ShowingPath = false;
-                            }
-                            Waves[w].Groups[g].ShowingPath = true;
-                            isNoneLocked = false;
-                            continue;
-                        }
-                        if (isNoneLocked)
-                            Waves[w].Groups[g].ShowingPath = true;
-                        else
-                            Waves[w].Groups[g].ShowingPath = false;
-                    }
-                }
-            }
-            else //INGAME
-            {
-                //---------------------------------------------------------------eikös tänkin vois laittaa on-demand, öröjen vastuulle
-				bool PKeyDown = CurrentGame.keyboard.IsKeyDown(Keys.P);
-                //bool isNoneLocked = true;
-                for (int w = 0; w < Waves.Length; w++)
-                {   for (int g = 0; g < Waves[w].Groups.Length; g++)
-                    {
-                        Waves[w].Groups[g].ShowingPath = PKeyDown;
-
-                        if (Waves[w].Groups[g].BugBox.locked)
-                        {
-                            foreach (SpawnGroup sg in Waves[w].Groups)
-                            {
-                                if (!sg.BugBox.locked)
-                                    sg.ShowingPath = false;
-                            }
-                            Waves[w].Groups[g].ShowingPath = true;
-                            //isNoneLocked = false;
-                            continue;
-                        }
-
-                        //if (isNoneLocked)
-                        //    Waves[w].Groups[g].ShowingPath = true;
-                        //else
-                        //    Waves[w].Groups[g].ShowingPath = false;
-                        
-
-                        //             for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
-                        //                 {
-                        //Waves[w].Groups[g].Creatures[c].ShowingPath = PKeyDown;
-                        //                 }
-                    }
+                {   
                     if (w <= currentWave)
 						Waves[w].Update();
                 }
+
                 if (currentWave >= 0 && Waves[currentWave].Groups[0].spawnTimer == Waves[currentWave].Duration -1 && currentWave != Waves.GetUpperBound(0)) //------------------------------------------hmmmm
                 {
                     currentWave++;
@@ -515,9 +463,7 @@ namespace AlkuTD
                 }
 
                 for (int i = 0; i < FloatingParticles.Count; i++)
-                {
                     FloatingParticles[i].Update();
-                }
 
                 mapTimer++;
             }
@@ -636,9 +582,7 @@ namespace AlkuTD
             #endregion
 
             for (int i = 0; i < FloatingParticles.Count; i++)
-            {
                 FloatingParticles[i].Draw(sb);
-            }
 
 			if (CurrentGame.gameState != GameState.MapEditor)
 			{
@@ -654,10 +598,6 @@ namespace AlkuTD
 					}
 					Waves[w].Draw(sb);
 				}
-			}
-			else if (CurrentGame.gameState == GameState.MapEditor)
-			{
-
 			}
 
 			bool showRadius = CurrentGame.keyboard.IsKeyDown(Keys.F);

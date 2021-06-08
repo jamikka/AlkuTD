@@ -67,6 +67,7 @@ namespace AlkuTD
         public static AudioEngine audioEngine;
         public static WaveBank waveBank;
         public static SoundBank soundBank;
+        public static List<SoundEffect> soundEffects;
 
         public CurrentGame()
         {
@@ -119,6 +120,9 @@ namespace AlkuTD
             audioEngine = new AudioEngine("Content\\Sound\\soundSet.xgs");
             waveBank = new WaveBank(audioEngine, "Content\\Sound\\Wave Bank.xwb");
             soundBank = new SoundBank(audioEngine, "Content\\Sound\\Sound Bank.xsb");
+            soundEffects = new List<SoundEffect>();
+            soundEffects.Add(Content.Load<SoundEffect>(ContentDir + "\\Sound\\bui"));
+            soundEffects.Add(Content.Load<SoundEffect>(ContentDir + "\\Sound\\buiRev"));
 
             testSound = soundBank.GetCue("geiger1"); //***********************************************
         }

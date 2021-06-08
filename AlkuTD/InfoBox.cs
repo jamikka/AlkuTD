@@ -30,7 +30,7 @@ namespace AlkuTD
 		public Vector2 Pos { get { return new Vector2(Bounds.X, Bounds.Y); } set { bounds.Location = new Point((int)value.X, (int)value.Y); UpdateTextPos(); } }
 		//public int Width { get { return Bounds.Width; } set { Bounds.Width = value; } }
 		//public int Height { get { return Bounds.Height; } set { Bounds.Height = value; } }
-		internal bool hoveredOver;
+		public bool hoveredOver;
 		internal bool locked;
 		public bool justRemoteLocked;
 

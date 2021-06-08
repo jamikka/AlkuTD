@@ -13,9 +13,9 @@
 Available towers: 3 3 3 3 3 3
 Life:   20
 Energy: 36
-Genes:  0, 0, 0
+Genes:  20, 0, 0
 
-Creamt	Type	Name		Texture		SpawnP	Goals	HP	SPD	LifeDmg	Energy	RRes	GRes	BRes	SpawnD	Duration
+	Creamt	Type	Name		Texture		SpawnP	Goals	HP	SPD	LifeDmg	Energy	RRes	GRes	BRes	SpawnD	Duration
 Wave 1------------------------------------------------------------------------------------------------------------------------------------------
 	8	Flo	Longoid		pitkubug	1	b	3	.6	1	1	0	0	0	150	75
 	8	Flo	Longoid		pitkubug	1	a	3	.6	1	1	0	0	0	150	1600
