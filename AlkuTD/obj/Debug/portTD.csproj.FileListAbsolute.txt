@@ -679,3 +679,4 @@ F:\Kood\AlkuTD\AlkuTD\obj\Debug\portTD.csprojAssemblyReference.cache
 F:\Kood\AlkuTD\AlkuTD\obj\Debug\portTD.csproj.CopyComplete
 F:\Kood\AlkuTD\AlkuTD\obj\Debug\portTD.exe
 F:\Kood\AlkuTD\AlkuTD\obj\Debug\portTD.pdb
+F:\Kood\AlkuTD\AlkuTD\bin\DesktopGL\AnyCPU\Debug\Content\flake-5x5.xnb

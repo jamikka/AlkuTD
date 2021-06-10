@@ -21,18 +21,23 @@ namespace AlkuTD
         static float defBulletspeed = 3f;
         static short[] defDmg = { 0, 0, 0 };
         static int defSplashRange = 0;
+        public static int preAimRangeBonus = 60;
 
-        List<FloatingParticle> FloatingParticlesInRange;
-        List<FloatingParticle> ColoredFloatingParticlesInRange;
-        List<FloatingParticle> PossibleFloatingTargets;
+        List<FloatingParticle> DebrisInPreAimRange;
+        List<FloatingParticle> DebrisInRange;
+        List<FloatingParticle> ColoredDebrisInPreAimRange;
+        List<FloatingParticle> ColoredDebrisInRange;
+        List<FloatingParticle> PossibleDebrisTargets;
         internal FloatingParticle CurrentDebrisTarget;
         internal List<FloatingParticle> CurrentTargets;
-        internal List<FloatingParticle> PreviousFloatingTargets;
+        internal List<FloatingParticle> PreviousDebrisTargets;
 
-        List<PseudoPod> EaterArms;
+        public List<PseudoPod> EaterArms;
         public float GeneMultiplier { get { return defGeneMultipliers[(int)UpgradeLvl]; } }
         public float EnergyMultiplier { get { return defEnergyMultiplier[(int)UpgradeLvl]; } }
 
+        bool isOnlyPreaimTargets;
+        Texture2D ArmTexture;
 
         public ParticleEaterTower(Point pos, UpgLvl upgLvl, bool isExample) 
             : base(defChar[(int)upgLvl], defName[(int)upgLvl], pos, defRange[(int)upgLvl], defFirerate[(int)upgLvl], new Texture2D[] { CurrentGame.currentMap.ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, defBulletspeed, defDmg[(int)upgLvl], DmgType.Basic, defSplashRange, new float[] { 0, 0 }, defCost[(int)upgLvl], defBuildTime[(int)upgLvl], isExample)
@@ -41,181 +46,177 @@ namespace AlkuTD
             UpgradeLvl = upgLvl;
             angleOffset = (float)(Math.PI * 1.5);
             DmgType = DmgType.None;
-            FloatingParticlesInRange = new List<FloatingParticle>();
-            ColoredFloatingParticlesInRange = new List<FloatingParticle>();
-            PossibleFloatingTargets = new List<FloatingParticle>();
+            DebrisInPreAimRange = new List<FloatingParticle>();
+            DebrisInRange = new List<FloatingParticle>();
+            ColoredDebrisInPreAimRange = new List<FloatingParticle>();
+            ColoredDebrisInRange = new List<FloatingParticle>();
+            PossibleDebrisTargets = new List<FloatingParticle>();
             EaterArms = new List<PseudoPod>();
-            EaterArms.Add(new PseudoPod(this, ParentMap.ParentGame.Content.Load<Texture2D>("Towers\\solubug")));
-            EaterArms.Add(new PseudoPod(this, ParentMap.ParentGame.Content.Load<Texture2D>("Towers\\solubug")));
+            ArmTexture = ParentMap.ParentGame.Content.Load<Texture2D>("Towers\\solubug");
+            EaterArms.Add(new PseudoPod(this, ArmTexture));
+            EaterArms.Add(new PseudoPod(this, ArmTexture));
             CurrentTargets = new List<FloatingParticle>();
+            TargetPriority = TargetPriority.tough;
         }
 
         internal void HuntDebris(List<FloatingParticle> floatingParticles)
         {
 
+            DebrisInRange.Clear();
+            ColoredDebrisInRange.Clear();
+            DebrisInPreAimRange.Clear();
+            ColoredDebrisInPreAimRange.Clear();
+            PossibleDebrisTargets.Clear();
             if (ParentMap.FloatingParticles.Count == 0)
                 return;
+            float distanceToParticle;
+            FloatingParticle newTarget;
 
-            FloatingParticlesInRange.Clear();
-            ColoredFloatingParticlesInRange.Clear();
-            PossibleFloatingTargets.Clear();
             for (int i = 0; i < floatingParticles.Count; i++)
             {
-                if (Vector2.Distance(floatingParticles[i].Location, ScreenLocation) <= Range)
+                distanceToParticle = Vector2.Distance(floatingParticles[i].Location, ScreenLocation);
+                if (distanceToParticle <= Range + preAimRangeBonus)
                 {
-                    FloatingParticlesInRange.Add(floatingParticles[i]);
-                    if (ElemPriority != AlkuTD.ColorPriority.None && floatingParticles[i].Elems[ElemPriority] > 0)
-                        ColoredFloatingParticlesInRange.Add(floatingParticles[i]);
+                    DebrisInPreAimRange.Add(floatingParticles[i]);
+                    if (ElemPriority != AlkuTD.ColorPriority.none && floatingParticles[i].Elems.HasAny)
+                        ColoredDebrisInPreAimRange.Add(floatingParticles[i]);
+                }
+                if (distanceToParticle <= Range)
+                {
+                    DebrisInRange.Add(floatingParticles[i]);
+                    if (ElemPriority != AlkuTD.ColorPriority.none && floatingParticles[i].Elems.HasAny)
+                        ColoredDebrisInRange.Add(floatingParticles[i]);
                 }
             }
 
-            if (ElemPriority != AlkuTD.ColorPriority.None && ColoredFloatingParticlesInRange.Count > 0)
-                PossibleFloatingTargets = ColoredFloatingParticlesInRange;
-            else PossibleFloatingTargets = FloatingParticlesInRange;
-
-            if (PreviousFloatingTargets != null) // Remove targeted status from creatures that fled range
+            if (DebrisInPreAimRange.Count == 0)
             {
-                for (int i = 0; i < PreviousFloatingTargets.Count; i++)
+                foreach (PseudoPod arm in EaterArms)
+                    arm.LeaveTarget();
+                return;
+            }
+            else if (DebrisInRange.Count == 0)
+            {
+                if (ElemPriority != AlkuTD.ColorPriority.none && ColoredDebrisInPreAimRange.Count > 0)
+                    PossibleDebrisTargets = ColoredDebrisInPreAimRange;
+                else PossibleDebrisTargets = DebrisInPreAimRange;
+                isOnlyPreaimTargets = true;
+            }
+            else
+            {
+                if (ElemPriority != AlkuTD.ColorPriority.none && ColoredDebrisInPreAimRange.Count > 0)
+                    PossibleDebrisTargets = ColoredDebrisInRange;
+                else PossibleDebrisTargets = DebrisInRange;
+                isOnlyPreaimTargets = false;
+            }
+
+            if (PreviousDebrisTargets != null) // Remove targeted status from creatures that fled range
+            {
+                for (int i = 0; i < PreviousDebrisTargets.Count; i++)
                 {
-                    if (!PossibleFloatingTargets.Contains(PreviousFloatingTargets[i]))
+                    if (!PossibleDebrisTargets.Contains(PreviousDebrisTargets[i]))
                     {
-                        foreach (PseudoPod arm in EaterArms)
+                        if (PossibleTargets.Count > EaterArms.Count)
                         {
-                            if (arm.CurrentTarget == PreviousFloatingTargets[i])
+                            foreach (PseudoPod arm in EaterArms)
                             {
-                                PreviousFloatingTargets[i].ArmsTargetingThis.Remove(arm);
-                                arm.CurrentTarget = null;
-                                arm.State = PseudoPod.ActivityState.Detracting;
+                                if (arm.CurrentTarget == PreviousDebrisTargets[i])
+                                {
+                                    arm.LeaveTarget();
+                                }
                             }
                         }
                     }
-                        
                 }
             }
-            PreviousFloatingTargets = new List<FloatingParticle>(PossibleFloatingTargets);
-
-            if (FloatingParticlesInRange.Count == 0)
-                return;
+            PreviousDebrisTargets = new List<FloatingParticle>(PossibleDebrisTargets);
 
             for (int i = 0; i < EaterArms.Count; i++)
             {
-                if (EaterArms[i].CurrentTarget == null)
+                PseudoPod arm = EaterArms[i];
+
+                if (arm.State == PseudoPod.ActivityState.Ready || arm.State == PseudoPod.ActivityState.Detracting/*arm.CurrentTarget == null && arm.State != PseudoPod.ActivityState.Pulling && arm.State != PseudoPod.ActivityState.Preparing*/)
                 {
-                    EaterArms[i].CurrentTarget = ChooseTarget();
-                    Eat(EaterArms[i], EaterArms[i].CurrentTarget);
+                    newTarget = ChooseTarget(arm);
+                    if (newTarget != null)
+                    {
+                        Eat(arm, newTarget);
+                    }
+                }
+                else if (arm.State == PseudoPod.ActivityState.Reaching && arm.CurrentTarget == arm.PrevTarget)
+                {
+                    if (arm.distanceToTarget > (arm.prevDistanceToTarget + BulletSpeed) /*&& (Vector2.Distance(ScreenLocation, arm.CurrentTarget.Location) > (Range + BulletSpeed))*/)
+                    {
+                        newTarget = ChooseTarget(arm);
+                        if (newTarget != null)
+                        {
+                            Eat(arm, newTarget);
+                        }
+                    }
                 }
             }
         }
 
-        //new internal FloatingParticle ChooseTarget()
-        //{
-        //    PseudoPod freeArm = EaterArms.Find(arm => arm.State == PseudoPod.ActivityState.Ready || arm.State == PseudoPod.ActivityState.Detracting);
-        //    if (freeArm != null)
-        //    {
-        //        switch (TargetPriority)
-        //        {
-        //            case TargetPriority.Last:
-        //                float biggestDistToGoal = 0;
-        //                for (int i = 0; i < PossibleFloatingTargets.Count; i++)
-        //                {
-        //                    if (PossibleFloatingTargets[i].ArmsTargetingThis.Count == 0 && PossibleFloatingTargets[i].DistanceToGoal > biggestDistToGoal)
-        //                    {
-        //                        biggestDistToGoal = PossibleFloatingTargets[i].DistanceToGoal;
-        //                        CurrentDebrisTarget = PossibleFloatingTargets[i];
-        //                    }
-        //                }
-        //                break;
-        //            case TargetPriority.Tough:
-        //                int mostHp = 0;
-        //                for (int i = 0; i < PossibleFloatingTargets.Count; i++)
-        //                {
-        //                    if (PossibleFloatingTargets[i].ArmsTargetingThis.Count == 0 && PossibleFloatingTargets[i].EnergyBounty > mostHp)
-        //                    {
-        //                        mostHp = (int)PossibleFloatingTargets[i].EnergyBounty;
-        //                        CurrentDebrisTarget = PossibleFloatingTargets[i];
-        //                    }
-        //                }
-        //                break;
-        //            case TargetPriority.Weak:
-        //                int leastHp = int.MaxValue;
-        //                for (int i = 0; i < PossibleFloatingTargets.Count; i++)
-        //                {
-        //                    if (PossibleFloatingTargets[i].ArmsTargetingThis.Count == 0 && PossibleFloatingTargets[i].EnergyBounty < leastHp)
-        //                    {
-        //                        leastHp = (int)PossibleFloatingTargets[i].EnergyBounty;
-        //                        CurrentDebrisTarget = PossibleFloatingTargets[i];
-        //                    }
-        //                }
-        //                break;
-        //            case TargetPriority.None:
-        //            case TargetPriority.First:
-        //            default:
-        //                float smallestDistToGoal = float.MaxValue;
-        //                for (int i = 0; i < PossibleFloatingTargets.Count; i++)
-        //                {
-        //                    if (PossibleFloatingTargets[i].ArmsTargetingThis.Count == 0 && PossibleFloatingTargets[i].DistanceToGoal < smallestDistToGoal)
-        //                    {
-        //                        smallestDistToGoal = PossibleFloatingTargets[i].DistanceToGoal;
-        //                        CurrentDebrisTarget = PossibleFloatingTargets[i];
-        //                    }
-        //                };
-        //                break;
-        //        }
-        //        //if (!CurrentDebrisTarget.ArmsTargetingThis.Contains(freeArm))
-        //        //    CurrentDebrisTarget.ArmsTargetingThis.Add(freeArm);
-
-        //        //freeArm.ReachFor(CurrentDebrisTarget);
-        //        return CurrentDebrisTarget;
-        //    }
-        //    else
-        //        return null;
-        //}
-
-        new internal FloatingParticle ChooseTarget()
+        internal FloatingParticle ChooseTarget(PseudoPod freeArm)
         {
             CurrentDebrisTarget = null;
-            PseudoPod freeArm = EaterArms.Find(arm => arm.State == PseudoPod.ActivityState.Ready || arm.State == PseudoPod.ActivityState.Detracting);
+            //freeArm.CurrentTarget = null;
+            //PseudoPod freeArm = EaterArms.Find(arm => arm.State == PseudoPod.ActivityState.Ready || arm.State == PseudoPod.ActivityState.Detracting);
             if (freeArm != null)
             {
-                for (int i = 0; i < PossibleFloatingTargets.Count; i++)
+                float smallestDistToGoal = float.MaxValue;
+                float biggestDistToGoal = 0;
+                int biggestBounty = 0;
+                int smallestBounty = int.MaxValue;
+
+                FloatingParticle closestToGoalParticle;
+                FloatingParticle biggestBountyParticle;
+
+                for (int i = 0; i < PossibleDebrisTargets.Count; i++)
                 {
-                    if (PossibleFloatingTargets[i].ArmsTargetingThis.Count > 0)
-                        continue;
+                    if (PossibleDebrisTargets[i].ArmsTargetingThis.Count > 0)
+                    {
+                        if (Vector2.Distance(PossibleDebrisTargets[i].Location, PossibleDebrisTargets[i].ArmsTargetingThis[0].Position) > Vector2.Distance(PossibleDebrisTargets[i].Location, freeArm.Position))
+                        {
+                            //PossibleDebrisTargets[i].ArmsTargetingThis[0].LeaveTarget();
+                            PossibleDebrisTargets[i].ArmsTargetingThis[0].CurrentTarget = null;
+                            CurrentDebrisTarget = PossibleDebrisTargets[i];
+                        }
+                        else
+                            continue;
+                    }
 
                     switch (TargetPriority)
                     {
-                        case TargetPriority.Last:
-                            float biggestDistToGoal = 0;
-                            if (PossibleFloatingTargets[i].DistanceToGoal > biggestDistToGoal)
+                        case TargetPriority.last:
+                            if (PossibleDebrisTargets[i].DistanceToGoal > biggestDistToGoal)
                             {
-                                biggestDistToGoal = PossibleFloatingTargets[i].DistanceToGoal;
-                                CurrentDebrisTarget = PossibleFloatingTargets[i];
+                                biggestDistToGoal = PossibleDebrisTargets[i].DistanceToGoal;
+                                CurrentDebrisTarget = PossibleDebrisTargets[i];
                             }
                             break;
-                        case TargetPriority.Tough:
-                            int mostHp = 0;
-                            if (PossibleFloatingTargets[i].EnergyBounty > mostHp)
+                        case TargetPriority.tough:
+                            if (PossibleDebrisTargets[i].EnergyBounty > biggestBounty)
                             {
-                                mostHp = (int)PossibleFloatingTargets[i].EnergyBounty;
-                                CurrentDebrisTarget = PossibleFloatingTargets[i];
+                                biggestBounty = PossibleDebrisTargets[i].EnergyBounty;
+                                CurrentDebrisTarget = PossibleDebrisTargets[i];
                             }
                             break;
-                        case TargetPriority.Weak:
-                            int leastHp = int.MaxValue;
-                            if (PossibleFloatingTargets[i].EnergyBounty < leastHp)
+                        case TargetPriority.weak:
+                            if (PossibleDebrisTargets[i].EnergyBounty < smallestBounty)
                             {
-                                leastHp = (int)PossibleFloatingTargets[i].EnergyBounty;
-                                CurrentDebrisTarget = PossibleFloatingTargets[i];
+                                smallestBounty = PossibleDebrisTargets[i].EnergyBounty;
+                                CurrentDebrisTarget = PossibleDebrisTargets[i];
                             }
                             break;
-                        case TargetPriority.None:
-                        case TargetPriority.First:
+                        case TargetPriority.none:
+                        case TargetPriority.first:
                         default:
-                            float smallestDistToGoal = float.MaxValue;
-                            if (PossibleFloatingTargets[i].DistanceToGoal < smallestDistToGoal)
+                            if (PossibleDebrisTargets[i].DistanceToGoal < smallestDistToGoal)
                             {
-                                smallestDistToGoal = PossibleFloatingTargets[i].DistanceToGoal;
-                                CurrentDebrisTarget = PossibleFloatingTargets[i];
+                                smallestDistToGoal = PossibleDebrisTargets[i].DistanceToGoal;
+                                //if ()
+                                CurrentDebrisTarget = PossibleDebrisTargets[i];
                             }
                             break;
                     }
@@ -226,33 +227,24 @@ namespace AlkuTD
                 return null;
         }
 
-        //internal void Eat(FloatingParticle target)
-        //{
-        //    for (int i = 0; i < EaterArms.Count; i++)
-        //    {
-        //        if (EaterArms[i].State == PseudoPod.ActivityState.Ready || EaterArms[i].State == PseudoPod.ActivityState.Detracting)
-        //        {
-        //            if (target.ArmsTargetingThis.Contains(EaterArms[i]))
-        //                EaterArms[i].ReachFor(target);
-        //        }
-        //    }
-
-        //}
-
         internal void Eat(PseudoPod arm, FloatingParticle target)
         {
-            if (target != null && (arm.State == PseudoPod.ActivityState.Ready || arm.State == PseudoPod.ActivityState.Detracting))
+            if (target != null /*&& (arm.State == PseudoPod.ActivityState.Ready || arm.State == PseudoPod.ActivityState.Detracting)*/)
             {
-                if (!target.ArmsTargetingThis.Contains(arm))
+                if (target.ArmsTargetingThis.Count == 0)
                 {
-                    target.ArmsTargetingThis.Add(arm);
+                    arm.LeaveTarget();
                     arm.ReachFor(target);
                 }
             }
         }
 
         float oldRange;
-
+        public override void Upgrade()
+        {
+            base.Upgrade();
+            EaterArms.Add(new PseudoPod(this, ArmTexture));
+        }
 
         public override void Update(List<Creature> aliveCreatures)
         {
@@ -272,6 +264,11 @@ namespace AlkuTD
                 }
 
                 if (buildFinishedCounter > 0) buildFinishedCounter--; //---afterglow effect
+
+                for (int i = 0; i < EaterArms.Count; i++)
+                {
+                    EaterArms[i].UpdateDistanceToTarget();
+                }
 
                 HuntDebris(ParentMap.FloatingParticles);
 
@@ -301,8 +298,15 @@ namespace AlkuTD
                 {
                     if (EaterArms[i].State != PseudoPod.ActivityState.Ready && EaterArms[i].State != PseudoPod.ActivityState.Preparing)
                         EaterArms[i].Draw(sb);
-                    //sb.DrawString(CurrentGame.font, EaterArms[i].State.ToString(), ScreenLocation + new Vector2(-50, 11 * i), Color.Coral);
+                    //sb.DrawString(CurrentGame.font, EaterArms[i].State.ToString(), ScreenLocation + new Vector2(-58, 11 * i), Color.Coral);
+                    //sb.DrawString(CurrentGame.font, EaterArms[i].CurrentTarget != null ? EaterArms[i].CurrentTarget.SourceCreature.Name + $@" ({EaterArms[i].CurrentTarget.ToString()})" : "-", ScreenLocation + new Vector2(10, 11 * i), Color.OrangeRed);
+                    //sb.DrawString(CurrentGame.font, EaterArms[i].FirerateCounter.ToString(), ScreenLocation + new Vector2(-80, 11 * i), Color.GreenYellow);
+
                 }
+                //sb.DrawString(CurrentGame.font, PossibleDebrisTargets.Count.ToString(), ScreenLocation + new Vector2(0, 35), Color.OrangeRed);
+                //if (isOnlyPreaimTargets)
+                //    sb.DrawString(CurrentGame.font, "RANGE", ScreenLocation + new Vector2(0, 45), Color.OrangeRed);
+
                 //---FirerateLoadBars 
 
                 //sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f - 1), loadBarWidth, 4), Color.Black); //black background

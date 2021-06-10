@@ -349,6 +349,7 @@ namespace AlkuTD
                             CurrentGame.gameState = GameState.GameOver;
                             ParentMap.creatureCue = CurrentGame.soundBank.GetCue("loppukumi");
                             ParentMap.creatureCue.Play();
+							break;
                         }
 						else p.LifePoints -= LifeDmg;
 
@@ -361,9 +362,13 @@ namespace AlkuTD
 
 						Alive = false;
 						ParentMap.AliveCreatures.Remove(this);
-                    }
-                }
-            }
+					}
+					//if (ParentMap.towerCue == null || ParentMap.towerCue.Name != "plurrp0") 
+						ParentMap.towerCue = CurrentGame.soundBank.GetCue("plurrp0");
+					ParentMap.towerCue.Stop(Microsoft.Xna.Framework.Audio.AudioStopOptions.AsAuthored);
+					ParentMap.towerCue.Play();
+				}
+			}
         }
 
 		void CheckDistToGoal()

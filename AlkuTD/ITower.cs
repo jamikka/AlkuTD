@@ -8,22 +8,24 @@ namespace AlkuTD
 {
     public enum DmgType { Basic, Splash, None }
     public enum UpgLvl { Basic, Advanced, Max }
-    public enum ColorPriority { None, Red, Green, Blue }
+    public enum ColorPriority { none, red, green, blue }
     public enum TargetPriority
     {
-        None = 0,
+        none = 0,
 
-        First = 1,
-        Last = 2,
+        first = 1,
+        last = 2,
 
-        Tough = 3,
-        Weak = 4,
+        tough = 3,
+        weak = 4,
 
-        Fast = 5,
-        Slow = 6,
+        fast = 5,
+        slow = 6,
 
-        Mob = 7,
-        Far = 8
+        mob = 7,
+
+        far = 8,
+        close = 9
     }
 
     public enum TowerSymbol // NOT IN USE YET

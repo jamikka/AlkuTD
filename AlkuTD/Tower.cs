@@ -110,6 +110,8 @@ namespace AlkuTD
         internal Color loadBarColor = Color.White;
         internal int loadBarWidth = 25;
 
+		public bool IsUpgrading;
+
         //--------Constructors------------------------------
         public Tower(char symbol, string name, Point mapCoord, float range, float firerate, Texture2D[] textures, GeneSpecs geneSpecs, Texture2D bulletTexture, float bulletSpeed, short dmg, DmgType dmgType, int splashRange, float[] slow, int cost, int buildTime, bool isExample)
         {
@@ -158,6 +160,13 @@ namespace AlkuTD
 
 			FireRateSec = 1000 / (firerate * (float)ParentMap.ParentGame.TargetElapsedTime.TotalMilliseconds);
 			DPS = dmg * FireRateSec;
+
+			if (slow[0] > 0)
+				TargetPriority = TargetPriority.fast;
+			else if (splashRange > 0)
+				TargetPriority = TargetPriority.mob;
+			else
+				TargetPriority = TargetPriority.first;
 		}
 
         //----------Methods-------------------------------
@@ -346,116 +355,20 @@ namespace AlkuTD
         }
 
 		Vector2 closestIterAim;
-		//Vector2 ClosestIterLocation(Creature targetCreature, out bool canHit)
-		//{
-			//closestIterAim = targetCreature.CheckHitLocation(itersToRangeBoundary, Range, BulletSpeed, ScreenLocation, SplashRange, out canHit);
 
-			// pilviajatus: erotuslaskufunktion tulos on MUUTOS (ei "mitä jää kun 5:stä poistaa 6", niinku ala-asteella opin) -> muutoksia voi lisätä muihin lukuihin
-			#region pilvikamaa
-			//int itersToHitSameDist = (int)Math.Round(Vector2.Distance(ScreenLocation, targetCreature.Location) / BulletSpeed);
-			//Vector2 CreatureLocAfterInitAimTime = targetCreature.PredictMovement(itersToHitSameDist, out canHit);
-			//int itersToHitLocAfterInitRange = (int)Math.Round(Vector2.Distance(ScreenLocation, CreatureLocAfterInitAimTime) / BulletSpeed);
-			//if (!canHit || itersToHitLocAfterInitRange > itersToRangeBoundary)
-			//{
-			//    canHit = false;
-			//    return Vector2.Zero;
-			//}
-			//closestIterAim = new Vector2();
-			//if (itersToHitSameDist == itersToHitLocAfterInitRange)
-			//{
-			//    closestIterAim = CreatureLocAfterInitAimTime;
-			//    return CreatureLocAfterInitAimTime;
-			//}
-
-			//Vector2 middleLoc = targetCreature.PredictMovement(itersToHitLocAfterInitRange, out canHit);
-			//int itersToHitMiddle = (int)Math.Round(Vector2.Distance(ScreenLocation, middleLoc) / BulletSpeed);
-			//if (!canHit || itersToHitMiddle > itersToRangeBoundary)
-			//{
-			//    canHit = false;
-			//    return Vector2.Zero;
-			//}
-			//if (itersToHitLocAfterInitRange == itersToHitMiddle)
-			//{
-			//    closestIterAim = middleLoc;
-			//    return middleLoc;
-			//}
-
-			//Vector2 FirstQuarterLoc = targetCreature.PredictMovement(itersToHitMiddle, out canHit);
-			//int itersToHitFirstQuarter = (int)Math.Round(Vector2.Distance(ScreenLocation, FirstQuarterLoc) / BulletSpeed);
-			//if (!canHit || itersToHitFirstQuarter > itersToRangeBoundary)
-			//{
-			//    canHit = false;
-			//    return Vector2.Zero;
-			//}
-			//if (itersToHitMiddle == itersToHitFirstQuarter)
-			//{
-			//    closestIterAim = FirstQuarterLoc;
-			//    return FirstQuarterLoc;
-			//}
-
-			//Vector2 FirstEightLoc = targetCreature.PredictMovement(itersToHitFirstQuarter, out canHit);
-			//if (!canHit)
-			//    return Vector2.Zero;
-			//int itersToHitEightLoc = (int)Math.Round(Vector2.Distance(ScreenLocation, FirstEightLoc) / BulletSpeed);
-			//if (itersToHitFirstQuarter == itersToHitEightLoc)
-			//{
-			//    closestIterAim = FirstEightLoc;
-			//    return FirstEightLoc;
-			//}
-
-			//Vector2 FirstSixteenthLoc = targetCreature.PredictMovement(itersToHitEightLoc, out canHit);
-			//if (!canHit)
-			//    return Vector2.Zero;
-			//int itersToHitSixteenthLoc = (int)Math.Round(Vector2.Distance(ScreenLocation, FirstSixteenthLoc) / BulletSpeed);
-
-			//Vector2 PinPointedLoc = targetCreature.PredictMovement(itersToHitSixteenthLoc, out canHit);
-			//int itersToHitPinpointLoc = (int)Math.Round(Vector2.Distance(ScreenLocation, PinPointedLoc) / BulletSpeed);
-
-			//closestIterAim = PinPointedLoc;
-
-			//closestIterAim = middleLoc;
-
-			//closestIterAim = CreatureLocIfDistStaysSame;
-			//float closestDist = Vector2.Distance(CreatureLocIfDistStaysSame, trueCreatureLoc);
-			//Vector2 currentIterAim;
-			//int closestIter;
-			//int currentIter = itersToHitImmobile;
-
-			//for (int i = 0; i < Math.Abs(itersToHitImmobile - iterstoHitCreatureLoc); i++)
-			////do
-			//{
-			//    if (iterstoHitCreatureLoc < itersToHitImmobile)
-			//        currentIter--;
-			//    else
-			//        currentIter++;
-
-			//    currentIterAim = targetCreature.PredictMovement(currentIter);
-
-			//    if (Vector2.Distance(closestIterAim, CreatureLocIfDistStaysSame) < closestDist)
-			//    {
-			//        closestIterAim = currentIterAim;
-			//        closestDist = Vector2.Distance(closestIterAim, CreatureLocIfDistStaysSame);
-			//        closestIter = currentIter;
-			//    }
-
-			//} //while (currentIter
-
-			//Vector2 predictedAim = targetCreature.PredictMovement(iterstoHitCreatureLoc);
-			//int middle = itersToHitImmobile + (iterstoHitCreatureLoc - itersToHitImmobile) / 2;
-			//Vector2 middleAim = targetCreature.PredictMovement(middle);
-			//int itersFirstQuarter = (int)Math.Round(Vector2.Distance(ScreenLocation, middleAim) / BulletSpeed);
-			//aimLocation = targetCreature.PredictMovement(middle);
-			#endregion
-			//return closestIterAim;
-		//}
-
-        public void Upgrade() //-------rahansiirto muissa paikoissa (HUD.Drawissa (!) kahesti) jotta maped-ilmaisuus 
+        public virtual void Upgrade() //-------rahansiirto muissa paikoissa (HUD.Drawissa (!) kahesti) jotta maped-ilmaisuus 
         {
             if (UpgradeLvl != UpgLvl.Max)
             {
-                UpgradeLvl++;
+				IsUpgrading = true;
+				Built = false;
+				UpgradeLvl++;
                 towerTypeIdx += 6;
 				Tower exampleTower = HexMap.ExampleTowers[towerTypeIdx];
+				BuildTime = exampleTower.BuildTime;
+				buildTimer = BuildTime;
+				buildFinishedCounter = buildFinishedInit;
+
 				Name = exampleTower.Name;
 				Textures = exampleTower.Textures;
                 BulletSpeed = exampleTower.BulletSpeed;
@@ -471,7 +384,6 @@ namespace AlkuTD
                 Range = exampleTower.Range;
                 slow = exampleTower.slow;
                 Symbol = TowerSymbols[towerTypeIdx];
-                BuildTime = exampleTower.BuildTime;
 				SplashRange = exampleTower.SplashRange;
 				//for (int i = 0; i < Bullets.Count; i++)
 				//{
@@ -543,6 +455,8 @@ namespace AlkuTD
 			CurrentGame.players[0].Towers.Remove(this);
 			ParentMap.Layout[mapCoord.Y, mapCoord.X] = '0';
 			ParentMap.CurrentLayout[mapCoord] = '0';
+
+			CurrentGame.soundEffects[1].Play(0.2f, -0.6f, 0);
 		}
 
 		internal int firerateCounter = 0;		
@@ -563,12 +477,12 @@ namespace AlkuTD
                 if (aliveCreatures[i].Born && Vector2.Distance(aliveCreatures[i].Location, ScreenLocation) <= Range)
                 {
 					CreaturesInRange.Add(aliveCreatures[i]);
-					if (ElemPriority != AlkuTD.ColorPriority.None && aliveCreatures[i].ElemArmors[ElemPriority] > 0)
+					if (ElemPriority != AlkuTD.ColorPriority.none && aliveCreatures[i].ElemArmors[ElemPriority] > 0)
 						ColoredInRange.Add(aliveCreatures[i]);
 				}
 			}
 
-			if (ElemPriority != AlkuTD.ColorPriority.None && ColoredInRange.Count > 0)
+			if (ElemPriority != AlkuTD.ColorPriority.none && ColoredInRange.Count > 0)
 				PossibleTargets = ColoredInRange;
 			else PossibleTargets = CreaturesInRange;
 
@@ -605,7 +519,7 @@ namespace AlkuTD
 			//{
 				switch (TargetPriority)
 				{
-					case TargetPriority.Last:
+					case TargetPriority.last:
 							float biggestDistToGoal = 0;
 							for (int i = 0; i < PossibleTargets.Count; i++)
 							{
@@ -616,7 +530,7 @@ namespace AlkuTD
 								}
 							}
 						    break;
-					case TargetPriority.Tough:
+					case TargetPriority.tough:
 							int mostHp = 0;
 							for (int i = 0; i < PossibleTargets.Count; i++)
 							{
@@ -627,7 +541,7 @@ namespace AlkuTD
 								}
 							}
 						    break;
-					case TargetPriority.Weak:
+					case TargetPriority.weak:
 							int leastHp = int.MaxValue;
 							for (int i = 0; i < PossibleTargets.Count; i++)
 							{
@@ -638,7 +552,7 @@ namespace AlkuTD
 								}
 							}
 							break;
-					case TargetPriority.Fast:
+					case TargetPriority.fast:
 							float fastest = 0;
 							for (int i = 0; i < PossibleTargets.Count; i++)
 							{
@@ -649,7 +563,7 @@ namespace AlkuTD
 								}
 							}
 							break;
-					case TargetPriority.Slow:
+					case TargetPriority.slow:
 							float slowest = float.MaxValue;
 							for (int i = 0; i < PossibleTargets.Count; i++)
 							{
@@ -660,7 +574,7 @@ namespace AlkuTD
 								}
 							}
 							break;
-					case TargetPriority.Mob:
+					case TargetPriority.mob:
 							int bestMobCount = 0;
 							for (int i = 0; i < PossibleTargets.Count; i++)
 							{
@@ -693,8 +607,8 @@ namespace AlkuTD
 								}
 							}
 							break;
-					case TargetPriority.None:
-					case TargetPriority.First:
+					case TargetPriority.none:
+					case TargetPriority.first:
 					default:
 							float smallestDistToGoal = float.MaxValue;
 							for (int i = 0; i < PossibleTargets.Count; i++)
@@ -732,11 +646,13 @@ namespace AlkuTD
                 if (Built == false)
                 {
                     Built = true;
+					IsUpgrading = false;
                     ParentMap.towerCue = CurrentGame.soundBank.GetCue("pluip2");
                     ParentMap.towerCue.Play();
                 }
 
-                if (buildFinishedCounter > 0) buildFinishedCounter--; //---afterglow effect
+                if (buildFinishedCounter > 0) 
+					buildFinishedCounter--; //---afterglow effect
 
                 Hunt(aliveCreatures);
 
@@ -787,7 +703,7 @@ namespace AlkuTD
 					}
 				}
             }
-            else if (IsExample)
+            else if (IsExample || IsUpgrading || buildTimer > 0)
                 sb.Draw(Textures[0], ScreenLocation, null, Color.White * 0.6f, 0, texOrigin, 1, SpriteEffects.None, 0);
             
             if (buildFinishedCounter > 0 && buildTimer < BuildTime)

@@ -145,7 +145,7 @@ namespace AlkuTD
                                            new Tower('E', "Splasher 1", Point.Zero, 110, 70, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN1") }, new GeneSpecs(), CurrentGame.ball, 2f, 1, DmgType.Splash, 15, new float[] {0,0}, 20, 200, true),
                                            new SniperTower(Point.Zero, UpgLvl.Basic, true),
                                            //new Tower('I', "Sniper 1", Point.Zero, 200, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 5, 0, 0, new float[] {0,0}, 30, 200, true),
-                                           new Tower('O', "Slower 1", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.2f,200}, 10, 200, true),
+                                           new Tower('O', "Slower 1", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.25f,200}, 10, 200, true),
                                            new ParticleEaterTower(Point.Zero, UpgLvl.Basic, true),
                                            //new Tower('U', "Grabber 1", Point.Zero, 120, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
                                            new Tower('|', "Booster 1", Point.Zero, 350, 60, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 8f, 1, 0, 0, new float[] {0,0}, 15, 200, true),
@@ -154,7 +154,7 @@ namespace AlkuTD
                                            new Tower('Ë', "Splasher 2", Point.Zero, 250, 70, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN2") }, new GeneSpecs(), CurrentGame.ball, 2f, 2, DmgType.Splash, 25, new float[] {0,0}, 20, 200, true),
                                            new SniperTower(Point.Zero, UpgLvl.Advanced, true),
                                            //new Tower('Ï', "Sniper 2", Point.Zero, 225, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 15, 0, 0, new float[] {0,0}, 30, 200, true),
-                                           new Tower('Ö', "Slower 2", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.4f,200}, 10, 200, true),
+                                           new Tower('Ö', "Slower 2", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.5f,200}, 10, 200, true),
                                            new ParticleEaterTower(Point.Zero, UpgLvl.Advanced, true),
                                            //new Tower('Ü', "Grabber 2", Point.Zero, 125, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
                                            new Tower('†', "Booster 2", Point.Zero, 155, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 15, 200, true),
@@ -163,7 +163,7 @@ namespace AlkuTD
                                            new Tower('Ê', "Splasher 3", Point.Zero, 120, 70, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN4") }, new GeneSpecs(), CurrentGame.ball, 12f, 4, DmgType.Splash, 360, new float[] {0,0}, 20, 200, true),
                                            new SniperTower(Point.Zero, UpgLvl.Max, true),
                                            //new Tower('Î', "Sniper 3", Point.Zero, 250, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 25, 0, 0, new float[] {0,0}, 30, 200, true),
-                                           new Tower('Ô', "Slower 3", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.6f,200}, 10, 200, true),
+                                           new Tower('Ô', "Slower 3", Point.Zero, 90, 75, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri3") }, new GeneSpecs(), CurrentGame.ball, 8f, 0, 0, 0, new float[] {0.75f,200}, 10, 200, true),
                                            new ParticleEaterTower(Point.Zero, UpgLvl.Max, true),
                                            //new Tower('Û', "Grabber 3", Point.Zero, 130, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
                                            new Tower('‡', "Booster 3", Point.Zero, 160, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 15, 200, true)};
@@ -361,20 +361,27 @@ namespace AlkuTD
             
             CurrentGame.HUD.HUDbuttons[0].Text = "Start the waves";
 
+            Creature creature;
+            SpawnGroup spwnGroup;
             for (int w = 0; w < Waves.Length; w++)
             {   for (int g = 0; g < Waves[w].Groups.Length; g++)
-                {   for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
+                {
+                    spwnGroup = Waves[w].Groups[g];
+                    spwnGroup.AliveCreatures.Clear();
+                    for (int c = 0; c < Waves[w].Groups[g].Creatures.Length; c++)
                     {
-                        Waves[w].Groups[g].Creatures[c].Born = false;
-                        Waves[w].Groups[g].Creatures[c].Alive = true;
-                        Waves[w].Groups[g].Creatures[c].Location = ToScreenLocation(SpawnPoints[Waves[w].Groups[g].Creatures[c].SpawnPointIndex]);
-                        Waves[w].Groups[g].Creatures[c].nextWaypoint = 1;
-                        Waves[w].Groups[g].Creatures[c].hp = Waves[w].Groups[g].Creatures[c].InitHp;
-                        Waves[w].Groups[g].Creatures[c].Speed = Waves[w].Groups[g].Creatures[c].defSpeed;
-                        Waves[w].Groups[g].Creatures[c].Splatter.Reset();
+                        creature = Waves[w].Groups[g].Creatures[c];
+                        spwnGroup.AliveCreatures.Add(creature);
+                        creature.Born = false;
+                        creature.Alive = true;
+                        creature.Location = ToScreenLocation(SpawnPoints[creature.SpawnPointIndex]);
+                        creature.nextWaypoint = 1;
+                        creature.hp = creature.InitHp;
+                        creature.Speed = creature.defSpeed;
+                        creature.Splatter.Reset();
                     }
-                    Waves[w].Groups[g].FindPath();
-                    Waves[w].Groups[g].spawnTimer = 0;
+                    spwnGroup.FindPath();
+                    spwnGroup.spawnTimer = 0;
                 }
             }
 			HUD.NexWaveInfoBoxes = new List<GroupInfoBox>();

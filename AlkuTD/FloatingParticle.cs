@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Threading;
 
 namespace AlkuTD
 {
@@ -26,6 +27,9 @@ namespace AlkuTD
         public List<PseudoPod> ArmsTargetingThis;
         public bool SuppressUpdate;
         Color ParticleElementColor;
+        float BountySizeScale;
+
+        public Creature SourceCreature;
 
         public FloatingParticle (Creature sourceCreature)
         {
@@ -37,8 +41,12 @@ namespace AlkuTD
             Path = sourceCreature.Path;
             OrigPath = sourceCreature.OrigPath;
             nextWaypoint = sourceCreature.nextWaypoint;
+            SourceCreature = sourceCreature;
             Speed = FloatSpeed;
-            Spritesheet = CurrentGame.ball;
+            Spin = (float)(ParentMap.rnd.NextDouble() - 0.5f) * 0.08f;
+            BountySizeScale = Math.Min((EnergyBounty) * 0.66f, 3f);
+            //Spritesheet = CurrentGame.ball;
+            Spritesheet = ParentMap.ParentGame.Content.Load<Texture2D>("flake-5x5");
             ArmsTargetingThis = new List<PseudoPod>();
             switch (Elems.GetPrimaryElem())
             {
@@ -61,16 +69,21 @@ namespace AlkuTD
         {
             ParentMap.Players[0].EnergyPoints += EnergyBounty;
             ParentMap.FloatingParticles.Remove(this);
+            ParentMap.towerCue = CurrentGame.soundBank.GetCue("pluip2");
+            ParentMap.towerCue.Play();
         }
 
-        public void ReleaseYieldAtEater(ParticleEaterTower eater)
+        public void ReleaseYieldAtEater(ParticleEaterTower eater, PseudoPod arm)
         {
 			ParentMap.Players[0].EnergyPoints += (int)Math.Round(EnergyBounty * eater.EnergyMultiplier);
             ParentMap.Players[0].GenePoints[0] += (int)Math.Round(Elems[GeneType.Red] * 10 * eater.GeneMultiplier);
             ParentMap.Players[0].GenePoints[1] += (int)Math.Round(Elems[GeneType.Green] * 10 * eater.GeneMultiplier);
             ParentMap.Players[0].GenePoints[2] += (int)Math.Round(Elems[GeneType.Blue] * 10 * eater.GeneMultiplier);
             CurrentGame.HUD.UpdateGeneBars();
+            arm.LeaveTarget();
             ParentMap.FloatingParticles.Remove(this);
+            ParentMap.towerCue = CurrentGame.soundBank.GetCue("kansi");
+            ParentMap.towerCue.Play();
         }
 
         const float distToBeginTurn = 20;
@@ -93,8 +106,6 @@ namespace AlkuTD
                 {
                     if (nextWaypoint >= Path.Count - 1)
                     {
-                        ParentMap.creatureCue = CurrentGame.soundBank.GetCue("plurrp0");
-                        ParentMap.creatureCue.Play();
                         ReleaseYieldAtGoal();
                         //TakeLifePoints(ParentMap.Players);
                         return;
@@ -124,6 +135,8 @@ namespace AlkuTD
                 else
                     Location += dir * Speed;
 
+                Angle += Spin;
+
                 CheckDistToGoal(); 
             }
         }
@@ -137,7 +150,13 @@ namespace AlkuTD
 
         public void Draw(SpriteBatch sb)
         {
-            sb.Draw(Spritesheet, Location, null, ParticleElementColor, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+            sb.Draw(Spritesheet, Location, null, ParticleElementColor, Angle, Vector2.Zero, BountySizeScale, SpriteEffects.None, 0);
+            //sb.DrawString(CurrentGame.font, this.ToString(), Location, Color.Red);
+        }
+
+        public override string ToString()
+        {
+            return ((int)DistanceToGoal).ToString() /*+ " " + SourceCreature.Name*/;
         }
     }
 }

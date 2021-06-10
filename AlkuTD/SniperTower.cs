@@ -94,12 +94,12 @@ namespace AlkuTD
                 if (aliveCreatures[i].Born && Vector2.Distance(aliveCreatures[i].Location, ScreenLocation) <= Range + preAimRangeBonus)
                 {
                     CreaturesInPreAimRange.Add(aliveCreatures[i]);
-                    if (ElemPriority != AlkuTD.ColorPriority.None && aliveCreatures[i].ElemArmors[ElemPriority] > 0)
+                    if (ElemPriority != AlkuTD.ColorPriority.none && aliveCreatures[i].ElemArmors[ElemPriority] > 0)
                         ColoredInRange.Add(aliveCreatures[i]);
                 }
             }     
 
-            if (ElemPriority != AlkuTD.ColorPriority.None && ColoredInRange.Count > 0) // Fill PossibleTargets from CreaturesInPreAimRange or ColoredInRange if tower has a ElemPriority
+            if (ElemPriority != AlkuTD.ColorPriority.none && ColoredInRange.Count > 0) // Fill PossibleTargets from CreaturesInPreAimRange or ColoredInRange if tower has a ElemPriority
                 PossibleTargets = ColoredInRange;
             else PossibleTargets = CreaturesInPreAimRange;
 
