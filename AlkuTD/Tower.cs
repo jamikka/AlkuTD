@@ -675,15 +675,16 @@ namespace AlkuTD
         public virtual void Draw(SpriteBatch sb)
         {
             float buildPhase = (BuildTime - buildTimer) / (float)BuildTime;
+			byte buildPhaseSixth = (byte)(buildPhase * 6);
 
             if (buildTimer == 0)
             {
-                sb.Draw(Textures[0], ScreenLocation, null, Color.White, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0);
+                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0.1f);
 
                 //---FirerateLoadBars 
 
-                sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f - 1), loadBarWidth, 4), Color.Black); //black background
-                sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2 + 1, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f), (int)((loadBarWidth - 2) * ((FireRate - firerateCounter) / FireRate)), 2), loadBarColor);
+                sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f - 1), loadBarWidth, 4), null, Color.Black, 0, Vector2.Zero, SpriteEffects.None, 0.1f); //black background
+                sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2 + 1, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f), (int)((loadBarWidth - 2) * ((FireRate - firerateCounter) / FireRate)), 2), null, loadBarColor, 0, Vector2.Zero, SpriteEffects.None, 0);
 
                 if (GeneSpecs.HasAny)
 				{
@@ -704,7 +705,7 @@ namespace AlkuTD
 				}
             }
             else if (IsExample || IsUpgrading || buildTimer > 0)
-                sb.Draw(Textures[0], ScreenLocation, null, Color.White * 0.6f, 0, texOrigin, 1, SpriteEffects.None, 0);
+                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White * 0.6f, 0, texOrigin, 1, SpriteEffects.None, 0);
             
             if (buildFinishedCounter > 0 && buildTimer < BuildTime)
             {
@@ -714,36 +715,38 @@ namespace AlkuTD
                 lineColor *= buildFinishedCounter / (float)buildFinishedInit;
                 borderColor *= buildFinishedCounter / (float)buildFinishedInit;
 
-                sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X - ParentMap.TileWidth / 4 - 1), (int)ScreenLocation.Y - ParentMap.TileHeight / 2 - 1, ParentMap.TileWidth / 2, 4),
-                            null, borderColor, 0f, Vector2.Zero, SpriteEffects.None, 0);
-                sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileWidth / 4 + 2), (int)ScreenLocation.Y - ParentMap.TileHeight / 2, ParentMap.TileWidth / 2, 4),
-                        null, borderColor, MathHelper.ToRadians(60.9f), Vector2.Zero, SpriteEffects.None, 0);
-                sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileWidth / 2 + 1), (int)ScreenLocation.Y, ParentMap.TileWidth / 2, 4),
-                        null, borderColor, MathHelper.ToRadians(118.2f), Vector2.Zero, SpriteEffects.None, 0);
-                sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileWidth / 4 + 1), (int)ScreenLocation.Y + ParentMap.TileHeight / 2 + 2, ParentMap.TileWidth / 2 + 1, 4),
-                        null, borderColor, (float)Math.PI, Vector2.Zero, SpriteEffects.None, 0);
-                sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X - ParentMap.TileWidth / 4 - 2), (int)ScreenLocation.Y + ParentMap.TileHeight / 2 + 2, ParentMap.TileWidth / 2 + 1, 4),
-                        null, borderColor, MathHelper.ToRadians(240.8f), Vector2.Zero, SpriteEffects.None, 0);
-                sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X - ParentMap.TileWidth / 2 - 1), (int)ScreenLocation.Y, ParentMap.TileWidth / 2, 4),
-                        null, borderColor, (float)Math.PI * (5 / 3f), Vector2.Zero, SpriteEffects.None, 0);
-
-                sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X - ParentMap.TileWidth / 4 - 1), (int)(ScreenLocation.Y - ParentMap.TileHeight / 2),
-                        (int)Math.Min(ParentMap.TileWidth / 2, ParentMap.TileWidth / 2 * buildPhase * 6), 2), lineColor);
-                if (buildPhase >= 1/6f)
-                    sb.Draw(CurrentGame.pixel, new Vector2(ScreenLocation.X + ParentMap.TileWidth / 4 + 1, ScreenLocation.Y - ParentMap.TileHeight / 2), null, lineColor, MathHelper.ToRadians(60.9f),
-                            Vector2.Zero, new Vector2(Math.Min(ParentMap.TileWidth / 2, ParentMap.TileWidth / 2 * (buildPhase - 1/6f) * 6), 2), SpriteEffects.None, 0);
-                if (buildPhase >= 2/6f)
-                    sb.Draw(CurrentGame.pixel, new Vector2(ScreenLocation.X + ParentMap.TileWidth / 2, ScreenLocation.Y), null, lineColor, MathHelper.ToRadians(118.2f) /*(float)Math.PI * (1.98f / 3f)*/, //118.95f
-                            Vector2.Zero, new Vector2(Math.Min(ParentMap.TileWidth / 2, ParentMap.TileWidth / 2 * (buildPhase - 2/6f) * 6), 2), SpriteEffects.None, 0);
-                if (buildPhase >= 3/6f)
-                    sb.Draw(CurrentGame.pixel, new Vector2(ScreenLocation.X + ParentMap.TileWidth / 4, ScreenLocation.Y + ParentMap.TileHeight / 2 + 1), null, lineColor, (float)Math.PI,
-                            Vector2.Zero, new Vector2(Math.Min(ParentMap.TileWidth / 2, ParentMap.TileWidth / 2 * (buildPhase - 3/6f) * 6), 2), SpriteEffects.None, 0);
-                if (buildPhase >= 4/6f)
-                    sb.Draw(CurrentGame.pixel, new Vector2(ScreenLocation.X - ParentMap.TileWidth / 4 - 1, ScreenLocation.Y + ParentMap.TileHeight / 2 + 1), null, lineColor, MathHelper.ToRadians(240.8f),//(float)Math.PI * (4f / 3f)
-                            Vector2.Zero, new Vector2(Math.Min(ParentMap.TileWidth / 2, ParentMap.TileWidth / 2 * (buildPhase - 4/6f) * 6), 2), SpriteEffects.None, 0);
-                if (buildPhase >= 5/6f)
-                    sb.Draw(CurrentGame.pixel, new Vector2(ScreenLocation.X - ParentMap.TileWidth / 2, ScreenLocation.Y), null, lineColor, (float)Math.PI * (5 / 3f),
-                            Vector2.Zero, new Vector2(Math.Min(ParentMap.TileWidth / 2 - 1, ParentMap.TileWidth / 2 * (buildPhase - 5/6f) * 6), 2), SpriteEffects.None, 0);
+				//barBackgrounds
+				switch (buildPhaseSixth)
+				{
+					case 5: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X - ParentMap.TileHalfWidth - 1), (int)ScreenLocation.Y - (int)HexMap.TileWallHeight.Y, (int)Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 5/6f) * 6)+2, 4),
+							null, borderColor, (float)Math.PI * (5 / 3f), Vector2.Zero, SpriteEffects.None, 0.2f); goto case 4;
+					case 4: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X - ParentMap.TileWidth / 4 - 2), (int)ScreenLocation.Y + ParentMap.TileHalfHeight + 2 - (int)HexMap.TileWallHeight.Y, (int)Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 4/6f) * 6) + 2, 4),
+							null, borderColor, MathHelper.ToRadians(240.8f), Vector2.Zero, SpriteEffects.None, 0.2f); goto case 3;
+					case 3: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileWidth / 4 + 1), (int)ScreenLocation.Y + ParentMap.TileHalfHeight + 2 - (int)HexMap.TileWallHeight.Y, (int)Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 3/6f) * 6) + 2, 4),
+							null, borderColor, (float)Math.PI, Vector2.Zero, SpriteEffects.None, 0.2f); goto case 2;
+					case 2: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileHalfWidth + 1), (int)ScreenLocation.Y - (int)HexMap.TileWallHeight.Y, (int)Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 2/6f) * 6)+2, 4),
+							null, borderColor, MathHelper.ToRadians(118.2f), Vector2.Zero, SpriteEffects.None, 0.2f); goto case 1;
+					case 1: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileWidth / 4 + 2), (int)ScreenLocation.Y - ParentMap.TileHalfHeight - (int)HexMap.TileWallHeight.Y, (int)Math.Min(ParentMap.TileHalfWidth, (int)(ParentMap.TileHalfWidth * (buildPhase - 1/6f) * 6))+2, 4),
+							null, borderColor, MathHelper.ToRadians(60.9f), Vector2.Zero, SpriteEffects.None, 0.2f); goto case 0;
+					case 0: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X - ParentMap.TileWidth / 4 - 1), (int)ScreenLocation.Y - ParentMap.TileHalfHeight - (int)HexMap.TileWallHeight.Y - 1, (int)Math.Min(ParentMap.TileHalfWidth, (int)(ParentMap.TileHalfWidth * buildPhase * 6))+2, 4),
+                            null, borderColor, 0f, Vector2.Zero, SpriteEffects.None, 0.2f); break;
+				}
+				//barBars
+				switch (buildPhaseSixth)
+				{
+					case 5: sb.Draw(CurrentGame.pixel, new Vector2(ScreenLocation.X - ParentMap.TileHalfWidth, ScreenLocation.Y - (int)HexMap.TileWallHeight.Y), null, lineColor, (float)Math.PI * (5 / 3f),
+                            Vector2.Zero, new Vector2(Math.Min(ParentMap.TileHalfWidth - 1, ParentMap.TileHalfWidth * (buildPhase - 5/6f) * 6), 2), SpriteEffects.None, 0.1f); goto case 4;
+					case 4: sb.Draw(CurrentGame.pixel, new Vector2(ScreenLocation.X - ParentMap.TileWidth / 4 - 1, ScreenLocation.Y + ParentMap.TileHalfHeight + 1 - (int)HexMap.TileWallHeight.Y), null, lineColor, MathHelper.ToRadians(240.8f),//(float)Math.PI * (4f / 3f)
+                            Vector2.Zero, new Vector2(Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 4/6f) * 6), 2), SpriteEffects.None, 0.1f); goto case 3;
+					case 3: sb.Draw(CurrentGame.pixel, new Vector2(ScreenLocation.X + ParentMap.TileWidth / 4, ScreenLocation.Y + ParentMap.TileHalfHeight + 1 - (int)HexMap.TileWallHeight.Y), null, lineColor, (float)Math.PI,
+                            Vector2.Zero, new Vector2(Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 3/6f) * 6), 2), SpriteEffects.None, 0.1f); goto case 2;
+					case 2: sb.Draw(CurrentGame.pixel, new Vector2(ScreenLocation.X + ParentMap.TileHalfWidth, ScreenLocation.Y - (int)HexMap.TileWallHeight.Y), null, lineColor, MathHelper.ToRadians(118.2f) /*(float)Math.PI * (1.98f / 3f)*/, //118.95f
+                            Vector2.Zero, new Vector2(Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 2/6f) * 6), 2), SpriteEffects.None, 0.1f); goto case 1;
+					case 1: sb.Draw(CurrentGame.pixel, new Vector2(ScreenLocation.X + ParentMap.TileWidth / 4 + 1, ScreenLocation.Y - ParentMap.TileHalfHeight - (int)HexMap.TileWallHeight.Y), null, lineColor, MathHelper.ToRadians(60.9f),
+                            Vector2.Zero, new Vector2(Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 1/6f) * 6), 2), SpriteEffects.None, 0.1f); goto case 0;
+					case 0: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X - ParentMap.TileWidth / 4 - 1), (int)(ScreenLocation.Y - ParentMap.TileHalfHeight - HexMap.TileWallHeight.Y),
+							(int)Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * buildPhase * 6), 2), null, lineColor, 0, Vector2.Zero, SpriteEffects.None, 0.1f); break;
+				}
                 #endregion
             }
             

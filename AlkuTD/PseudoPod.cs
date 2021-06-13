@@ -186,7 +186,7 @@ namespace AlkuTD
             Rectangle destRect = new Rectangle((int)ParentTower.ScreenLocation.X, (int)ParentTower.ScreenLocation.Y, (int)Vector2.Distance(ParentTower.ScreenLocation, Position), 4);
             Rectangle sourceRect = new Rectangle(0, 0, Texture.Width - 15, Texture.Height -15);
             float rotation = (float)Math.Atan2(Position.Y - ParentTower.ScreenLocation.Y, Position.X - ParentTower.ScreenLocation.X);
-            sb.Draw(Texture, destRect, sourceRect, armColor, rotation, Vector2.Zero, SpriteEffects.None, 0);
+            sb.Draw(Texture, destRect, sourceRect, armColor, rotation, Vector2.Zero, SpriteEffects.None, 0.05f);
         }
 
         public override string ToString()

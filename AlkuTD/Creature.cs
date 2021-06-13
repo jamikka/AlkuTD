@@ -363,9 +363,9 @@ namespace AlkuTD
 						Alive = false;
 						ParentMap.AliveCreatures.Remove(this);
 					}
-					//if (ParentMap.towerCue == null || ParentMap.towerCue.Name != "plurrp0") 
+					if (ParentMap.towerCue == null || ParentMap.towerCue.Name != "plurrp0") 
 						ParentMap.towerCue = CurrentGame.soundBank.GetCue("plurrp0");
-					ParentMap.towerCue.Stop(Microsoft.Xna.Framework.Audio.AudioStopOptions.AsAuthored);
+					ParentMap.towerCue.Stop(Microsoft.Xna.Framework.Audio.AudioStopOptions.Immediate);
 					ParentMap.towerCue.Play();
 				}
 			}
@@ -754,10 +754,10 @@ namespace AlkuTD
                     int row = (int)(currentFrame / (float)SpritesheetColumns);
                     int column = currentFrame % SpritesheetColumns;
                     Rectangle sourceRect = new Rectangle(Width * column, Height * row, Width, Height);
-                    sb.Draw(Spritesheet, Location, sourceRect, Color.White, -Angle /*+ AngleOffset*/, Origin, 2, SpriteEffects.None, 0);
+                    sb.Draw(Spritesheet, Location, sourceRect, Color.White, -Angle /*+ AngleOffset*/, Origin, 2, SpriteEffects.None, 0.4f);
                 }
             else if (Name == "1") sb.Draw(Spritesheet, Location, null, Color.White, -Angle, Origin, 1, SpriteEffects.None, 0);
-            else sb.Draw(Spritesheet, Location, null, Color.White, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, 0);
+            else sb.Draw(Spritesheet, Location, null, Color.White, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, 0.4f);
 
 
             //foreach (Vector2 p in Path)

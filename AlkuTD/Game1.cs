@@ -240,35 +240,52 @@ namespace AlkuTD
                     //spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, brightnessFX);
                     spriteBatch.End();
 
-                    spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone);
+                    spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone);
                     currentMap.Draw(spriteBatch);
                     spriteBatch.End();
 
-                    spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
+                    //spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
+                    spriteBatch.Begin();
                     HUD.Draw(spriteBatch, gameTime, mouse);
                     break;
 
                 case GameState.Paused:
+                    spriteBatch.End();
+                    spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone);
                     currentMap.Draw(spriteBatch);
+                    spriteBatch.End();
+                    spriteBatch.Begin();
                     HUD.Draw(spriteBatch, gameTime, mouse);
                     //spriteBatch.Draw(pixel, GraphicsDevice.Viewport.Bounds, new Color(0, 0, 0, 100));
                     spriteBatch.DrawString(font, "Paused", new Vector2(GraphicsDevice.Viewport.Width * 0.05f, GraphicsDevice.Viewport.Height * 0.5f), Color.Orange);
                     break;
 
                 case GameState.GameOver:
+                    spriteBatch.End();
+                    spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone);
                     currentMap.Draw(spriteBatch);
+                    spriteBatch.End();
+                    spriteBatch.Begin();
                     HUD.Draw(spriteBatch, gameTime, mouse);
                     spriteBatch.Draw(pixel, GraphicsDevice.Viewport.Bounds, new Color(0, 0, 0, 100));
                     spriteBatch.DrawString(font, "Ok", new Vector2(GraphicsDevice.Viewport.Width * 0.5f, GraphicsDevice.Viewport.Height * 0.5f), Color.Orange);
                     break;
                 case GameState.MapEditor:
+                    spriteBatch.End();
+                    spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone);
                     currentMap.Draw(spriteBatch);
+                    spriteBatch.End();
+                    spriteBatch.Begin();
                     HUD.Draw(spriteBatch, gameTime, mouse);
                     break;
                 case GameState.MapTestInGame:
                 case GameState.InitSetup:
                 case GameState.MapTestInitSetup:
+                    spriteBatch.End();
+                    spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone);
                     currentMap.Draw(spriteBatch);
+                    spriteBatch.End();
+                    spriteBatch.Begin();
                     HUD.Draw(spriteBatch, gameTime, mouse);
                     break;
             }

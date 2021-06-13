@@ -11,6 +11,8 @@ namespace AlkuTD
 {
     public class HexMap
     {
+        public static readonly Vector2 TileWallHeight = new Vector2(0, 6);
+
         public CurrentGame ParentGame;
 
         public string Name;
@@ -411,7 +413,7 @@ namespace AlkuTD
 
                 writer.WriteLine();
 				writer.WriteLine("Life:".PadRight(8) + CurrentGame.HUD.MapEditorResourceCells[4].Text);
-				writer.WriteLine("Energy:".PadRight(8) + CurrentGame.HUD.MapEditorResourceCells[0].Text);
+				writer.WriteLine("Biomass:".PadRight(8) + CurrentGame.HUD.MapEditorResourceCells[0].Text);
 				writer.WriteLine("Genes:".PadRight(8) + CurrentGame.HUD.MapEditorResourceCells[1].Text + ", " + CurrentGame.HUD.MapEditorResourceCells[2].Text + ", " + CurrentGame.HUD.MapEditorResourceCells[3].Text);
 
                 writer.WriteLine();
@@ -492,7 +494,8 @@ namespace AlkuTD
                 switch (Layout[y, x])
                 {
                     case ' ': if (CurrentGame.gameState == GameState.MapEditor) sb.Draw(wallTextures[2], screenPos, null, Color.White * 0.1f, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //VOID
-                    case '0': sb.Draw(wallTextures[0], screenPos, null, Color.Cyan /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //OPEN WALL TILES (light)
+                    case '0': sb.Draw(wallTextures[0], screenPos, null, new Color(130, 100, 130) /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 0.5f); //OPEN WALL TILE UNDERSIDE
+                              sb.Draw(wallTextures[0], screenPos - TileWallHeight, null, Color.Cyan /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 0.3f); break; //OPEN WALL TILES (light)
                     case '\'': //EVEN COL PATH
                     case '.': for (int i = 0; i < 6; i++) //ODD COL PATH
                                 {
@@ -510,8 +513,9 @@ namespace AlkuTD
                     case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': //SPAWNPOINTS 
 					case '9': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, new Color(62, 51, 129), 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //SPAWNPOINTS
                     case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': //GOALPOINTS
-					case 'i': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, Color.Salmon * 0.7f, 0, tileTexCenter, 1, SpriteEffects.None, 0); break; //GOALPOINTS
-                    default: sb.Draw(wallTextures[0], screenPos, null, Color.Cyan, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //TOWER TILES (light)
+					case 'i': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, Color.Salmon * 0.7f, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //GOALPOINTS
+                    default: sb.Draw(wallTextures[0], screenPos, null, new Color(130, 100, 130) /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 0.5f); //TOWER TILE UNDERSIDE
+                             sb.Draw(wallTextures[0], screenPos - TileWallHeight, null, Color.Cyan, 0, tileTexCenter, 1, SpriteEffects.None, 0.3f); break; //TOWER TILES (light)
                     }
 				//sb.DrawString(CurrentGame.font, x + "," + y, screenPos + new Vector2(-20,0), Color.White *0.2f); //---COOOOOOOOORDS
 				//sb.DrawString(CurrentGame.font, cubeCoords[k].X.ToString() + "," + cubeCoords[k].Y.ToString() + "," + cubeCoords[k].Z.ToString(), screenPos - new Vector2(25,5), Color.White * 0.2f);
@@ -534,6 +538,7 @@ namespace AlkuTD
             if (Waves != null && currentWave >= 0 && currentWave < Waves.GetUpperBound(0))
             {
                 float wavePhase = Waves[currentWave].Groups[0].spawnTimer / (float)Waves[currentWave].Duration;
+                byte wavePhaseSixth = (byte)(wavePhase * 6);
                 if (Waves[currentWave].Groups[0].spawnTimer < Waves[currentWave].Duration)
                 {
                     Color lineColor = Color.Yellow;
@@ -551,36 +556,35 @@ namespace AlkuTD
                                 //Vector2 spawnTilePos = ToScreenLocation(SpawnPoints[Waves[currentWave + 1].Groups[0].SpawnPointIndex]);
                                 Vector2 spawnTilePos = ToScreenLocation(SpawnPoints[i]);
 
-                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X - TileWidth / 4 - 1), (int)spawnTilePos.Y - TileHeight / 2 - 1, TileWidth / 2, 4),
-                                        null, borderColor, 0f, Vector2.Zero, SpriteEffects.None, 0);
-                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X + TileWidth / 4 + 2), (int)spawnTilePos.Y - TileHeight / 2, TileWidth / 2, 4),
-                                        null, borderColor, MathHelper.ToRadians(60.9f), Vector2.Zero, SpriteEffects.None, 0);
-                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X + TileWidth / 2 + 1), (int)spawnTilePos.Y, TileWidth / 2, 4),
-                                        null, borderColor, MathHelper.ToRadians(118.2f), Vector2.Zero, SpriteEffects.None, 0);
-                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X + TileWidth / 4 + 1), (int)spawnTilePos.Y + TileHeight / 2 + 2, TileWidth / 2 + 1, 4),
-                                        null, borderColor, (float)Math.PI, Vector2.Zero, SpriteEffects.None, 0);
-                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X - TileWidth / 4 - 2), (int)spawnTilePos.Y + TileHeight / 2 + 2, TileWidth / 2 + 1, 4),
-                                        null, borderColor, MathHelper.ToRadians(240.8f), Vector2.Zero, SpriteEffects.None, 0);
-                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X - TileWidth / 2 - 1), (int)spawnTilePos.Y, TileWidth / 2, 4),
-                                        null, borderColor, (float)Math.PI * (5 / 3f), Vector2.Zero, SpriteEffects.None, 0);
+                                //barBackgrounds
+                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X - TileWidth / 4 - 1), (int)spawnTilePos.Y - TileHalfHeight - 1, TileHalfWidth, 4),
+                                        null, borderColor, 0f, Vector2.Zero, SpriteEffects.None, 0.45f);
+                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X + TileWidth / 4 + 2), (int)spawnTilePos.Y - TileHalfHeight, TileHalfWidth, 4),
+                                        null, borderColor, MathHelper.ToRadians(60.9f), Vector2.Zero, SpriteEffects.None, 0.45f);
+                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X + TileHalfWidth + 1), (int)spawnTilePos.Y, TileHalfWidth, 4),
+                                        null, borderColor, MathHelper.ToRadians(118.2f), Vector2.Zero, SpriteEffects.None, 0.45f);
+                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X + TileWidth / 4 + 1), (int)spawnTilePos.Y + TileHalfHeight + 2, TileHalfWidth + 1, 4),
+                                        null, borderColor, (float)Math.PI, Vector2.Zero, SpriteEffects.None, 0.45f);
+                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X - TileWidth / 4 - 2), (int)spawnTilePos.Y + TileHalfHeight + 2, TileHalfWidth + 1, 4),
+                                        null, borderColor, MathHelper.ToRadians(240.8f), Vector2.Zero, SpriteEffects.None, 0.45f);
+                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X - TileHalfWidth - 1), (int)spawnTilePos.Y, TileHalfWidth, 4),
+                                        null, borderColor, (float)Math.PI * (5 / 3f), Vector2.Zero, SpriteEffects.None, 0.45f);
 
-                                sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X - TileWidth / 4 - 1), (int)(spawnTilePos.Y - TileHeight / 2),
-                                        (int)Math.Min(TileWidth / 2, TileWidth / 2 * wavePhase * 6), 2), null, lineColor, 0f, Vector2.Zero, SpriteEffects.None, 0);
-                                if (wavePhase >= 1 / 6f)
-                                    sb.Draw(CurrentGame.pixel, new Vector2(spawnTilePos.X + TileWidth / 4 + 1, spawnTilePos.Y - TileHeight / 2), null, lineColor, MathHelper.ToRadians(60.9f),
-                                            Vector2.Zero, new Vector2(Math.Min(TileWidth / 2, TileWidth / 2 * (wavePhase - 1 / 6f) * 6), 2), SpriteEffects.None, 0);
-                                if (wavePhase >= 2 / 6f)
-                                    sb.Draw(CurrentGame.pixel, new Vector2(spawnTilePos.X + TileWidth / 2, spawnTilePos.Y), null, lineColor, MathHelper.ToRadians(118.2f) /*(float)Math.PI * (1.98f / 3f)*/, //118.95f
-                                            Vector2.Zero, new Vector2(Math.Min(TileWidth / 2, TileWidth / 2 * (wavePhase - 2 / 6f) * 6), 2), SpriteEffects.None, 0);
-                                if (wavePhase >= 3 / 6f)
-                                    sb.Draw(CurrentGame.pixel, new Vector2(spawnTilePos.X + TileWidth / 4, spawnTilePos.Y + TileHeight / 2 + 1), null, lineColor, (float)Math.PI,
-                                            Vector2.Zero, new Vector2(Math.Min(TileWidth / 2, TileWidth / 2 * (wavePhase - 3 / 6f) * 6), 2), SpriteEffects.None, 0);
-                                if (wavePhase >= 4 / 6f)
-                                    sb.Draw(CurrentGame.pixel, new Vector2(spawnTilePos.X - TileWidth / 4 - 1, spawnTilePos.Y + TileHeight / 2 + 1), null, lineColor, MathHelper.ToRadians(240.8f),//(float)Math.PI * (4f / 3f)
-                                            Vector2.Zero, new Vector2(Math.Min(TileWidth / 2, TileWidth / 2 * (wavePhase - 4 / 6f) * 6), 2), SpriteEffects.None, 0);
-                                if (wavePhase >= 5 / 6f)
-                                    sb.Draw(CurrentGame.pixel, new Vector2(spawnTilePos.X - TileWidth / 2, spawnTilePos.Y), null, lineColor, (float)Math.PI * (5 / 3f),
-                                            Vector2.Zero, new Vector2(Math.Min(TileWidth / 2 - 1, TileWidth / 2 * (wavePhase - 5 / 6f) * 6), 2), SpriteEffects.None, 0);
+                                switch (wavePhaseSixth) //barBars
+                                {
+                                    case 5: sb.Draw(CurrentGame.pixel, new Vector2(spawnTilePos.X - TileHalfWidth, spawnTilePos.Y), null, lineColor, (float)Math.PI * (5 / 3f),
+                                            Vector2.Zero, new Vector2(Math.Min(TileHalfWidth - 1, TileHalfWidth * (wavePhase - 5 / 6f) * 6), 2), SpriteEffects.None, 0.44f); goto case 4;
+                                    case 4: sb.Draw(CurrentGame.pixel, new Vector2(spawnTilePos.X - TileWidth / 4 - 1, spawnTilePos.Y + TileHalfHeight + 1), null, lineColor, MathHelper.ToRadians(240.8f),//(float)Math.PI * (4f / 3f)
+                                            Vector2.Zero, new Vector2(Math.Min(TileHalfWidth, TileHalfWidth * (wavePhase - 4 / 6f) * 6), 2), SpriteEffects.None, 0.44f); goto case 3;
+                                    case 3: sb.Draw(CurrentGame.pixel, new Vector2(spawnTilePos.X + TileWidth / 4, spawnTilePos.Y + TileHalfHeight + 1), null, lineColor, (float)Math.PI,
+                                            Vector2.Zero, new Vector2(Math.Min(TileHalfWidth, TileHalfWidth * (wavePhase - 3 / 6f) * 6), 2), SpriteEffects.None, 0.44f); goto case 2;
+                                    case 2: sb.Draw(CurrentGame.pixel, new Vector2(spawnTilePos.X + TileHalfWidth, spawnTilePos.Y), null, lineColor, MathHelper.ToRadians(118.2f) /*(float)Math.PI * (1.98f / 3f)*/, //118.95f
+                                            Vector2.Zero, new Vector2(Math.Min(TileHalfWidth, TileHalfWidth * (wavePhase - 2 / 6f) * 6), 2), SpriteEffects.None, 0.44f); goto case 1;
+                                    case 1: sb.Draw(CurrentGame.pixel, new Vector2(spawnTilePos.X + TileWidth / 4 + 1, spawnTilePos.Y - TileHalfHeight), null, lineColor, MathHelper.ToRadians(60.9f),
+                                            Vector2.Zero, new Vector2(Math.Min(TileHalfWidth, TileHalfWidth * (wavePhase - 1 / 6f) * 6), 2), SpriteEffects.None, 0.44f); goto case 0;
+                                    case 0: sb.Draw(CurrentGame.pixel, new Rectangle((int)(spawnTilePos.X - TileWidth / 4 - 1), (int)(spawnTilePos.Y - TileHalfHeight),
+                                            (int)Math.Min(TileHalfWidth, TileHalfWidth * wavePhase * 6), 2), null, lineColor, 0f, Vector2.Zero, SpriteEffects.None, 0.44f); break;
+                                }
                             }
                         }
                     }

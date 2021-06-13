@@ -12,7 +12,7 @@
 
 Available towers: 3 3 3 3 3 3
 Life:   20
-Energy: 36
+Biomass:36
 Genes:  20, 0, 0
 
 	Creamt	Type	Name		Texture		SpawnP	Goals	HP	SPD	LifeDmg	Energy	RRes	GRes	BRes	SpawnD	Duration
