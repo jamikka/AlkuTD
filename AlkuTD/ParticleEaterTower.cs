@@ -291,6 +291,7 @@ namespace AlkuTD
 
             if (buildTimer == 0)
             {
+                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight + Tower.TowerShadowHeight, null, Color.Black * 0.5f, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0.11f);
                 sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0.1f);
                 
                 for (int i = 0; i < EaterArms.Count; i++)
@@ -347,13 +348,13 @@ namespace AlkuTD
 							null, borderColor, (float)Math.PI * (5 / 3f), Vector2.Zero, SpriteEffects.None, 0.2f); goto case 4;
 					case 4: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X - ParentMap.TileWidth / 4 - 2), (int)ScreenLocation.Y + ParentMap.TileHalfHeight + 2 - (int)HexMap.TileWallHeight.Y, (int)Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 4/6f) * 6) + 2, 4),
 							null, borderColor, MathHelper.ToRadians(240.8f), Vector2.Zero, SpriteEffects.None, 0.2f); goto case 3;
-					case 3: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileWidth / 4 + 1), (int)ScreenLocation.Y + ParentMap.TileHalfHeight + 2 - (int)HexMap.TileWallHeight.Y, (int)Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 3/6f) * 6) + 2, 4),
+					case 3: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileWidth / 4), (int)ScreenLocation.Y + ParentMap.TileHalfHeight + 2 - (int)HexMap.TileWallHeight.Y, (int)Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 3/6f) * 6) + 2, 4),
 							null, borderColor, (float)Math.PI, Vector2.Zero, SpriteEffects.None, 0.2f); goto case 2;
-					case 2: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileHalfWidth + 1), (int)ScreenLocation.Y - (int)HexMap.TileWallHeight.Y, (int)Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 2/6f) * 6)+2, 4),
+					case 2: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileHalfWidth + 1), (int)ScreenLocation.Y - (int)HexMap.TileWallHeight.Y+1, (int)Math.Min(ParentMap.TileHalfWidth, ParentMap.TileHalfWidth * (buildPhase - 2/6f) * 6)+1, 4),
 							null, borderColor, MathHelper.ToRadians(118.2f), Vector2.Zero, SpriteEffects.None, 0.2f); goto case 1;
-					case 1: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileWidth / 4 + 2), (int)ScreenLocation.Y - ParentMap.TileHalfHeight - (int)HexMap.TileWallHeight.Y, (int)Math.Min(ParentMap.TileHalfWidth, (int)(ParentMap.TileHalfWidth * (buildPhase - 1/6f) * 6))+2, 4),
+					case 1: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X + ParentMap.TileWidth / 4 + 2), (int)ScreenLocation.Y - ParentMap.TileHalfHeight - (int)HexMap.TileWallHeight.Y, (int)Math.Min(ParentMap.TileHalfWidth, (int)(ParentMap.TileHalfWidth * (buildPhase - 1/6f) * 6))+1, 4),
 							null, borderColor, MathHelper.ToRadians(60.9f), Vector2.Zero, SpriteEffects.None, 0.2f); goto case 0;
-					case 0: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X - ParentMap.TileWidth / 4 - 1), (int)ScreenLocation.Y - ParentMap.TileHalfHeight - (int)HexMap.TileWallHeight.Y - 1, (int)Math.Min(ParentMap.TileHalfWidth, (int)(ParentMap.TileHalfWidth * buildPhase * 6))+2, 4),
+					case 0: sb.Draw(CurrentGame.pixel, new Rectangle((int)(ScreenLocation.X - ParentMap.TileWidth / 4 - 1), (int)ScreenLocation.Y - ParentMap.TileHalfHeight - (int)HexMap.TileWallHeight.Y - 1, (int)Math.Min(ParentMap.TileHalfWidth, (int)(ParentMap.TileHalfWidth * buildPhase * 6))+1, 4),
                             null, borderColor, 0f, Vector2.Zero, SpriteEffects.None, 0.2f); break;
 				}
 				//barBars

@@ -57,7 +57,7 @@ namespace AlkuTD
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, Position, TexPortion, Color * Math.Min(1,(TTL / (InitTTL * 0.4f))) * 0.6f, RotationAngle, Origin, Size, SpriteEffects.None, 0f);
+            spriteBatch.Draw(Texture, Position, TexPortion, Color * Math.Min(1,(TTL / (InitTTL * 0.4f))) * 0.6f, RotationAngle, Origin, Size, SpriteEffects.None, 0.42f);
         }
 
     }

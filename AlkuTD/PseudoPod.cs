@@ -184,9 +184,11 @@ namespace AlkuTD
                 default: armColor = Color.Red; break;
             }
             Rectangle destRect = new Rectangle((int)ParentTower.ScreenLocation.X, (int)ParentTower.ScreenLocation.Y, (int)Vector2.Distance(ParentTower.ScreenLocation, Position), 4);
+            Rectangle shadowOffsetRec = new Rectangle(destRect.X + (int)Tower.TowerShadowHeight.X, destRect.Y + (int)Tower.TowerShadowHeight.Y, destRect.Width, destRect.Height);
             Rectangle sourceRect = new Rectangle(0, 0, Texture.Width - 15, Texture.Height -15);
             float rotation = (float)Math.Atan2(Position.Y - ParentTower.ScreenLocation.Y, Position.X - ParentTower.ScreenLocation.X);
-            sb.Draw(Texture, destRect, sourceRect, armColor, rotation, Vector2.Zero, SpriteEffects.None, 0.05f);
+            sb.Draw(Texture, shadowOffsetRec, sourceRect, Color.Black * 0.5f, rotation, Vector2.Zero, SpriteEffects.None, 0.105f);
+            sb.Draw(Texture, destRect, sourceRect, armColor, rotation, Vector2.Zero, SpriteEffects.None, 0.104f);
         }
 
         public override string ToString()

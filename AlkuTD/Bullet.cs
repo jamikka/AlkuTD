@@ -184,7 +184,10 @@ namespace AlkuTD
         public void Draw(SpriteBatch spritebatch)
         {
             if (active)
-                spritebatch.Draw(texture, location, null, Color.Cornsilk, angle, textureOrigin, 1f, SpriteEffects.None, 1);
+            {
+                spritebatch.Draw(texture, location + Creature.CreatureShadowDistance, null, Color.Black * 0.5f, angle, textureOrigin, 1f, SpriteEffects.None, 0.29f);
+                spritebatch.Draw(texture, location, null, Color.Cornsilk, angle, textureOrigin, 1f, SpriteEffects.None, 0.28f);
+            }
         }
 
 		public void DrawExplosion(SpriteBatch spritebatch)

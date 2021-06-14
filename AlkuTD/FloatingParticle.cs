@@ -150,7 +150,8 @@ namespace AlkuTD
 
         public void Draw(SpriteBatch sb)
         {
-            sb.Draw(Spritesheet, Location, null, ParticleElementColor, Angle, Vector2.Zero, BountySizeScale, SpriteEffects.None, 0);
+            sb.Draw(Spritesheet, Location + Creature.CreatureShadowDistance, null, Color.Black * 0.5f, Angle, Vector2.Zero, BountySizeScale, SpriteEffects.None, 0.48f);
+            sb.Draw(Spritesheet, Location, null, ParticleElementColor, Angle, Vector2.Zero, BountySizeScale, SpriteEffects.None, 0.47f);
             //sb.DrawString(CurrentGame.font, this.ToString(), Location, Color.Red);
         }
 

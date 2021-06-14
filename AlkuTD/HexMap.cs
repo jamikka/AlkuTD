@@ -528,8 +528,8 @@ namespace AlkuTD
 				if (Layout[CurrentGame.HUD.hoveredCoord.Y, CurrentGame.HUD.hoveredCoord.X] == 3 && !(CurrentGame.HUD.newTileRingActive || CurrentGame.HUD.towerTileRingActive)) 
                 {
                     if (CurrentGame.mouse.LeftButton == ButtonState.Pressed)
-						sb.Draw(pathTexture, CurrentGame.HUD.overlayPos, null, Color.RosyBrown, 0, tileTexCenter, 1, SpriteEffects.None, 0);
-					else sb.Draw(pathTexture, CurrentGame.HUD.overlayPos, null, Color.RosyBrown * 0.5f * (1 - (CurrentGame.HUD.tileHoverFade / HUD.hoverFadeCycles)), 0, tileTexCenter, 1, SpriteEffects.None, 0);
+						sb.Draw(pathTexture, CurrentGame.HUD.overlayPos, null, Color.RosyBrown, 0, tileTexCenter, 1, SpriteEffects.None, 0.42f);
+					else sb.Draw(pathTexture, CurrentGame.HUD.overlayPos, null, Color.RosyBrown * 0.5f * (1 - (CurrentGame.HUD.tileHoverFade / HUD.hoverFadeCycles)), 0, tileTexCenter, 1, SpriteEffects.None, 0.42f);
                 }
             }
 

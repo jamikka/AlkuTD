@@ -847,6 +847,8 @@ namespace AlkuTD
         {
             hoveredCoord = ParentMap.ToMapCoordinate(mouse.X, mouse.Y);
             hoveredTilePos = ParentMap.ToScreenLocation(hoveredCoord);
+            if (ParentMap.InitialLayout[hoveredCoord] == '0' || ((ParentMap.InitialLayout[hoveredCoord] >= 64 && ParentMap.InitialLayout[hoveredCoord] <= 90) || (ParentMap.InitialLayout[hoveredCoord] >= 124)))
+                hoveredTilePos -= HexMap.TileWallHeight;
 
             if (CurrentGame.gameState != GameState.MapEditor)
             #region BASIC HUD
@@ -1763,7 +1765,7 @@ namespace AlkuTD
                 for (int i = 0; i < HUDbuttons.Length; i++)
                     HUDbuttons[i].Draw(sb);
 
-                sb.Draw(tileOverlay, overlayPos, null, Color.White * (tileHoverFade / hoverFadeCycles) * 0.8f, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0); //HOVER OVERLAY-------------------------------------DISAPPEARS AT GAMEOVER (HOVERFADES STOP)
+                sb.Draw(tileOverlay, overlayPos, null, Color.White * (tileHoverFade / hoverFadeCycles) * 0.8f, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0.4f); //HOVER OVERLAY-------------------------------------DISAPPEARS AT GAMEOVER (HOVERFADES STOP)
 
                 //-------!!
                 #region OIKEESTI UPDATEEN KUULUVA MOUSELOGIC
@@ -1806,11 +1808,12 @@ namespace AlkuTD
                                 TileRingInfoBox.Pos = activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f));
                             }
                         }
-                        //Tähän ringFillit ennen tileringiä jotta afford-hohdot symbolien alle--------------------------------------------------------------------------------------------------------------------------------O
-                        sb.Draw(ringFills[0], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
-                        //sb.Draw(ringFills[1], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
 
-                        sb.Draw(tilering, activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
+                        sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
+                        //afford-hohdot symbolien alle--------------------------------------------------------------------------------------------------------------------------------O
+                        sb.Draw(ringFills[1], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                        sb.Draw(tilering, activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.03f);
+                        sb.Draw(ringFills[0], activeTilePos + new Vector2(1,1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
 
                         if (mouse.LeftButton == ButtonState.Released)
                         {
@@ -1847,9 +1850,11 @@ namespace AlkuTD
                     {
                         selectedRingPart = CheckNearestPoint(tileCorners);
 
-                        sb.Draw(ringFills[0], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
+                        sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
+                        sb.Draw(ringFills[1], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                        sb.Draw(tilering, activeTilePos, null, Color.Gray * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.03f);
+                        sb.Draw(ringFills[0], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
                         //sb.Draw(ringFills[1], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
-                        sb.Draw(tilering, activeTilePos, null, Color.Gray * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
                         //sb.Draw(tilering, new Vector2(activeTilePos.X - tilering.Width / 2, activeTilePos.Y - tilering.Height / 2), Color.White);
                         //ParentMap.Players[0].Towers[ParentMap.Layout[activeTileCoord.Y, activeTileCoord.X] - 6].ShowRadius = true;
 
@@ -1874,21 +1879,21 @@ namespace AlkuTD
                                 break;
                             case 2:
                                 geneCostStr = selectedTower.GeneSpecs.BaseTiers[0] == 2 ? "34" : GeneSpecs.TierSize.ToString();
-                                TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Red"] }, "Red specialization " + (selectedTower.GeneSpecs.BaseTiers[0] + 1).ToString() + "/3", "Cost: ", geneCostStr);
+                                TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Red"] }, "red damage " + (selectedTower.GeneSpecs.BaseTiers[0] + 1).ToString() + "/3", "Cost: ", geneCostStr);
                                 break;
                             case 3:
                                 geneCostStr = selectedTower.GeneSpecs.BaseTiers[1] == 2 ? "34" : GeneSpecs.TierSize.ToString();
-                                TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Green"] }, "Green specialization " + (selectedTower.GeneSpecs.BaseTiers[1] + 1).ToString() + "/3", "Cost: ", geneCostStr);
+                                TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Green"] }, "green damage " + (selectedTower.GeneSpecs.BaseTiers[1] + 1).ToString() + "/3", "Cost: ", geneCostStr);
                                 break;
                             case 4:
                                 geneCostStr = selectedTower.GeneSpecs.BaseTiers[2] == 2 ? "34" : GeneSpecs.TierSize.ToString();
-                                TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Blue"] }, "Blue specialization " + (selectedTower.GeneSpecs.BaseTiers[2] + 1).ToString() + "/3", "Cost: ", geneCostStr);
+                                TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Blue"] }, "blue damage " + (selectedTower.GeneSpecs.BaseTiers[2] + 1).ToString() + "/3", "Cost: ", geneCostStr);
                                 break;
                             case 5:
                                 if (selectedTower.GeneSpecs.HasAny)
-                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, new Color?[] { GeneColors[selectedTower.GeneSpecs.GetPrimaryElem().ToString()] }, "Withdraw 1/3 genes", "Yield: ", "22");
+                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, new Color?[] { GeneColors[selectedTower.GeneSpecs.GetPrimaryElem().ToString()] }, "Withdraw 1/3 genes", "Yield: " + "22");
                                 else
-                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, null, "Withdraw genes", "if specialized");
+                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, null, "Withdraw genes");
                                 break;
                             case 6:
                                 Color?[] crs = null;
@@ -1911,9 +1916,9 @@ namespace AlkuTD
                                 }
 
                                 if (geneYield > 0)
-                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, crs, "Consume", "Yield: ", energyYield.ToString(), geneYield.ToString());
+                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, crs, "Consume", "Yield: " + energyYield.ToString(), geneYield.ToString());
                                 else
-                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, crs, "Consume", "Yield: ", energyYield.ToString());
+                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, crs, "Consume", "Yield: " + energyYield.ToString());
                                 break;
                         }
 
@@ -1969,56 +1974,38 @@ namespace AlkuTD
                         tileringLabelString = "target        priority";
                         selectedRingPart = CheckNearestPoint(extendedPoints);
 
-                        sb.Draw(tilering, activeTilePos, null, Color.Teal * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
+                        sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
+                        sb.Draw(tilering, activeTilePos, null, Color.Teal * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.03f);
 
                         switch (selectedRingPart)
                         {
-                            case 2:
-                            case 7:
-                            case 8:
-                            case 9:
-                                {
+                            case 2: case 7: case 8: case 9: {
                                     sb.Draw(tileringSlot, extendedPoints[7], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     sb.Draw(tileringSlot, extendedPoints[8], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     sb.Draw(tileringSlot, extendedPoints[9], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     break;
                                 }
-                            case 3:
-                            case 10:
-                            case 11:
-                                {
+                            case 3: case 10: case 11: {
                                     sb.Draw(tileringSlot, extendedPoints[10], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     sb.Draw(tileringSlot, extendedPoints[11], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     break;
                                 }
-                            case 4:
-                            case 12:
-                            case 13:
-                                {
+                            case 4: case 12: case 13: {
                                     sb.Draw(tileringSlot, extendedPoints[12], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     sb.Draw(tileringSlot, extendedPoints[13], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     break;
                                 }
-                            case 5:
-                            case 14:
-                            case 15:
-                                {
+                            case 5: case 14: case 15: {
                                     sb.Draw(tileringSlot, extendedPoints[14], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     sb.Draw(tileringSlot, extendedPoints[15], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     break;
                                 }
-                            case 6:
-                            case 16:
-                            case 17:
-                                {
+                            case 6: case 16: case 17: {
                                     sb.Draw(tileringSlot, extendedPoints[17], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     sb.Draw(tileringSlot, extendedPoints[16], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     break;
                                 }
-                            case 1:
-                            case 18:
-                            case 19:
-                                {
+                            case 1: case 18: case 19: {
                                     sb.Draw(tileringSlot, extendedPoints[18], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     sb.Draw(tileringSlot, extendedPoints[19], null, Color.Aquamarine, 0, new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2), 1, SpriteEffects.None, 0);
                                     break;
@@ -2408,7 +2395,7 @@ namespace AlkuTD
                         {
                             if (!(drawMode == DrawMode.Tower && mouse.LeftButton == ButtonState.Pressed))
                             {
-                                sb.Draw(tileOverlay, overlayPos, null, Color.White * 0.4f, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0);
+                                sb.Draw(tileOverlay, overlayPos, null, Color.White * 0.4f, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0.4f);
                             }
                         }
                     }
@@ -2454,13 +2441,13 @@ namespace AlkuTD
 
                                     sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.White);
                                 }
-                                //Tähän ringFillit ennen tileringiä jotta afford-hohdot symbolien alle--------------------------------------------------------------------------------------------------------------------------------O
-                                sb.Draw(ringFills[0], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
-                                sb.Draw(ringFills[1], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
 
-                                sb.Draw(tilering, activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
+                            sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
+                            sb.Draw(ringFills[1], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                            sb.Draw(tilering, activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.03f);
+                            sb.Draw(ringFills[0], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
 
-                                if (mouse.LeftButton == ButtonState.Released)
+                            if (mouse.LeftButton == ButtonState.Released)
                                 {
                                     if (selectedRingPart > 0)
                                     {
@@ -2490,13 +2477,14 @@ namespace AlkuTD
                                 selectedRingPart = CheckNearestPoint(tileCorners);
                                 if (tileRingFade < tileRingFadeCycles) tileRingFade++;
 
-                                sb.Draw(ringFills[0], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
-                                sb.Draw(ringFills[1], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
-                                sb.Draw(tilering, activeTilePos, null, Color.Gray * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
-                                //sb.Draw(tilering, new Vector2(activeTilePos.X - tilering.Width / 2, activeTilePos.Y - tilering.Height / 2), Color.White);
-                                //ParentMap.Players[0].Towers[ParentMap.Layout[activeTileCoord.Y, activeTileCoord.X] - 6].ShowRadius = true;
+                                sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
+                                sb.Draw(ringFills[1], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                                sb.Draw(tilering, activeTilePos, null, Color.Gray * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.03f);
+                                sb.Draw(ringFills[0], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
+                            //sb.Draw(tilering, new Vector2(activeTilePos.X - tilering.Width / 2, activeTilePos.Y - tilering.Height / 2), Color.White);
+                            //ParentMap.Players[0].Towers[ParentMap.Layout[activeTileCoord.Y, activeTileCoord.X] - 6].ShowRadius = true;
 
-                                int towerBranch = selectedTower.towerTypeIdx % 6;
+                            int towerBranch = selectedTower.towerTypeIdx % 6;
                                 if (mouse.LeftButton == ButtonState.Released)
                                 {
                                     if (selectedRingPart == 1)
@@ -2616,7 +2604,7 @@ namespace AlkuTD
                             if (tileHoverFade > 0) tileHoverFade--;
                         }
                         #endregion
-                        sb.Draw(tileOverlay, overlayPos, null, Color.White * (tileHoverFade / hoverFadeCycles) * 0.8f, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0); //HOVER OVERLAY-------------------------------------DISAPPEARS AT GAMEOVER (HOVERFADES STOP)
+                        //sb.Draw(tileOverlay, overlayPos, null, Color.White * (tileHoverFade / hoverFadeCycles) * 0.8f, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0.4f); //HOVER OVERLAY-------------------------------------DISAPPEARS AT GAMEOVER (HOVERFADES STOP)
                     }
                     #endregion
 

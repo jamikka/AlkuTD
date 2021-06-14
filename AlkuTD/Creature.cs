@@ -11,7 +11,9 @@ namespace AlkuTD
 
     public class Creature //: ICloneable //---Y iz Clone()?
     {
-        public CurrentGame ParentGame;
+		public static readonly Vector2 CreatureShadowDistance = new Vector2(2, 7);
+
+		public CurrentGame ParentGame;
         public HexMap ParentMap;
 		public SpawnGroup ParentGroup;
 
@@ -80,6 +82,8 @@ namespace AlkuTD
 
 		public Color HpBarColor;
 
+		public float creatureDrawDepth;
+
         //--------------------------Constructors------------------------------------ //---------------------------------------------------muista että tuki useammalle maalille on!
         public Creature(HexMap map, string creatureType, int spawnPointIndex, int goalPointIndex, Texture2D texture)
         {
@@ -119,6 +123,7 @@ namespace AlkuTD
 
 			Angle = (float)(ParentMap.rnd.NextDouble());
 
+			creatureDrawDepth = 0.4f - (float)(ParentMap.rnd.NextDouble()) * 0.05f;
 		}
         public Creature(HexMap map, string creatureType, int spawnPointIndex, int goalPointIndex, Texture2D spriteSheet, int spritesheetRows, int spritesheetColumns)
             : this(map, creatureType, spawnPointIndex, goalPointIndex, spriteSheet)
@@ -742,7 +747,7 @@ namespace AlkuTD
 			else if (Splatter.IsActive)
                 Splatter.Update();
         }
-        
+
         public void Draw(SpriteBatch sb)
         {
             //if (Born && Alive)
@@ -754,11 +759,14 @@ namespace AlkuTD
                     int row = (int)(currentFrame / (float)SpritesheetColumns);
                     int column = currentFrame % SpritesheetColumns;
                     Rectangle sourceRect = new Rectangle(Width * column, Height * row, Width, Height);
-                    sb.Draw(Spritesheet, Location, sourceRect, Color.White, -Angle /*+ AngleOffset*/, Origin, 2, SpriteEffects.None, 0.4f);
+                    sb.Draw(Spritesheet, Location, sourceRect, Color.White, -Angle /*+ AngleOffset*/, Origin, 2, SpriteEffects.None, creatureDrawDepth);
                 }
             else if (Name == "1") sb.Draw(Spritesheet, Location, null, Color.White, -Angle, Origin, 1, SpriteEffects.None, 0);
-            else sb.Draw(Spritesheet, Location, null, Color.White, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, 0.4f);
-
+            else
+			{
+				sb.Draw(Spritesheet, Location + CreatureShadowDistance, null, Color.Black * 0.4f, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, creatureDrawDepth + 0.01f);
+				sb.Draw(Spritesheet, Location, null, Color.White, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, creatureDrawDepth);
+			}
 
             //foreach (Vector2 p in Path)
             //	sb.Draw(CurrentGame.pixel, p, null, Color.Red, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
