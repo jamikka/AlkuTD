@@ -299,11 +299,12 @@ namespace AlkuTD
 
                 //MouseOverSomeButton = true;
             }
-            else if (State != ButnState.Passive && 
+            else if (State != ButnState.Passive &&
                      (State != ButnState.Active && State != ButnState.Selected ||
                      (mouse.LeftButton == ButtonState.Released && prevMouse.LeftButton == ButtonState.Pressed && !(keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.LeftShift)))))
             {
                 State = ButnState.Passive;
+
 				if (inputType == InputType.integer) //Text.ElementAt<char>(0) == '0')
 					TrimZeroes();
 
@@ -314,7 +315,7 @@ namespace AlkuTD
                 //    if (false) ;
             }
 
-            if (PrevState != State && State != ButnState.Hovered && State != ButnState.Pressed && State != ButnState.Released)
+            if (PrevState != State /*&& State != ButnState.Hovered*/ && State != ButnState.Pressed && State != ButnState.Released)
                 PrevState = State;
 
 			if (State == ButnState.Passive)

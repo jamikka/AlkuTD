@@ -110,7 +110,8 @@ namespace AlkuTD
             Alive = false;
             LifeDmg = 1;
             hpBarWidth = 25;
-            spin = (float)(ParentMap.rnd.NextDouble() - 0.5f) * 0.08f;
+			float rndFloat = (float)(ParentMap.rnd.NextDouble());
+			spin = (spin - 0.5f) * 0.08f;
             initSpin = spin;
 
             TowersTargetingThis = new List<Tower>();
@@ -123,7 +124,7 @@ namespace AlkuTD
 
 			Angle = (float)(ParentMap.rnd.NextDouble());
 
-			creatureDrawDepth = 0.4f - (float)(ParentMap.rnd.NextDouble()) * 0.05f;
+			creatureDrawDepth = 0.4f - rndFloat * 0.05f;
 		}
         public Creature(HexMap map, string creatureType, int spawnPointIndex, int goalPointIndex, Texture2D spriteSheet, int spritesheetRows, int spritesheetColumns)
             : this(map, creatureType, spawnPointIndex, goalPointIndex, spriteSheet)

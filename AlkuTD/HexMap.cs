@@ -99,7 +99,7 @@ namespace AlkuTD
             wallTextures = new Texture2D[]{ ParentGame.Content.Load<Texture2D>("Tiles\\hex-66-57-02"),//patternhex-66-57BOU2"/*"hex-66-57-04e"*/),
                                             ParentGame.Content.Load<Texture2D>("Tiles\\hex-66-57-04c"), //----1: Seinä2
                                             ParentGame.Content.Load<Texture2D>("Tiles\\hex-66-57-outline")}; //------grid
-            pathTexture = ParentGame.Content.Load<Texture2D>("Tiles\\hex-66-57-00");//polkuhex-66-57borderless"/*"hex-66-57-00"*/);
+            pathTexture = ParentGame.Content.Load<Texture2D>("Tiles\\hex-66-57-04b");//hex-66-57-04");//polkuhex-66-57borderless"/*"hex-66-57-00"*/);
 
             tileTexCenter = new Vector2((float)Math.Round(wallTextures[0].Width / 2f), (float)Math.Round(wallTextures[0].Height / 2f));
 
@@ -495,7 +495,7 @@ namespace AlkuTD
                 {
                     case ' ': if (CurrentGame.gameState == GameState.MapEditor) sb.Draw(wallTextures[2], screenPos, null, Color.White * 0.1f, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //VOID
                     case '0': sb.Draw(wallTextures[0], screenPos, null, new Color(130, 100, 130) /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 0.5f); //OPEN WALL TILE UNDERSIDE
-                              sb.Draw(wallTextures[0], screenPos - TileWallHeight, null, Color.Cyan /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 0.3f); break; //OPEN WALL TILES (light)
+                              sb.Draw(wallTextures[0], screenPos - TileWallHeight, null, Color.White/*.Cyan*/ /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 0.3f); break; //OPEN WALL TILES (light)
                     case '\'': //EVEN COL PATH
                     case '.': for (int i = 0; i < 6; i++) //ODD COL PATH
                                 {
@@ -504,18 +504,18 @@ namespace AlkuTD
                                         continue;
                                     else
                                     {
-                                        sb.Draw(pathTexture, screenPos, null, Color.SlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); //PATH CLOSE TO WALL
+                                        sb.Draw(pathTexture, screenPos, null, new Color(140,60,255) * 1.2f/*Color.SlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); //PATH CLOSE TO WALL
                                         goto skip_anotherDraw;
                                     }
                                 }
-                                sb.Draw(pathTexture, screenPos, null, Color.DarkSlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); //PATH IN THE OPEN
+                                sb.Draw(pathTexture, screenPos, null, new Color(110, 40, 200)*1.2f/*DarkSlateBlue/*new Color(150,200,175)*/, 0, tileTexCenter, 1, SpriteEffects.None, 1); //PATH IN THE OPEN
                                 skip_anotherDraw: break;
                     case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': //SPAWNPOINTS 
 					case '9': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, new Color(62, 51, 129), 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //SPAWNPOINTS
                     case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': //GOALPOINTS
 					case 'i': sb.Draw(CurrentGame.HUD.tileOverlay, screenPos, null, Color.Salmon * 0.7f, 0, tileTexCenter, 1, SpriteEffects.None, 1); break; //GOALPOINTS
                     default: sb.Draw(wallTextures[0], screenPos, null, new Color(130, 100, 130) /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 0.5f); //TOWER TILE UNDERSIDE
-                             sb.Draw(wallTextures[0], screenPos - TileWallHeight, null, Color.Cyan, 0, tileTexCenter, 1, SpriteEffects.None, 0.3f); break; //TOWER TILES (light)
+                             sb.Draw(wallTextures[0], screenPos - TileWallHeight, null, Color.White/*Cyan*/, 0, tileTexCenter, 1, SpriteEffects.None, 0.3f); break; //TOWER TILES (light)
                     }
 				//sb.DrawString(CurrentGame.font, x + "," + y, screenPos + new Vector2(-20,0), Color.White *0.2f); //---COOOOOOOOORDS
 				//sb.DrawString(CurrentGame.font, cubeCoords[k].X.ToString() + "," + cubeCoords[k].Y.ToString() + "," + cubeCoords[k].Z.ToString(), screenPos - new Vector2(25,5), Color.White * 0.2f);

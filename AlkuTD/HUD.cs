@@ -304,8 +304,10 @@ namespace AlkuTD
             MapEditorWaveLabels = new Button[MapEditorTableRows];
             int WaveLabelWidth = (int)font.MeasureString("Wave 2").X + 2 * onePadding;
             for (int i = 0; i < MapEditorWaveLabels.Length; i++)
-                MapEditorWaveLabels[i] = new Button("Wave 1", menuButtonX + menuButtonWidth + cellGap, tableButtonY + i * tableButtonYDist, WaveLabelWidth - cellGap, menuButtonHeight, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
-
+            {
+                MapEditorWaveLabels[i] = new Button("Wave 1", menuButtonX + menuButtonWidth + cellGap, tableButtonY + i * tableButtonYDist, WaveLabelWidth - cellGap, tableButtonYDist - 1, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
+                MapEditorWaveLabels[i].YPadding = 2;
+            }
             MapEditorWaveLabels[1].Text = "Add";
 
             int addButtonWidth = (int)font.MeasureString("+").X + onePadding;
@@ -313,14 +315,14 @@ namespace AlkuTD
             MapEditorTableAddButtons = new Button[MapEditorTableRows + 1];
             for (int i = 0; i < MapEditorTableAddButtons.Length; i++)
             {
-                MapEditorTableAddButtons[i] = new Button("+", addButtonX, (int)(tableButtonY - 0.5 * tableButtonYDist + i * tableButtonYDist), addButtonWidth, addButtonWidth, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
+                MapEditorTableAddButtons[i] = new Button("+", addButtonX, (int)(tableButtonY - 0.5 * tableButtonYDist + i * tableButtonYDist), addButtonWidth, tableButtonYDist-1, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
                 MapEditorTableAddButtons[i].YPadding = 2;
                 MapEditorTableAddButtons[i].RealignText();
             }
             int delButtonX = tableLabelButtonX + (MapEditorTableCols - 3) * cellSmallWidth + 2 * cellWideWidth + cellGap;
             MapEditorTableDelButtons = new Button[MapEditorTableRows];
             for (int i = 0; i < MapEditorTableDelButtons.Length; i++)
-                MapEditorTableDelButtons[i] = new Button("x", delButtonX, tableButtonY + i * tableButtonYDist, addButtonWidth, addButtonWidth, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
+                MapEditorTableDelButtons[i] = new Button("x", delButtonX, tableButtonY + i * tableButtonYDist, addButtonWidth, tableButtonYDist-1, tableCellPadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
 
             TableBackground = new Rectangle(topButtonX, topButtonY + menuButtonHeight * 2, ParentGame.GraphicsDevice.Viewport.Width - topButtonX * 2 + 15, ParentGame.GraphicsDevice.Viewport.Height - (menuButtonHeight + 7) * 2);
             TableBackground1 = new Rectangle(MapEditorTopButtons[0].Pos.X, topButtonY, MapEditorTopButtons[0].Width + MapNameBox.Width, menuButtonHeight);
@@ -847,6 +849,7 @@ namespace AlkuTD
         {
             hoveredCoord = ParentMap.ToMapCoordinate(mouse.X, mouse.Y);
             hoveredTilePos = ParentMap.ToScreenLocation(hoveredCoord);
+            //Adjust for elevated wall tiles
             if (ParentMap.InitialLayout[hoveredCoord] == '0' || ((ParentMap.InitialLayout[hoveredCoord] >= 64 && ParentMap.InitialLayout[hoveredCoord] <= 90) || (ParentMap.InitialLayout[hoveredCoord] >= 124)))
                 hoveredTilePos -= HexMap.TileWallHeight;
 
@@ -884,7 +887,8 @@ namespace AlkuTD
                         }
                     }
                 }
-                else //INGAME WAVEINFOBOXES
+                //INGAME WAVEINFOBOXES
+                else
                 {
                     //---------------------------------------------------------------eikös tänkin vois laittaa on-demand, öröjen vastuulle
                     bool PKeyDown = CurrentGame.keyboard.IsKeyDown(Keys.P);
@@ -913,7 +917,7 @@ namespace AlkuTD
                 }
 
                 #region MAPTEST
-                if (CurrentGame.gameState == GameState.MapTestInGame)
+                if (CurrentGame.gameState == GameState.MapTestInGame || CurrentGame.gameState == GameState.MapTestInitSetup)
                 {
                     BackToEditButton.Update(mouse, prevMouse);
                     if (BackToEditButton.State == ButnState.Released)
@@ -1268,6 +1272,8 @@ namespace AlkuTD
                 if (keyboard.IsKeyDown(Keys.F1) && prevKeyboard.IsKeyUp(Keys.F1))
                     MapEditorTopButtons[1].State = MapEditorTopButtons[1].State == ButnState.Active ? ButnState.Passive : ButnState.Active;
 
+                int hoveredCell = -1;
+                int hoveredRow = -1;
                 if (MapEditorTopButtons[1].State == ButnState.Active) //---------------------------------------WAVE TABLE OPEN-------.
                 {
                     //for (int i = 0; i < MapEditorLabelButtons.Length; i++) //COLUMN LABEL UPDATES----------
@@ -1286,12 +1292,17 @@ namespace AlkuTD
                         if (overlapRisk && i > oldActive && i % (MapEditorTableCols - 1) == oldActive % (MapEditorTableCols - 1))
                             continue;
                         MapEditorTableCells[i].Update(mouse, prevMouse, keyboard, prevKeyboard);
-
                         /*if (MapEditorTableCells[i].State == ButnState.Pressed) //----------------TODO: drag selection--------------!
                         {
                             MapEditorTableCells[i].State = ButnState.Selected;
                         }
                         else */
+                        if (MapEditorTableCells[i].State == ButnState.Hovered)
+                        {
+                            hoveredCell = i;
+                            hoveredRow = (i / (MapEditorTableCols - 1));
+                        }
+                        
                         if (MapEditorTableCells[i].State == ButnState.Active)
                         {
                             cellActive = true;
@@ -1299,8 +1310,7 @@ namespace AlkuTD
                             ErrorShow = false;
                             ErrorButtons.Clear();
                         }
-
-                        if (MapEditorTableCells[i].State == ButnState.Released)
+                        else if (MapEditorTableCells[i].State == ButnState.Released)
                         {
                             #region MULTIPLE CELL SELECT
                             if (keyboard.IsKeyDown(Keys.LeftShift))
@@ -1358,6 +1368,18 @@ namespace AlkuTD
                         MapEditorTableCells[newActive].State = ButnState.Active;
                         if (tabRefreshCounter == 0) tabRefreshCounter = 5;
                         if (dirKeyRefreshCounter == 0) dirKeyRefreshCounter = 5;
+                    }
+
+                    //Row hover highlight
+                    if (hoveredCell > -1)
+                    {
+                        for (int c = hoveredCell - (hoveredCell % (MapEditorTableCols - 1)); c < ((hoveredRow + 1) * (MapEditorTableCols - 1)); c++)
+                        {
+                            if (c == hoveredCell)
+                                continue;
+                            else if (MapEditorTableCells[c].State != ButnState.Active)
+                                MapEditorTableCells[c].State = ButnState.Hovered;
+                        }
                     }
                     #endregion
 
@@ -1495,7 +1517,15 @@ namespace AlkuTD
                         else
                             labelPos += ParentMap.MapEditorTempWaves[i - 1].TempGroups.Count;
                         MapEditorWaveLabels[labelPos].Update(mouse, prevMouse);
-                        if (MapEditorWaveLabels[labelPos].State == ButnState.Released)
+                        if (MapEditorWaveLabels[labelPos].State == ButnState.Hovered)
+                        {
+                            for (int k = labelPos * (MapEditorTableCols - 1); k < labelPos * (MapEditorTableCols - 1) + ParentMap.MapEditorTempWaves[i].TempGroups.Count * (MapEditorTableCols - 1); k++)
+                            {
+                                if (MapEditorTableCells[k].State != ButnState.Selected)
+                                    MapEditorTableCells[k].State = ButnState.Hovered;
+                            }
+                        }
+                        else if (MapEditorWaveLabels[labelPos].State == ButnState.Released)
                         {
                             for (int k = labelPos * (MapEditorTableCols - 1); k < labelPos * (MapEditorTableCols - 1) + ParentMap.MapEditorTempWaves[i].TempGroups.Count * (MapEditorTableCols - 1); k++)
                                 MapEditorTableCells[k].State = ButnState.Selected;
@@ -2291,7 +2321,7 @@ namespace AlkuTD
 
                     //DrawWaveInfo(sb);
 
-                    if (CurrentGame.gameState == GameState.MapTestInGame || (CurrentGame.prevState == GameState.MapTestInGame && CurrentGame.gameState == GameState.Paused))
+                    if (CurrentGame.gameState == GameState.MapTestInGame || CurrentGame.gameState == GameState.MapTestInitSetup /*|| (CurrentGame.prevState == GameState.MapTestInGame && CurrentGame.gameState == GameState.Paused)*/)
                     #region MAPTEST WAVETABLE
                     {
                         BackToEditButton.Draw(sb);

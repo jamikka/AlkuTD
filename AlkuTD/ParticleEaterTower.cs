@@ -291,8 +291,8 @@ namespace AlkuTD
 
             if (buildTimer == 0)
             {
-                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight + Tower.TowerShadowHeight, null, Color.Black * 0.5f, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0.11f);
-                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0.1f);
+                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight + Tower.TowerShadowHeight, null, Color.Black * 0.5f, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0.092f);
+                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0.09f);
                 
                 for (int i = 0; i < EaterArms.Count; i++)
                 {
@@ -331,7 +331,7 @@ namespace AlkuTD
                 }
             }
             else if (IsExample)
-                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White * 0.6f, 0, texOrigin, 1, SpriteEffects.None, 0);
+                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White * 0.6f, 0, texOrigin, 1, SpriteEffects.None, 0.1f);
 
             if (buildFinishedCounter > 0 && buildTimer < BuildTime)
             {
