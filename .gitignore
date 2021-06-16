@@ -1,0 +1,12 @@
+/AlkuTD/AlkuTDContent/
+/AlkuTD/Content/OLD/
+/AlkuTD/Content/työst/
+/AlkuTD/obj/
+/AlkuTD/OmaData/
+pedros.txt
+tori1.txt
+*.log
+*.cache
+*.lock
+*.ide
+*.suo

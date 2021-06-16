@@ -330,7 +330,7 @@ namespace AlkuTD
                     }
                 }
             }
-            else if (IsExample)
+            else if (IsExample || IsUpgrading || buildTimer > 0)
                 sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White * 0.6f, 0, texOrigin, 1, SpriteEffects.None, 0.1f);
 
             if (buildFinishedCounter > 0 && buildTimer < BuildTime)
