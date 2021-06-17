@@ -1,7 +1,13 @@
+/.vs/
+/AlkuTD/.vs/
+/AlkuTD/bin/
+/AlkuTD/obj/
 /AlkuTD/AlkuTDContent/
+/AlkuTD/Content/bin/
+/AlkuTD/Content/obj/
+/AlkuTD/Content/Content/
 /AlkuTD/Content/OLD/
 /AlkuTD/Content/työst/
-/AlkuTD/obj/
 /AlkuTD/OmaData/
 pedros.txt
 tori1.txt
