@@ -185,8 +185,8 @@ namespace AlkuTD
         {
             if (active)
             {
-                spritebatch.Draw(texture, location + Creature.CreatureShadowDistance, null, Color.Black * 0.5f, angle, textureOrigin, 1f, SpriteEffects.None, 0.29f);
-                spritebatch.Draw(texture, location, null, Color.Cornsilk, angle, textureOrigin, 1f, SpriteEffects.None, 0.28f);
+                spritebatch.Draw(texture, location + Creature.CreatureShadowDistance, null, Color.Black * 0.5f, angle, textureOrigin, 1f, SpriteEffects.None, 0.09f);
+                spritebatch.Draw(texture, location, null, Color.Cornsilk, angle, textureOrigin, 1f, SpriteEffects.None, 0.08f);
             }
         }
 

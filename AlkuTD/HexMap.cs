@@ -122,7 +122,7 @@ namespace AlkuTD
             InitialLayout = new MapLayout(initLayout);
             
             drawPos = new Point((int)(ParentGame.GraphicsDevice.Viewport.Width/2 - Layout.GetUpperBound(1)*stackedWidth /2),
-                                (int)(ParentGame.GraphicsDevice.Viewport.Height/2 - Layout.GetUpperBound(0)*TileHeight /2));
+                                (int)(ParentGame.GraphicsDevice.Viewport.Height/2 - Layout.GetUpperBound(0)*TileHalfHeight));
             SpawnPoints = spawnPoints;
             GoalPoints = goalPoints;
             //GoalPointTimetable = goalPointTimetable;
@@ -224,7 +224,7 @@ namespace AlkuTD
 
             bool oddColumn = col % 2 != 0;
                                                                               //get row by dividing y by tileheight substract 0.5 if on an odd column
-            float rowF = (y - drawPos.Y + TileHeight/2) / (float)TileHeight - Convert.ToInt32(oddColumn) * 0.5f;
+            float rowF = (y - drawPos.Y + TileHalfHeight) / (float)TileHeight - Convert.ToInt32(oddColumn) * 0.5f;
             int row = rowF < 0 ? (int)rowF -1 : (int)rowF;
             
             colF = (colF % 1 +1) % 1;  //wrap floats into 0-1 (position inside each tile) --
@@ -517,9 +517,9 @@ namespace AlkuTD
                     default: sb.Draw(wallTextures[0], screenPos, null, new Color(130, 100, 130) /*Color.DarkCyan*/ /*new Color(240, 240, 240)*/, 0, tileTexCenter, 1, SpriteEffects.None, 0.5f); //TOWER TILE UNDERSIDE
                              sb.Draw(wallTextures[0], screenPos - TileWallHeight, null, Color.White/*Cyan*/, 0, tileTexCenter, 1, SpriteEffects.None, 0.3f); break; //TOWER TILES (light)
                     }
-				//sb.DrawString(CurrentGame.font, x + "," + y, screenPos + new Vector2(-20,0), Color.White *0.2f); //---COOOOOOOOORDS
-				//sb.DrawString(CurrentGame.font, cubeCoords[k].X.ToString() + "," + cubeCoords[k].Y.ToString() + "," + cubeCoords[k].Z.ToString(), screenPos - new Vector2(25,5), Color.White * 0.2f);
-              }
+                    //sb.DrawString(CurrentGame.font, x + "," + y, screenPos + new Vector2(-20, 0), Color.White * 0.2f); //---COOOOOOOOORDS
+                    //sb.DrawString(CurrentGame.font, cubeCoords[k].X.ToString() + "," + cubeCoords[k].Y.ToString() + "," + cubeCoords[k].Z.ToString(), screenPos - new Vector2(25,5), Color.White * 0.2f);
+                }
             }
 
             //------PATH TILE HOVER (DRAW UNDER CREATURES) ------------not cool
@@ -533,7 +533,7 @@ namespace AlkuTD
                 }
             }
 
-            #region AWFUL TILE BORDER ANIMATION
+            #region AWFUL SPAWN/GOALPOINT TILE BORDER ANIMATION
             //Draw spawntimer lines around spawnpoints
             if (Waves != null && currentWave >= 0 && currentWave < Waves.GetUpperBound(0))
             {
@@ -625,7 +625,7 @@ namespace AlkuTD
 				Players[0].Towers[i].DrawBullets(sb);
 			}
 
-            Pathfinder.Draw(sb);
+            //Pathfinder.Draw(sb);
 
         }
     }

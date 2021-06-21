@@ -110,7 +110,6 @@ namespace AlkuTD
             Alive = false;
             LifeDmg = 1;
             hpBarWidth = 25;
-			float rndFloat = (float)(ParentMap.rnd.NextDouble());
 			spin = (spin - 0.5f) * 0.08f;
             initSpin = spin;
 
@@ -122,9 +121,9 @@ namespace AlkuTD
 
 			HpBarColor = new Color(0, 255, 0);
 
-			Angle = (float)(ParentMap.rnd.NextDouble());
-
+			float rndFloat = (float)(ParentMap.rnd.NextDouble());
 			creatureDrawDepth = 0.4f - rndFloat * 0.05f;
+			Angle = (float)(ParentMap.rnd.NextDouble() * Math.PI);
 		}
         public Creature(HexMap map, string creatureType, int spawnPointIndex, int goalPointIndex, Texture2D spriteSheet, int spritesheetRows, int spritesheetColumns)
             : this(map, creatureType, spawnPointIndex, goalPointIndex, spriteSheet)
@@ -769,25 +768,25 @@ namespace AlkuTD
 				sb.Draw(Spritesheet, Location, null, Color.White, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, creatureDrawDepth);
 			}
 
-            //foreach (Vector2 p in Path)
-            //	sb.Draw(CurrentGame.pixel, p, null, Color.Red, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
-            //sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint]), 1), null, Color.CadetBlue, (float)Math.Atan2(Path[nextWaypoint].Y - Location.Y, Path[nextWaypoint].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
-            //sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint-1]), 1), null, Color.Orange, (float)Math.Atan2(Path[nextWaypoint-1].Y - Location.Y, Path[nextWaypoint-1].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
-            //sb.Draw(Spritesheet, imagPos, null, Color.White * 0.5f, -Angle, Origin, 1, SpriteEffects.None, 0);
-            //sb.DrawString(CurrentGame.font, Math.Round(imagDist).ToString(), Location, Color.Wheat);
-            //sb.DrawString(CurrentGame.font, vecPos.ToString(), Location, Color.Wheat);
-            //sb.Draw(CurrentGame.pixel, imagDest, null, Color.Green, 0, Vector2.Zero, 2, SpriteEffects.None, 0);
-            //sb.DrawString(CurrentGame.font, Speed.ToString(), Vector2.One, Color.Wheat);
+			//foreach (Vector2 p in Path)
+			//	sb.Draw(CurrentGame.pixel, p, null, Color.LightPink, 0, Vector2.Zero, 1, SpriteEffects.None, 0.0001f);
+			//sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint]), 1), null, Color.CadetBlue, (float)Math.Atan2(Path[nextWaypoint].Y - Location.Y, Path[nextWaypoint].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+			//sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint-1]), 1), null, Color.Orange, (float)Math.Atan2(Path[nextWaypoint-1].Y - Location.Y, Path[nextWaypoint-1].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+			//sb.Draw(Spritesheet, imagPos, null, Color.White * 0.5f, -Angle, Origin, 1, SpriteEffects.None, 0);
+			//sb.DrawString(CurrentGame.font, Math.Round(imagDist).ToString(), Location, Color.Wheat);
+			//sb.DrawString(CurrentGame.font, vecPos.ToString(), Location, Color.Wheat);
+			//sb.Draw(CurrentGame.pixel, imagDest, null, Color.Green, 0, Vector2.Zero, 2, SpriteEffects.None, 0);
+			//sb.DrawString(CurrentGame.font, Speed.ToString(), Vector2.One, Color.Wheat);
 
 
-            /*if (hp != InitHp)//-------------SIIRRETTY HUDIIN PIIRTYMÄÄN ÖRÖJEN PÄÄLLE---------------------------------------------------------------------------
+			/*if (hp != InitHp)//-------------SIIRRETTY HUDIIN PIIRTYMÄÄN ÖRÖJEN PÄÄLLE---------------------------------------------------------------------------
             {
                 sb.Draw(ParentGame.pixel, new Rectangle((int)Location.X - hpBarWidth / 2, (int)(Location.Y - Height * SpriteScale / 2 - 1), hpBarWidth, 4), Color.Black); //black background
                 sb.Draw(ParentGame.pixel, new Rectangle((int)Location.X - hpBarWidth / 2 + 1, (int)(Location.Y - Height * SpriteScale / 2), (int)((hpBarWidth -2) * (hp / InitHp)), 2), new Color(1 - hp / InitHp, hp / InitHp, 0));
             }*/
-            //}
-            //sb.DrawString(CurrentGame.font, Math.Round(DistanceToGoal).ToString(), Location, Color.Wheat);
-        }
+			//}
+			//sb.DrawString(CurrentGame.font, Math.Round(DistanceToGoal).ToString(), Location, Color.Wheat);
+		}
 
         public static Creature Clone(Creature model)
         {

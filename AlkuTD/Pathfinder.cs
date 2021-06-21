@@ -22,19 +22,45 @@ namespace AlkuTD
         public float G;
         public float F;
 
-		public bool OnAltPath;
+        public bool OnAltPath;
 
 		public Vector3 CubeCoord;
 
+        public Tile()
+        {
+
+        }
+        public Tile(Tile t)
+        {
+            MapCoord = t.MapCoord;
+            Neighbors = t.Neighbors; //TODO: References original instances. Make a deep copy.
+            NewNeighbors = t.NewNeighbors; //TODO: References original instances. Make a deep copy.
+            Parent = t.Parent; //TODO: References original instances. Make a deep copy.
+            OddLowerCol = t.OddLowerCol;
+            IsOpen = t.IsOpen;
+            InOpenList = t.InOpenList;
+            Checked = t.Checked;
+            LockedWaypoint = t.LockedWaypoint;
+            G = t.G;
+            F = t.F;
+            OnAltPath = t.OnAltPath;
+            CubeCoord = t.CubeCoord;
+        }
+
 		public override string ToString()
 		{
-            //return this.OnAltPath ? MapCoord.X + "," + MapCoord.Y + " OAP" : MapCoord.X + "," + MapCoord.Y;
-            return MapCoord.X + "," + MapCoord.Y + " G:" + Math.Round(G, 2); //+ ", F:" + F;
+            return MapCoord.X + "," + MapCoord.Y;// + " G:" + Math.Round(G, 2); //+ ", F:" + F;
 		}
     }
 
     public class Pathfinder
     {
+        /// <summary>
+        /// 0 to 1 floating point factor of Hexmap.TileHeight used in Line Of Sight checks.
+        /// </summary>
+        public static readonly float PathClearanceFactor = 0.3f; // the width of the ray ((int)HexMap.TileHalfWidth * 0.363f AAPFT1(1) menee mut PathfindtestU ei nätti
+        public readonly int PathClearance;
+
         HexMap HexMap;
         Tile[,] openTiles;
         List<Tile> OpenList = new List<Tile>();
@@ -56,6 +82,7 @@ namespace AlkuTD
             pathFindSteps = new List<Tile>();
             stringpullStepsG = new List<Tile>();
             stringpullStepsS = new List<Tile>();
+            PathClearance = (int)Math.Round(HexMap.TileHeight * PathClearanceFactor, MidpointRounding.AwayFromZero);
         }
 
         float HeuristicDistance(Point a, Point b)
@@ -70,12 +97,11 @@ namespace AlkuTD
 
 		float StraightDistance(Tile a, Tile b)
 		{
-			Vector2 A = HexMap.ToScreenLocation(a.MapCoord);
-			Vector2 B = HexMap.ToScreenLocation(b.MapCoord);
-			float dist = Vector2.Distance(A, B);
-			float result = dist / HexMap.TileHeight;
-			//result = (float)Math.Round(result, 2);
-            //float result = Vector2.Distance(A, B) / HexMap.TileHeight;
+            //Vector2 A = HexMap.ToScreenLocation(a.MapCoord);
+			//Vector2 B = HexMap.ToScreenLocation(b.MapCoord);
+			//float dist = Vector2.Distance(A, B);
+            //float result = dist / HexMap.TileHeight;
+			float result = Vector3.Distance(a.CubeCoord, b.CubeCoord) / 1.41421354f; //Comment: Straight 1 hex cube distances are for an unclear reason sqrt(2), so divide by it
             return result;
 		}
 
@@ -144,6 +170,7 @@ namespace AlkuTD
                     }
                 }
             }
+
         }
 
         void ResetTileValues()
@@ -183,7 +210,7 @@ namespace AlkuTD
             return currentTile;
         }
 
-        //--------Theta* algorithm with encouragement for turning
+        //--------Theta* algorithm with partial path smoothing (LOS to parent)
         Tile goalTile;
         public List<Vector2> FindPath(Point startPoint, Point goalPoint)
         {
@@ -207,7 +234,7 @@ namespace AlkuTD
 
             while (OpenList.Count > 0) //------------------------------------ SEARCH AND POPULATE THE OpenList STARTING FROM startTile
             {
-                Tile currentTile = FindBestFTile();
+                Tile currentTile = FindBestFTile(); // Proceed with the closest to goal tile
                 if (currentTile == null) // stop if startTile doesnt exist or return if currTile is the goalTile
                     break;
                 if (currentTile == goalTile)
@@ -257,9 +284,9 @@ namespace AlkuTD
                         OpenList.Add(NEighbCheck);
                         NEighbCheck.InOpenList = true;
 
-                        pathFindSteps.Add(NEighbCheck/*.MapCoord*/);
-
-                        if (!NEighbCheck.LockedWaypoint && CheckLOS(NEighbCheck.MapCoord, currentTile.Parent.MapCoord, true) && !CheckIfStraightHexLine(NEighbCheck, currentTile.Parent)) // we see back to parent from the neighbor (IGNORE IF PARENT IS IN A SRAIGHT HEX LINE)
+                        pathFindSteps.Add(NEighbCheck);
+                        // we see back to parent from the neighbor (SKIP MAX 5 TILES TO PARENT, IGNORE IF PARENT IS IN A SRAIGHT HEX LINE)
+                        if (!NEighbCheck.LockedWaypoint && CubeDistance(NEighbCheck, currentTile.Parent) <= 5 && CheckLOS(NEighbCheck, currentTile.Parent, true) && !CheckIfStraightHexLine(NEighbCheck, currentTile.Parent)) 
                         {
                             NEighbCheck.Parent = currentTile.Parent;
                             NEighbCheck.G = currentTile.Parent.G + StraightDistance(NEighbCheck, currentTile.Parent); // G = parent's G + straightDist from parent
@@ -274,14 +301,14 @@ namespace AlkuTD
                             NEighbCheck.F = currGPlus1 + CubeDistance(NEighbCheck, goalTile);
                             NEighbCheck.Parent = currentTile;
 
-                            // IF 2 NEW NEIGHBORS (not in a tunnel) AND CONTINUED DIR, ENCUMBER F to encourage looking at different directions
-                            if (currentTile != startTile && currentTile.NewNeighbors.Count > 1 && CheckIfContinuedDir(currentTile, NEighbCheck))
-                                NEighbCheck.F += 0.001f;
+                            //// IF 2 NEW NEIGHBORS (not in a tunnel) AND CONTINUED DIR, ENCUMBER F to encourage looking at different directions
+                            //if (currentTile != startTile && currentTile.NewNeighbors.Count > 1 && CheckIfContinuedDir(currentTile, NEighbCheck))
+                            //    NEighbCheck.F += 0.001f;
                         }
                     }
                     else if (currGPlus1 < NEighbCheck.G) // an old friend in a better light than before
                     {
-                        if (!NEighbCheck.LockedWaypoint && CheckLOS(NEighbCheck.MapCoord, currentTile.Parent.MapCoord, true) && !CheckIfStraightHexLine(NEighbCheck, currentTile.Parent)) //Check if we see to current parent from old friend (IGNORE IF PARENT IS IN A SRAIGHT HEX LINE)
+                        if (!NEighbCheck.LockedWaypoint && CheckLOS(NEighbCheck, currentTile.Parent, true) && !CheckIfStraightHexLine(NEighbCheck, currentTile.Parent)) //Check if we see to current parent from old friend (IGNORE IF PARENT IS IN A SRAIGHT HEX LINE)
                         {
                             NEighbCheck.Parent = currentTile.Parent;
                             NEighbCheck.G = currentTile.Parent.G + StraightDistance(NEighbCheck, currentTile.Parent);
@@ -302,6 +329,298 @@ namespace AlkuTD
                 currentTile.Checked = true;
             }
             return new List<Vector2>(); //--------------------unreachable
+        }
+
+        float GetCurrentPathLength(List<Tile> path)
+        {
+            float currTotalDistance = 0;
+            for (int p = 0; p < path.Count - 1; p++)
+                currTotalDistance += CubeDistance(path[p], path[p].Parent);
+            return currTotalDistance;
+        }
+
+        void StringPullPath(List<Tile> path, out List<Tile> pulledPath)
+        {
+            pulledPath = path.Select(v => new Tile(v)).ToList();
+
+            for (int i = 0; i < path.Count - 1; i++) //Make a deep copy to not mes with refs.
+                pulledPath[i].Parent = pulledPath[i + 1];
+
+            Tile startTile = pulledPath[pulledPath.Count - 1];
+            Tile goalTile = pulledPath[0];
+            Tile tileFromWhichCurrentFurthestLOS = null;
+            Tile currTile;
+            Tile peekedTile;
+            int furthestIdx = 0;
+            int peekIdx = pulledPath.Count - 1;
+            for (int i = 0; i < pulledPath.Count;)
+            {
+                Tile prevFurthestTile = pulledPath[furthestIdx];
+                currTile = pulledPath[i]; //start from goal (currTile)
+                peekedTile = pulledPath[peekIdx]; //toward far start (peekedTile)
+                if (!stringpullStepsG.Contains(currTile))
+                    stringpullStepsG.Add(currTile);
+
+                if (!stringpullStepsS.Contains(peekedTile))
+                    stringpullStepsS.Add(peekedTile);
+
+                if (CubeDistance(currTile, peekedTile) <= 1)
+                {
+                    if (peekedTile == startTile)
+                    {
+                        currTile.Parent = startTile;
+                        break;
+                    }
+                    i++;
+                    if (peekIdx > furthestIdx)
+                    {
+                        furthestIdx = peekIdx;
+                        tileFromWhichCurrentFurthestLOS = currTile;
+                    }
+                    peekIdx = pulledPath.Count - 1;
+                }
+                else if (CheckLOS(currTile, peekedTile, true)) //we see toward start
+                {
+                    if (peekIdx > furthestIdx) //peeked tile is furthest we've seen
+                    {
+                        currTile.Parent = peekedTile;
+                        if (tileFromWhichCurrentFurthestLOS == null)
+                        {
+                            furthestIdx = peekIdx;
+                            tileFromWhichCurrentFurthestLOS = currTile;
+
+                            for (int j = 0; j < furthestIdx; j++)
+                            {
+                                Tile t = pulledPath[j];
+                                if (j < i)
+                                {
+                                    if (t.Parent == prevFurthestTile)
+                                        t.Parent = currTile;
+                                }
+                                else
+                                {
+                                    if (t.Parent == prevFurthestTile)
+                                        t.Parent = peekedTile;
+                                }
+                            }
+                        }
+                        else //if path from currTile to furthestSeen (A-B-D) is shorter than prev (A-C-D), set new parents
+                        {
+                            float oldPathDist = StraightDistance(tileFromWhichCurrentFurthestLOS, prevFurthestTile);
+                            if (CheckLOS(prevFurthestTile, peekedTile, true))
+                                oldPathDist += StraightDistance(prevFurthestTile, peekedTile);
+                            else
+                            {
+                                oldPathDist += CubeDistance(prevFurthestTile, peekedTile);
+                            }
+                            float newPathDist = 0;
+                            if (CheckLOS(tileFromWhichCurrentFurthestLOS, currTile, true))
+                                newPathDist += StraightDistance(tileFromWhichCurrentFurthestLOS, currTile);
+                            else //---------------------------------TODO: GOES THROUGH WALLS IF SUCH LIE IN THE STRAIGHT LINE !!!!!
+                                newPathDist += CubeDistance(tileFromWhichCurrentFurthestLOS, currTile);
+                            newPathDist += StraightDistance(currTile, peekedTile);
+
+                            if (newPathDist < oldPathDist)
+                            {
+                                for (int j = 0; j < furthestIdx; j++)
+                                {
+                                    Tile t = pulledPath[j];
+                                    if (j < i)
+                                    {
+                                        if (t.Parent == prevFurthestTile)
+                                            t.Parent = currTile;
+                                    }
+                                    else
+                                    {
+                                        if (t.Parent == prevFurthestTile)
+                                            t.Parent = peekedTile;
+                                    }
+                                }
+                            }
+                        }
+                        furthestIdx = peekIdx;
+                        tileFromWhichCurrentFurthestLOS = currTile;
+                    }
+                    else if (peekIdx == furthestIdx /*&& !CheckIfStraightHexLine(tileFromWhichCurrentFurthestLOS, currTile)*/)
+                    {
+                        //if path from currTile to furthestSeen (A-B-D) is shorter than prev (A-C-D), set new parents
+                        if (CheckIfContinuedDir(tileFromWhichCurrentFurthestLOS, currTile))
+                            currTile.Parent = peekedTile;
+                        else
+                        {
+                            Tile furLOSchildTile;
+                            if (tileFromWhichCurrentFurthestLOS != goalTile)
+                            {
+                                furLOSchildTile = pulledPath.Find(t => t.Parent == tileFromWhichCurrentFurthestLOS);
+                                if (furLOSchildTile == null)
+                                {
+                                    int furLOStileIdx = pulledPath.IndexOf(tileFromWhichCurrentFurthestLOS);
+                                    furLOSchildTile = pulledPath[furLOStileIdx -1];
+                                }
+                            }
+                            else
+                                furLOSchildTile = goalTile;
+
+                            float oldPathDist = StraightDistance(furLOSchildTile, tileFromWhichCurrentFurthestLOS);
+                            oldPathDist += StraightDistance(tileFromWhichCurrentFurthestLOS, peekedTile);
+
+                            float newPathDist = StraightDistance(currTile, peekedTile);
+                            float strD = StraightDistance(furLOSchildTile, currTile);
+                            float cubD = CubeDistance(furLOSchildTile, currTile);
+                            if (CheckLOS(furLOSchildTile, currTile, true))
+                                newPathDist += StraightDistance(furLOSchildTile, currTile);
+                            else
+                                //newPathDist += CubeDistance(furLOSchildTile, currTile);
+                            {
+                                newPathDist += CubeDistance(furLOSchildTile, tileFromWhichCurrentFurthestLOS);
+                                newPathDist += CubeDistance(tileFromWhichCurrentFurthestLOS, currTile);
+                            }
+
+                            if (newPathDist < oldPathDist)
+                            {
+                                for (int j = 0; j < furthestIdx; j++)
+                                {
+                                    Tile t = pulledPath[j];
+                                    if (t.Parent == tileFromWhichCurrentFurthestLOS || (t.Parent == peekedTile && j < i))
+                                        t.Parent = currTile;
+                                }
+                                currTile.Parent = peekedTile;
+                                tileFromWhichCurrentFurthestLOS = currTile;
+                            }
+                        }
+                    }
+
+                    i++;
+                    peekIdx = pulledPath.Count - 1;
+                }
+                else if (peekIdx > 0) //peek closer
+                    peekIdx--;
+            }
+
+            pulledPath.Clear(); //---- Make the list again with stringpulled parents
+            pulledPath.Add(goalTile);
+            Tile parentTile = goalTile.Parent;
+            while (parentTile != startTile)
+            {
+                pulledPath.Add(parentTile);
+                parentTile = parentTile.Parent;
+            }
+            pulledPath.Add(startTile);
+        }
+
+        void StringPullPathFromStart(List<Tile> path)
+        {
+            Tile tileFromWhichCurrentFurthestLOS = null;
+            Tile startTile = path[path.Count - 1];
+            Tile goalTile = path[0];
+            Tile currTile;
+            Tile peekedTile;
+            int furthestParentIdx = path.Count - 1;
+            int k = 0;
+            for (int i = path.Count-1; i > 0;)
+            {
+                currTile = path[i]; //from goal (currTile) toward
+                peekedTile = path[k]; //far start (peekedTile)
+                if (!stringpullStepsG.Contains(currTile))
+                    stringpullStepsG.Add(currTile);
+
+                if (!stringpullStepsS.Contains(peekedTile))
+                    stringpullStepsS.Add(peekedTile);
+
+                if (CubeDistance(currTile, peekedTile) <= 1)
+                {
+                    //currTile.Parent = peekedTile;
+
+                    if (peekedTile == goalTile)
+                    {
+                        currTile.Parent = goalTile;
+                        break;
+                    }
+                    i--;
+                    if (k < furthestParentIdx)
+                    {
+                        furthestParentIdx = k;
+                        tileFromWhichCurrentFurthestLOS = path[i];
+                    }
+                    //furthestParentIdx = k;
+                    k = 0;
+                }
+                else if (CheckLOS(currTile, peekedTile, true)) //we see toward start
+                {
+                    if (k < furthestParentIdx) //peeked tile is furthest we've seen
+                    {
+                        peekedTile.Parent = currTile;
+                        if (tileFromWhichCurrentFurthestLOS != null) //if path from currTile to furthestSeen (A-B-D) is shorter than prev (A-C-D), set new parents
+                        {
+                            float oldPathDist = StraightDistance(tileFromWhichCurrentFurthestLOS, path[furthestParentIdx]);
+                            oldPathDist += StraightDistance(path[furthestParentIdx], peekedTile);
+                            float newPathDist = StraightDistance(tileFromWhichCurrentFurthestLOS, currTile);
+                            newPathDist += StraightDistance(currTile, peekedTile);
+
+                            if (newPathDist < oldPathDist)
+                            {
+                                for (int j = path.Count-1; j > furthestParentIdx; j--)
+                                {
+                                    if (path[j].Parent == path[furthestParentIdx])
+                                        path[j].Parent = currTile;
+                                }
+                            }
+                        }
+                        furthestParentIdx = k;
+                        tileFromWhichCurrentFurthestLOS = currTile;
+                    }
+                    else if (k == furthestParentIdx)
+                    {
+                        if (tileFromWhichCurrentFurthestLOS != null) //if path from currTile to furthestSeen (A-B-D) is shorter than prev (A-C-D), set new parents
+                        {
+                            float oldPathDist = StraightDistance(tileFromWhichCurrentFurthestLOS, peekedTile);
+                            Tile pathTile = tileFromWhichCurrentFurthestLOS;
+                            while (pathTile != startTile)
+                            {
+                                oldPathDist += StraightDistance(pathTile.Parent, pathTile);
+                                pathTile = pathTile.Parent;
+                            } 
+
+                            float newPathDist = StraightDistance(currTile, peekedTile);
+                            pathTile = currTile;
+                            while (pathTile != startTile)
+                            {
+                                newPathDist += StraightDistance(pathTile.Parent, pathTile);
+                                pathTile = pathTile.Parent;
+                            }
+
+                            if (newPathDist < oldPathDist)
+                            {
+                                for (int j = path.Count - 1; j > furthestParentIdx; j--)
+                                {
+                                    if (path[j].Parent == path[furthestParentIdx])
+                                        path[j].Parent = currTile;
+                                }
+                                peekedTile.Parent = currTile;
+                                tileFromWhichCurrentFurthestLOS = currTile;
+                            }
+                        }
+                    }
+
+                    if (peekedTile == goalTile)
+                        break;
+                    i--;
+                    k = 0;
+                }
+                else if (k < path.Count-1) //peek closer away from start
+                    k++;
+            }
+
+            //path.Clear(); //---- Make the ResolvedList again with stringpulled parents
+            //path.Add(goalTile);
+            //parentTile = goalTile.Parent;
+            //do
+            //{
+            //    path.Add(parentTile);
+            //    parentTile = parentTile.Parent;
+            //}
+            //while (parentTile != startTile);
+            //path.Add(startTile);
         }
 
         //------Old method for multiple goalpoints
@@ -425,140 +744,144 @@ namespace AlkuTD
 
         //    return ChosenPath;
         //}
-        float pathTotalDist;
+        float pathPulledFromGoalTotalDist;
         List<Vector2> FinalPath(Tile startTile, Tile goalTile)
         {
+            List<Tile> FromGoalPulledList;
+            List<Vector2> finalPath = new List<Vector2>();
             stringpullStepsG.Clear();
             stringpullStepsS.Clear();
-            Tile tileFromWhichCurrentFurthestLOS = null;
-			List<Vector2> finalPath = new List<Vector2>();
-			ResolvedList.Add(goalTile);
-            Tile parentTile = goalTile.Parent;
 
-            do
+            ResolvedList.Add(goalTile);
+            Tile parentTile = goalTile.Parent;
+            while (parentTile != startTile)
             {
                 ResolvedList.Add(parentTile);
                 parentTile = parentTile.Parent;
             }
-            while (parentTile != startTile);
-			ResolvedList.Add(startTile);
+            ResolvedList.Add(startTile);
+
+            StringPullPath(ResolvedList, out FromGoalPulledList);
 
             #region POST-STRINGPULLING (jos ennätyspitkällä lopusta alkua kohti nähty vanhempi ei oo samaan suuntaan ku vanha enkka, vaihetaan aiempien vanhemmaksi!
-            Tile currTile;
-            Tile peekedTile;
-            int furthestParentIdx = 0;
-            int k = ResolvedList.Count - 1;
-            for (int i = 0; i < ResolvedList.Count;)
-            {
-                currTile = ResolvedList[i]; //from goal (currTile) toward
-                peekedTile = ResolvedList[k]; //far start (peekedTile)
-                if (!stringpullStepsG.Contains(currTile))
-                    stringpullStepsG.Add(currTile);
+            //Tile currTile;
+            //Tile peekedTile;
+            //int furthestParentIdx = 0;
+            //int k = ResolvedList.Count - 1;
+            //for (int i = 0; i < ResolvedList.Count;)
+            //{
+            //    currTile = ResolvedList[i]; //from goal (currTile) toward
+            //    peekedTile = ResolvedList[k]; //far start (peekedTile)
+            //    if (!stringpullStepsG.Contains(currTile))
+            //        stringpullStepsG.Add(currTile);
 
-                if (!stringpullStepsS.Contains(peekedTile))
-                    stringpullStepsS.Add(peekedTile);
+            //    if (!stringpullStepsS.Contains(peekedTile))
+            //        stringpullStepsS.Add(peekedTile);
 
-                if (CubeDistance(currTile, peekedTile) <= 1)
-                {
-                    //currTile.Parent = peekedTile;
+            //    if (CubeDistance(currTile, peekedTile) <= 1)
+            //    {
+            //        //currTile.Parent = peekedTile;
 
-                    if (peekedTile == startTile)
-                    {
-                        currTile.Parent = startTile;
-                        break;
-                    }
-                    i++;
-                    if (k > furthestParentIdx)
-                    {
-                        furthestParentIdx = k;
-                        tileFromWhichCurrentFurthestLOS = ResolvedList[i];
-                    }
-                    //furthestParentIdx = k;
-                    k = ResolvedList.Count - 1;
-                }
-                else if (CheckLOS(currTile.MapCoord, peekedTile.MapCoord, true)) //we see toward start
-                {
+            //        if (peekedTile == startTile)
+            //        {
+            //            currTile.Parent = startTile;
+            //            break;
+            //        }
+            //        i++;
+            //        if (k > furthestParentIdx)
+            //        {
+            //            furthestParentIdx = k;
+            //            tileFromWhichCurrentFurthestLOS = ResolvedList[i];
+            //        }
+            //        //furthestParentIdx = k;
+            //        k = ResolvedList.Count - 1;
+            //    }
+            //    else if (CheckLOS(currTile.MapCoord, peekedTile.MapCoord, true)) //we see toward start
+            //    {
 
-                    currTile.Parent = peekedTile;
+            //        currTile.Parent = peekedTile;
 
-                    if (k > furthestParentIdx) //peeked tile is furthest we've seen
-                    {
-                        if (tileFromWhichCurrentFurthestLOS != null) //if path from currTile to furthestSeen (A-B-D) is shorter than prev (A-C-D), set new parents
-                        {
-                            float oldPathDist = StraightDistance(tileFromWhichCurrentFurthestLOS, ResolvedList[furthestParentIdx]);
-                            oldPathDist += StraightDistance(ResolvedList[furthestParentIdx], peekedTile);
-                            float newPathDist = StraightDistance(tileFromWhichCurrentFurthestLOS, currTile);
-                            newPathDist += StraightDistance(currTile, peekedTile);
+            //        if (k > furthestParentIdx) //peeked tile is furthest we've seen
+            //        {
+            //            if (tileFromWhichCurrentFurthestLOS != null) //if path from currTile to furthestSeen (A-B-D) is shorter than prev (A-C-D), set new parents
+            //            {
+            //                float oldPathDist = StraightDistance(tileFromWhichCurrentFurthestLOS, ResolvedList[furthestParentIdx]);
+            //                oldPathDist += StraightDistance(ResolvedList[furthestParentIdx], peekedTile);
+            //                float newPathDist = StraightDistance(tileFromWhichCurrentFurthestLOS, currTile);
+            //                newPathDist += StraightDistance(currTile, peekedTile);
 
-                            if (newPathDist < oldPathDist)
-                            {
-                                for (int j = 0; j < furthestParentIdx; j++)
-                                {
-                                    if (ResolvedList[j].Parent == ResolvedList[furthestParentIdx])
-                                        ResolvedList[j].Parent = currTile;
-                                }
-                            }
-                            //Debug.WriteLine($"newPathDist {newPathDist} < oldPathDist {oldPathDist} = {newPathDist < oldPathDist}");
+            //                if (newPathDist < oldPathDist)
+            //                {
+            //                    for (int j = 0; j < furthestParentIdx; j++)
+            //                    {
+            //                        if (ResolvedList[j].Parent == ResolvedList[furthestParentIdx])
+            //                            ResolvedList[j].Parent = currTile;
+            //                    }
+            //                }
+            //                //Debug.WriteLine($"newPathDist {newPathDist} < oldPathDist {oldPathDist} = {newPathDist < oldPathDist}");
 
-                            //Vector3 dirCurrToSeen = GetDir(currTile, peekedTile);
-                            //Vector3 dirOldToNewParent = GetDir(ResolvedList[furthestParentIdx], peekedTile);
-                            //if (dirCurrToSeen != dirOldToNewParent)
-                            //{
-                            //    for (int j = 0; j < furthestParentIdx; j++)
-                            //    {
-                            //        if (ResolvedList[j].Parent == ResolvedList[furthestParentIdx])
-                            //            ResolvedList[j].Parent = currTile;
-                            //    }
-                            //}
-                        }
-                        furthestParentIdx = k;
-                        tileFromWhichCurrentFurthestLOS = ResolvedList[i];
-                    }
+            //                //Vector3 dirCurrToSeen = GetDir(currTile, peekedTile);
+            //                //Vector3 dirOldToNewParent = GetDir(ResolvedList[furthestParentIdx], peekedTile);
+            //                //if (dirCurrToSeen != dirOldToNewParent)
+            //                //{
+            //                //    for (int j = 0; j < furthestParentIdx; j++)
+            //                //    {
+            //                //        if (ResolvedList[j].Parent == ResolvedList[furthestParentIdx])
+            //                //            ResolvedList[j].Parent = currTile;
+            //                //    }
+            //                //}
+            //            }
+            //            furthestParentIdx = k;
+            //            tileFromWhichCurrentFurthestLOS = ResolvedList[i];
+            //        }
 
-                    if (peekedTile == startTile)
-                        break;
-                    i++;
-                    k = ResolvedList.Count - 1;
-                }
-                else if (k > 0) //peek closer away from start
-                    k--;
-            }
+            //        if (peekedTile == startTile)
+            //            break;
+            //        i++;
+            //        k = ResolvedList.Count - 1;
+            //    }
+            //    else if (k > 0) //peek closer away from start
+            //        k--;
+            //}
 
-            ResolvedList.Clear(); //---- Make the ResolvedList again with stringpulled parents
-            ResolvedList.Add(goalTile);
-            parentTile = goalTile.Parent;
-            do
-            {
-                ResolvedList.Add(parentTile);
-                parentTile = parentTile.Parent;
-            }
-            while (parentTile != startTile);
-            ResolvedList.Add(startTile);
+            //ResolvedList.Clear(); //---- Make the ResolvedList again with stringpulled parents
+            //ResolvedList.Add(goalTile);
+            //parentTile = goalTile.Parent;
+            //do
+            //{
+            //    ResolvedList.Add(parentTile);
+            //    parentTile = parentTile.Parent;
+            //}
+            //while (parentTile != startTile);
+            //ResolvedList.Add(startTile);
 
             #endregion
 
-            foreach (Tile t in ResolvedList)
+            //foreach (Tile t in ResolvedList)
+            //    finalPath.Insert(0, HexMap.ToScreenLocation(t.MapCoord));
+            foreach (Tile t in FromGoalPulledList)
                 finalPath.Insert(0, HexMap.ToScreenLocation(t.MapCoord));
 
-            pathTotalDist = 0; //---- TarkistusMatkaLasku
+            pathPulledFromGoalTotalDist = 0; //---- TarkistusMatkaLasku
             for (int j = 1; j < finalPath.Count; j++)
-            {
-                pathTotalDist += StraightDistance(ResolvedList[j], ResolvedList[j - 1]);
-            }
+                pathPulledFromGoalTotalDist += StraightDistance(FromGoalPulledList[j], FromGoalPulledList[j - 1]);
 
             return finalPath;
+            //if (pathFromGoalTotalDist <= pathFromStartTotalDist)
+            //    return finalPath;
+            //else return finalPath2;
         }
 
-		public bool CheckLOS(Point A, Point B, bool withClearance)
+		public bool CheckLOS(Tile A, Tile B, bool withClearance)
 		{
-			Vector2 a = HexMap.ToScreenLocation(A);
-			Vector2 b = HexMap.ToScreenLocation(B);
+			Vector2 a = HexMap.ToScreenLocation(A.MapCoord);
+			Vector2 b = HexMap.ToScreenLocation(B.MapCoord);
 			Vector2 broadened;
 			Vector2 dir = Vector2.Normalize(b - a);
 			Vector2 perpDir = new Vector2(dir.Y, -dir.X);
             int clearance;
             if (withClearance)
-                clearance = (int)(HexMap.TileHalfWidth * 0.363f); // the width of the ray (0.363 AAPFT1(1) menee mut PathfindtestU ei nätti
+                clearance = PathClearance;
             else clearance = 0;
 
 			a += (HexMap.TileHalfHeight + 6) * dir; //start raycasting at the tile border + some
@@ -632,6 +955,7 @@ namespace AlkuTD
                 return true;
             else return false;
         }
+
         Vector3 GetDir(Tile from, Tile to)
         {
             Vector3 retVec = Vector3.Normalize(to.CubeCoord - from.CubeCoord);
@@ -643,17 +967,17 @@ namespace AlkuTD
 
         public void Draw (SpriteBatch sb) //for debug visualisation of tile check order
         {
-            //Vector2 drawPosBonus = new Vector2(0, -18);
-            //Vector2 drawPosBonus1 = new Vector2(-8, 0);
-            //Vector2 drawPosBonus2 = new Vector2(-8, 12);
-            //for (int i = 0; i < pathFindSteps.Count; i++)
-            //    sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(pathFindSteps[i].MapCoord) + drawPosBonus, pathFindSteps[i].LockedWaypoint ? Color.Red : Color.PeachPuff);
-            //for (int i = 0; i < stringpullStepsG.Count; i++)
-            //    sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(stringpullStepsG[i].MapCoord) + drawPosBonus1, Color.GreenYellow);
-            //for (int i = 0; i < stringpullStepsS.Count; i++)
-            //    sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(stringpullStepsS[i].MapCoord) + drawPosBonus2, Color.Orange);
+            Vector2 drawPosBonus = new Vector2(0, -18);
+            Vector2 drawPosBonus1 = new Vector2(-8, 0);
+            Vector2 drawPosBonus2 = new Vector2(-8, 12);
+            for (int i = 0; i < pathFindSteps.Count; i++)
+                sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(pathFindSteps[i].MapCoord) + drawPosBonus, pathFindSteps[i].LockedWaypoint ? Color.Red : Color.PeachPuff);
+            for (int i = 0; i < stringpullStepsG.Count; i++)
+                sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(stringpullStepsG[i].MapCoord) + drawPosBonus1, Color.GreenYellow);
+            for (int i = 0; i < stringpullStepsS.Count; i++)
+                sb.DrawString(CurrentGame.font, i.ToString(), HexMap.ToScreenLocation(stringpullStepsS[i].MapCoord) + drawPosBonus2, Color.Orange);
 
-            //sb.DrawString(CurrentGame.font, "Path total distance: " + Environment.NewLine + Math.Round(pathTotalDist, 1) + Environment.NewLine + Math.Round(ResolvedList[0].F, 1), Vector2.Zero, Color.AliceBlue);
+            //sb.DrawString(CurrentGame.font, "Path total distance: " + Environment.NewLine + Math.Round(pathFromGoalTotalDist, 1) + Environment.NewLine + Math.Round(ResolvedList[0].F, 1), Vector2.Zero, Color.AliceBlue);
         }
     }
 }

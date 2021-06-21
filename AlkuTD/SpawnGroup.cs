@@ -48,14 +48,27 @@ namespace AlkuTD
             GoalPointIndex = creature.GoalPointIndex;
 
 			AliveCreatures = new List<Creature>();
-            for (int i = 0; i < numberOfCreatures; i++)
+            Creatures[0] = Creature.Clone(creature);
+            Creatures[0].Alive = true;
+            Creatures[0].ParentGroup = this;
+            Creatures[0].FindPath(); //-----------------------------pitäs kattoo reittivaihtoehdot vain kerran, jakaa niitä rndisti öröille ja sit individualisoida
+            AliveCreatures.Add(Creatures[0]);
+            for (int i = 1; i < numberOfCreatures; i++)
             {
                 //Creatures[i] = creatureType.Clone();     //---------------------------------------YKSILÖT?!-------------
                 Creatures[i] = Creature.Clone(creature);
                 Creatures[i].Alive = true;
 				Creatures[i].ParentGroup = this;
-                Creatures[i].FindPath(); //-----------------------------pitäs kattoo reittivaihtoehdot vain kerran, jakaa niitä rndisti öröille ja sit individualisoida
-				AliveCreatures.Add(Creatures[i]);
+
+                Creatures[i].Path = new List<Vector2>();
+                Creatures[i].Path.AddRange(Creatures[0].Path); //-----------------------------pitäs kattoo reittivaihtoehdot vain kerran, jakaa niitä rndisti öröille ja sit individualisoida
+                Creatures[i].OrigPath.Clear();
+                Creatures[i].OrigPath.AddRange(Creatures[0].Path);
+                if (Creatures[i].Path.Count > 1)
+                    Creatures[i].nextWaypoint = 1;
+                else Creatures[i].nextWaypoint = 0;
+
+                AliveCreatures.Add(Creatures[i]);
                 //SpawnTimetable[i] = spawnFrequency;
             }
 
@@ -71,15 +84,27 @@ namespace AlkuTD
 
         public void FindPath()
         {
-			ParentMap.Pathfinder.InitializeTiles();
-            List<Vector2> Path = ParentMap.Pathfinder.FindPath(ParentMap.SpawnPoints[SpawnPointIndex], ParentMap.GoalPoints[GoalPointIndex]);
-            foreach (Creature c in Creatures)
+            if (Creatures[0].Path == null)
             {
-                c.OrigPath.Clear();
-                c.OrigPath = Path;
-                c.Path.Clear();
-                c.Path.AddRange(c.OrigPath);
-                c.IndividualizePath();
+                ParentMap.Pathfinder.InitializeTiles();
+                List<Vector2> Path = ParentMap.Pathfinder.FindPath(ParentMap.SpawnPoints[SpawnPointIndex], ParentMap.GoalPoints[GoalPointIndex]);
+                foreach (Creature c in Creatures)
+                {
+                    c.OrigPath.Clear();
+                    c.OrigPath = Path;
+                    c.Path.Clear();
+                    c.Path.AddRange(c.OrigPath);
+                    c.IndividualizePath();
+                }
+            }
+            else
+            {
+                foreach (Creature c in Creatures)
+                {
+                    c.Path.Clear();
+                    c.Path.AddRange(c.OrigPath);
+                    c.IndividualizePath();
+                }
             }
         }
 
