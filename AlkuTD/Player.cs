@@ -10,8 +10,9 @@ namespace AlkuTD
     public class Player
     {
         public string Name;
-        public byte CompletedLevels;
-        public int[] HighScores;
+        //public byte CompletedLevels;
+        //public int[] HighScores;
+        public Dictionary<string, int> CompletedLevels;
         public int Score;
         public int EnergyPoints;
 		public int[] GenePoints;
@@ -22,8 +23,8 @@ namespace AlkuTD
         public Player(string name)
         {
             Name = name;
-            CompletedLevels = 0;
-            HighScores = new int[3];
+            //CompletedLevels = 0;
+            //HighScores = new int[3];
 
             Towers = new List<Tower>();
             Alive = true;
@@ -36,7 +37,10 @@ namespace AlkuTD
         public int UpdateScore()
         {
 			//Score = LifePoints * 10 + EnergyPoints / 10 + UpgradePoints * 10; // VANHA
-			Score = LifePoints * 10 + EnergyPoints / 10;
+			Score = LifePoints * 100 + EnergyPoints;
+            if (CurrentGame.gameState == GameState.GameOver)
+                foreach (FloatingParticle p in CurrentGame.currentMap.FloatingParticles)
+                    Score += p.EnergyBounty;
             return Score;
         }
     }

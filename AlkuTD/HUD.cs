@@ -293,9 +293,10 @@ namespace AlkuTD
 
             clipBoard = new int[MapEditorTableCells.Length];
 
+            string[] availableCreatureTextures = Array.ConvertAll<string, string>(Directory.GetFiles(CurrentGame.ContentDir + "Creatures\\"), Path.GetFileNameWithoutExtension).Distinct().ToArray();
             for (int i = 0; i < MapEditorTableRows; i++)
             {
-                MapEditorTableCells[3 + i * (MapEditorTableCols - 1)].PopulateDropDownMenu(Array.ConvertAll<string, string>(Directory.GetFiles(CurrentGame.ContentDir + "Creatures\\"), Path.GetFileNameWithoutExtension));
+                MapEditorTableCells[3 + i * (MapEditorTableCols - 1)].PopulateDropDownMenu(availableCreatureTextures);
                 //MapEditorTableCells[7 + i*(MapEditorTableCols-1)].DropDownButtons[1].ButtonColors = new Color[] {Color.Red*0.8f, Color.Red, Color.Red*0.7f};        MapEditorTableCells[7 + i*(MapEditorTableCols-1)].DropDownButtons[1].TextColors = new Color[] {Color.Red*0.8f, Color.Red, Color.Red*0.7f};
                 //MapEditorTableCells[7 + i*(MapEditorTableCols-1)].DropDownButtons[2].ButtonColors = new Color[] {Color.Green*0.8f, Color.Green, Color.Green*0.7f};  MapEditorTableCells[7 + i*(MapEditorTableCols-1)].DropDownButtons[2].TextColors = new Color[] {Color.Green*0.8f, Color.Green, Color.Green*0.7f};
                 //MapEditorTableCells[7 + i*(MapEditorTableCols-1)].DropDownButtons[3].ButtonColors = new Color[] {Color.Blue*0.8f, Color.Blue, Color.Blue*0.7f};     MapEditorTableCells[7 + i*(MapEditorTableCols-1)].DropDownButtons[3].TextColors = new Color[] {Color.Blue*0.8f, Color.Blue, Color.Blue*0.7f};
@@ -558,8 +559,8 @@ namespace AlkuTD
         {
             bool valid = true;
 
-            List<int>[] invalidLists = new List<int>[] { new List<int>(), new List<int>(), new List<int>(), new List<int>() };
-            string[] listDefinitions = { "Spawnpoint undefined", "Invalid spawnpoint", "Goalpoint undefined", "Invalid goalpoint" };
+            List<int>[] invalidLists = new List<int>[] { new List<int>(), new List<int>(), new List<int>(), new List<int>(), new List<int>() };
+            string[] listDefinitions = { "Spawnpoint undefined", "Invalid spawnpoint", "Goalpoint undefined", "Invalid goalpoint", "Amount can't be empty or zero" };
             /*List<int> invalidSpawnpoints = new List<int>();
             List<int> invalidGoalpoints = new List<int>();
             List<int> missingSpawnpoints = new List<int>();
@@ -611,6 +612,12 @@ namespace AlkuTD
                                                       ParentMap.GoalPoints[(int)char.Parse(MapEditorTableCells[5 + i * (MapEditorTableCols - 1)].Text) - 97]).Count < 1)
                     {
                         ErrorButtons.Add(new Button("Path not found (group " + (i + 1).ToString() + ")", MapEditorMenuButtons[0].Bounds.Right, menuButtonY + ErrorButtons.Count * menuButtonHeight, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel));
+                    }
+
+                    if (MapEditorTableCells[0 + i * (MapEditorTableCols - 1)].Text == "")
+                    {
+                        valid = false;
+                        invalidLists[4].Add(i);
                     }
                 }
 
@@ -669,30 +676,47 @@ namespace AlkuTD
             return valid;
         }
 
-        Vector2 Magnetize(Vector2[] points)
+        //int itersPerSec;
+        Vector2 MagnetizeMouse(Vector2[] points, SpriteBatch sb,  GameTime gt)
         {
+            //itersPerSec++;
+            //sb.DrawString(font, itersPerSec.ToString(), mousePos + new Vector2(0, -20), Color.Navy);
+            //sb.DrawString(font, gt.ElapsedGameTime.TotalSeconds.ToString(), mousePos + new Vector2(0, -40), Color.MintCream);
+            //sb.DrawString(font, mousePos.ToString(), mousePos + new Vector2(-20, -60), Color.MintCream);
+
+
             Vector2 dirFromTile = mousePos - activeTilePos; //--------------------äpp äpp, tee itsenäinen muuttuja jotta hienovaraiset pos-updatemuutokset toimii!
             float angle = (float)Math.Atan2(dirFromTile.Y, dirFromTile.X);
-            float angleOffset = (float)(Math.Abs(angle % (Math.PI / 3)) / (Math.PI / 6));
+            float hexAngleOffset = (float)(Math.Abs(angle % (Math.PI / 3)) / (Math.PI / 6));
 
-            if (angleOffset > 1)
-                angleOffset = 2 - angleOffset;                      //hex corners zero -- side centers one
-            angleOffset = (float)Math.Round(angleOffset * 4.5f); //TileWidth/2f - TileHeight/2f;
-            if (dirFromTile.Length() > ParentMap.TileHalfWidth - angleOffset) //if out of tile
+            if (hexAngleOffset > 1)
+                hexAngleOffset = 2 - hexAngleOffset;                      //hex corners zero -- side centers one
+            hexAngleOffset *= 3; //4.5f; //TileWidth/2f - TileHeight/2f;
+            //sb.DrawString(font, hexAngleOffset.ToString(), mousePos, Color.White);
+            //sb.DrawString(font, angle.ToString(), mousePos + new Vector2(0,20), Color.White);
+            if (dirFromTile.Length() > ParentMap.TileHalfWidth) //- hexAngleOffset) //if out of tile
             {
                 //Pyöristeles------------------------------------------------------------------------------------------------------------------------------------!
-                dirFromTile = (ParentMap.TileHalfWidth - angleOffset) * (dirFromTile / dirFromTile.Length());
+                dirFromTile = (ParentMap.TileHalfWidth * (dirFromTile / dirFromTile.Length()));
+                //dirFromTile = (ParentMap.TileHalfWidth - hexAngleOffset) * (dirFromTile / dirFromTile.Length());
+                //dirFromTile.X = (float)Math.Round(dirFromTile.X);
+                //dirFromTile.Y = (float)Math.Round(dirFromTile.Y);
                 //Mouse.SetPosition((int)Math.Round(dirFromTile.X + activeTilePos.X), (int)Math.Round(dirFromTile.Y +activeTilePos.Y));
             }
+            //sb.DrawString(font, dirFromTile.ToString(), mousePos + new Vector2(0,40), Color.White);
             dirFromTile += activeTilePos;
             Vector2 partDist = mousePos - points[selectedRingPart];
             Vector2 dir = partDist / partDist.Length();
-            if (partDist.Length() <= 1)
+            //sb.DrawString(font, partDist.Length().ToString(), mousePos + new Vector2(0,50), Color.Olive);
+            /*if (partDist.Length() <= 1)
                 dirFromTile = points[selectedRingPart];
-            else if (/*partDist.Length() < 18 && */CurrentGame.gameTimer % 2 == 0)
-                dirFromTile -= dir * 0.8f;
+            else */if (/*partDist.Length() < 18 && */CurrentGame.gameTimer % 6 == 0)
+                dirFromTile -= dir * 0.6f;
 
-            Mouse.SetPosition((int)Math.Round(dirFromTile.X), (int)Math.Round(dirFromTile.Y));
+            if (CurrentGame.gameTimer % 6 == 0 && Vector2.Distance(activeTilePos, mousePos) > ParentMap.TileHalfWidth)
+                Mouse.SetPosition((int)Math.Round(dirFromTile.X), (int)Math.Round(dirFromTile.Y));
+
+            //sb.DrawString(font, dirFromTile.ToPoint().ToString(), mousePos + new Vector2(0, 120), Color.White);
 
             return dirFromTile - new Vector2(tileringGlow.Width / 2);
         }
@@ -709,10 +733,11 @@ namespace AlkuTD
             Vector2 dir = partDist / partDist.Length();
             if (partDist.Length() <= 1)
                 dirFromTile = nearestPoint;
-            else if (CurrentGame.gameTimer % 2 == 0)
-                dirFromTile -= dir * 0.8f;
+            //else if (CurrentGame.gameTimer % 2 == 0)
+            //    dirFromTile -= dir * 0.8f;
 
-            Mouse.SetPosition((int)Math.Round(dirFromTile.X), (int)Math.Round(dirFromTile.Y));
+            if (CurrentGame.gameTimer % 6 == 0 && Vector2.Distance(activeTilePos, mousePos) > ParentMap.TileHalfWidth)
+                Mouse.SetPosition((int)Math.Round(dirFromTile.X), (int)Math.Round(dirFromTile.Y));
 
             return dirFromTile - new Vector2(tileringGlow.Width / 2);
         }
@@ -797,7 +822,7 @@ namespace AlkuTD
         void OpenTilering(bool onOpenTile)
         {
             activeTileCoord = new Point(hoveredCoord.X, hoveredCoord.Y);
-            Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
+            Mouse.SetPosition((int)activeTilePos.X+1, (int)activeTilePos.Y); //+1 for flashing tileringGlow
             CurrentGame.soundEffects[0].Play(0.18f, 0, 0);
             selectedRingPart = 0;
             if (!onOpenTile)
@@ -1347,7 +1372,7 @@ namespace AlkuTD
                             }
                             #endregion
 
-                            if (MapEditorTableCells[i].IsDropDownMenu && MapEditorTableCells[i].PrevState == ButnState.Passive && MapEditorTableCells[i].DropDownButtons != null)
+                            if (MapEditorTableCells[i].IsDropDownMenu && MapEditorTableCells[i].PrevState != ButnState.Active && MapEditorTableCells[i].DropDownButtons != null)
                                 TableBackground4 = new Rectangle(MapEditorTableCells[i].DropDownButtons[0].Pos.X, MapEditorTableCells[i].DropDownButtons[0].Pos.Y, MapEditorTableCells[i].DropDownButtons[0].Width, MapEditorTableCells[i].DropDownButtons[0].Height * MapEditorTableCells[i].DropDownButtons.Length);
                             else TableBackground4 = Rectangle.Empty;
                         }
@@ -1782,6 +1807,7 @@ namespace AlkuTD
         public void Draw(SpriteBatch sb, GameTime gameTime, MouseState mouse)
         {
             mousePos = new Vector2(mouse.X, mouse.Y);
+            //sb.DrawString(font, mouse.Position.ToString(), mousePos + new Vector2(-20, -80), Color.MintCream);
 
             if (overlayPos == Vector2.Zero)
                 overlayPos = new Vector2(mousePos.X, mousePos.Y);
@@ -1852,6 +1878,7 @@ namespace AlkuTD
                                 if (ParentMap.Players[0].EnergyPoints >= HexMap.ExampleTowers[selectedRingPart - 1].Cost)
                                 {
                                     Tower t = Tower.Clone(HexMap.ExampleTowers[selectedRingPart - 1]);
+                                    Type ty = t.GetType();
                                     t.MapCoord = activeTileCoord;
                                     ParentMap.BuildTower(t);
                                     CurrentGame.soundEffects[0].Play(0.18f, -1, 0);
@@ -1870,7 +1897,8 @@ namespace AlkuTD
                         skip_TileringExitSound:
                             newTileRingActive = false;
                         }
-                        sb.Draw(tileringGlow, Magnetize(tileCorners), Color.White * 0.7f); //restricted & magnetized object
+                        sb.Draw(tileringGlow, MagnetizeMouse(tileCorners, sb, gameTime), null, Color.White * 0.7f, 0, Vector2.Zero, 1, SpriteEffects.None, 0); //restricted & magnetized object
+                        //sb.Draw(tileringSlot, mousePos, Color.White * 0.7f);
                         sb.DrawString(CurrentGame.font, tileringLabelString, activeTilePos - new Vector2(CurrentGame.font.MeasureString(tileringLabelString).X / 2, CurrentGame.font.LineSpacing / 2), Color.Black);
 
                     }
@@ -1891,7 +1919,7 @@ namespace AlkuTD
                         #region hoverInfo
                         //if (/*selectedRingPart > 0 && */selectedRingPart != prevRingPart)
                         //{
-                        string geneCostStr;
+                        string geneCostStr = GeneSpecs.TierSize.ToString();
                         Vector2 belowTilePos = activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f));
                         switch (selectedRingPart)
                         {
@@ -1908,51 +1936,64 @@ namespace AlkuTD
                                 }
                                 break;
                             case 2:
-                                geneCostStr = selectedTower.GeneSpecs.BaseTiers[0] == 2 ? "34" : GeneSpecs.TierSize.ToString();
-                                TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Red"] }, "red damage " + (selectedTower.GeneSpecs.BaseTiers[0] + 1).ToString() + "/3", "Cost: ", geneCostStr);
+                                if (selectedTower.GeneSpecs.BaseTiers[0] < 3)
+                                    TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Red"] }, "red damage " + (selectedTower.GeneSpecs.BaseTiers[0] + 1).ToString() + "/3", "Cost: ", geneCostStr);
+                                else
+                                    TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Red"] }, "red damage at max");
                                 break;
                             case 3:
-                                geneCostStr = selectedTower.GeneSpecs.BaseTiers[1] == 2 ? "34" : GeneSpecs.TierSize.ToString();
-                                TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Green"] }, "green damage " + (selectedTower.GeneSpecs.BaseTiers[1] + 1).ToString() + "/3", "Cost: ", geneCostStr);
+                                if (selectedTower.GeneSpecs.BaseTiers[1] < 3)
+                                    TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Green"] }, "green damage " + (selectedTower.GeneSpecs.BaseTiers[1] + 1).ToString() + "/3", "Cost: ", geneCostStr);
+                                else
+                                    TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Green"] }, "green damage at max");
                                 break;
                             case 4:
-                                geneCostStr = selectedTower.GeneSpecs.BaseTiers[2] == 2 ? "34" : GeneSpecs.TierSize.ToString();
-                                TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Blue"] }, "blue damage " + (selectedTower.GeneSpecs.BaseTiers[2] + 1).ToString() + "/3", "Cost: ", geneCostStr);
+                                if (selectedTower.GeneSpecs.BaseTiers[2] < 3)
+                                    TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Blue"] }, "blue damage " + (selectedTower.GeneSpecs.BaseTiers[2] + 1).ToString() + "/3", "Cost: ", geneCostStr);
+                                else
+                                    TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, -TileringInfoBox.DefaultHeight * 0.5f), new Color?[] { GeneColors["Blue"] }, "blue damage at max");
                                 break;
                             case 5:
                                 if (selectedTower.GeneSpecs.HasAny)
-                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, new Color?[] { GeneColors[selectedTower.GeneSpecs.GetPrimaryElem().ToString()] }, "Withdraw 1/3 genes", "Yield: " + "22");
+                                {
+                                    if (CurrentGame.gameState != GameState.InitSetup && CurrentGame.gameState != GameState.MapTestInitSetup)
+                                        TileRingInfoBox = new TileringInfoBox(belowTilePos, new Color?[] { GeneColors[selectedTower.GeneSpecs.GetPrimaryElem().ToString()] }, "Withdraw 1/3 genes", "Yield: ", ((int)Math.Round(GeneSpecs.TierSize * CurrentGame.GeneSellRate)).ToString());
+                                    else
+                                        TileRingInfoBox = new TileringInfoBox(belowTilePos, new Color?[] { GeneColors[selectedTower.GeneSpecs.GetPrimaryElem().ToString()] }, "Withdraw 1/3 genes", "Yield: ", GeneSpecs.TierSize.ToString());
+                                }
                                 else
                                     TileRingInfoBox = new TileringInfoBox(belowTilePos, null, "Withdraw genes");
                                 break;
                             case 6:
                                 Color?[] crs = null;
+                                if (selectedTower.GeneSpecs.HasAny)
+                                    crs = new Color?[] { GeneColors[selectedTower.GeneSpecs.GetPrimaryElem().ToString()] };
                                 int geneYield = 0;
                                 int energyYield = 0;
                                 if (CurrentGame.gameState != GameState.InitSetup && CurrentGame.gameState != GameState.MapTestInitSetup)
                                 {
                                     for (int i = 0; i <= (int)selectedTower.UpgradeLvl; i++)
                                         energyYield += (int)Math.Round(HexMap.ExampleTowers[selectedTower.towerBranch + i * 6].Cost * CurrentGame.GeneSellRate);
+                                    if (selectedTower.GeneSpecs.HasAny)
+                                        geneYield = (int)Math.Round(selectedTower.GeneSpecs.BaseTiers[(int)selectedTower.GeneSpecs.GetPrimaryElem() - 1] * GeneSpecs.TierSize * CurrentGame.GeneSellRate);
                                 }
                                 else
                                 {
                                     for (int i = 0; i <= (int)selectedTower.UpgradeLvl; i++)
                                         energyYield += HexMap.ExampleTowers[selectedTower.towerBranch + i * 6].Cost;
+                                    if (selectedTower.GeneSpecs.HasAny)
+                                        geneYield = selectedTower.GeneSpecs.BaseTiers[(int)selectedTower.GeneSpecs.GetPrimaryElem() -1] * GeneSpecs.TierSize;
                                 }
-                                if (selectedTower.GeneSpecs.HasAny)
-                                {
-                                    crs = new Color?[] { GeneColors[selectedTower.GeneSpecs.GetPrimaryElem().ToString()] };
-                                    geneYield = (int)Math.Round(selectedTower.GeneSpecs.GetPrimaryElemStrength() * 100 * CurrentGame.GeneSellRate);
-                                }
+                                
 
                                 if (geneYield > 0)
-                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, crs, "Consume", "Yield: " + energyYield.ToString(), geneYield.ToString());
+                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, true, crs, "Consume", "Yield: ", energyYield.ToString(), geneYield.ToString());
                                 else
-                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, crs, "Consume", "Yield: " + energyYield.ToString());
+                                    TileRingInfoBox = new TileringInfoBox(belowTilePos, false, crs, "Consume", "Yield: " + energyYield.ToString());
                                 break;
                         }
 
-                        if (selectedRingPart >= 2 && selectedRingPart <= 4 && selectedTower.GeneSpecs.GetPrimaryElemStrength() >= 0.99f)
+                        if (selectedRingPart >= 2 && selectedRingPart <= 4 && selectedTower.GeneSpecs.GetPrimaryElemStrength() >= 99.9f)
                         {
                             TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, TileringInfoBox.DefaultHeight * -0.5f), null, "Already at max");
                             TileRingInfoBox.LineColors = new List<Color>() { GeneColors[selectedTower.GeneSpecs.GetPrimaryElem().ToString()] };
@@ -1973,8 +2014,19 @@ namespace AlkuTD
                                 case 1:
                                     if ((int)selectedTower.UpgradeLvl + 1 < ParentMap.AvailableTowers[selectedTower.towerBranch] && ParentMap.Players[0].EnergyPoints >= HexMap.ExampleTowers[selectedTower.towerBranch + (((int)selectedTower.UpgradeLvl + 1) * 6)].Cost)
                                     {
-                                        ParentMap.Players[0].EnergyPoints -= HexMap.ExampleTowers[selectedTower.towerBranch + (((int)selectedTower.UpgradeLvl + 1) * 6)].Cost;
-                                        selectedTower.Upgrade();
+                                        if (selectedTower.Name == "Pruiter 1")
+                                        {
+                                            //Point mCoord = selectedTower.MapCoord;
+                                            selectedTower.Remove();
+                                            selectedTower = new SprayTower(selectedTower.MapCoord, UpgLvl.Basic, false);
+                                            ParentMap.BuildTower(selectedTower);
+                                            CurrentGame.soundEffects[0].Play(0.18f, -1, 0);
+                                        }
+                                        else
+                                        {
+                                            selectedTower.Upgrade();
+                                            ParentMap.Players[0].EnergyPoints -= HexMap.ExampleTowers[selectedTower.towerBranch + (((int)selectedTower.UpgradeLvl + 1) * 6)].Cost;
+                                        }
                                     }
                                     break;
                                 case 2: selectedTower.AddGeneTier(GeneType.Red); break;
@@ -1995,7 +2047,8 @@ namespace AlkuTD
                         if (selectedRingPart == 1 && (int)selectedTower.UpgradeLvl + 1 < ParentMap.AvailableTowers[selectedTower.towerBranch] && selectedTower.UpgradeLvl < UpgLvl.Max)
                             HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].Draw(sb);
 
-                        sb.Draw(tileringGlow, Magnetize(tileCorners), Color.White * 0.7f); //restricted & magnetized object
+                        //sb.Draw(tileringSlot, mousePos - new Vector2(tileringGlow.Width/2f), Color.White * 0.7f);
+                        sb.Draw(tileringGlow, MagnetizeMouse(tileCorners, sb, gameTime), Color.White * 0.7f); //restricted & magnetized object
                     }
                     #endregion
                     #region PRIORITY TILERING
@@ -2043,11 +2096,11 @@ namespace AlkuTD
                         }
 
                         #region DEBUGSHOW PRIORITY
-                        ColorPriority hoveredEPriority = ColorPriority.none;
+                        ColorPriority hoveredEPriority = ColorPriority.any;
                         TargetPriority hoveredTPriority = TargetPriority.none;
                         switch (selectedRingPart)
                         {
-                            case 2: hoveredEPriority = ColorPriority.none; break;
+                            case 2: hoveredEPriority = ColorPriority.any; break;
                             case 7: hoveredEPriority = ColorPriority.red; break;
                             case 8: hoveredEPriority = ColorPriority.green; break;
                             case 9: hoveredEPriority = ColorPriority.blue; break;
@@ -2057,8 +2110,9 @@ namespace AlkuTD
                             case 13: hoveredTPriority = TargetPriority.weak; break;
                             case 14: hoveredTPriority = TargetPriority.fast; break;
                             case 15: hoveredTPriority = TargetPriority.slow; break;
-                            case 16: hoveredTPriority = TargetPriority.mob; break;
+                            case 16: hoveredTPriority = TargetPriority.close; break;
                             case 17: hoveredTPriority = TargetPriority.far; break;
+                            case 18: hoveredTPriority = TargetPriority.mob; break;
                         }
                         #endregion
                         if (mouse.RightButton == ButtonState.Released)
@@ -2066,7 +2120,7 @@ namespace AlkuTD
                             priorityRingActive = false;
                             switch (selectedRingPart)
                             {
-                                case 2: selectedTower.ElemPriority = ColorPriority.none; break;
+                                case 2: selectedTower.ElemPriority = ColorPriority.any; break;
                                 case 1:
                                 case 3:
                                 case 4:
@@ -2081,19 +2135,20 @@ namespace AlkuTD
                                 case 13: selectedTower.TargetPriority = TargetPriority.weak; break;
                                 case 14: selectedTower.TargetPriority = TargetPriority.fast; break;
                                 case 15: selectedTower.TargetPriority = TargetPriority.slow; break;
-                                case 16: selectedTower.TargetPriority = TargetPriority.mob; break;
+                                case 16: selectedTower.TargetPriority = TargetPriority.close; break;
                                 case 17: selectedTower.TargetPriority = TargetPriority.far; break;
+                                case 18: hoveredTPriority = TargetPriority.mob; break;
                             }
                         }
-                        string hoveredEPriorityString = hoveredEPriority== ColorPriority.none ? "" : hoveredEPriority.ToString();
-                        string towerEPriorityString = selectedTower.ElemPriority == ColorPriority.none ? "" : selectedTower.ElemPriority.ToString();
+                        string hoveredEPriorityString = hoveredEPriority== ColorPriority.any ? " any" : hoveredEPriority.ToString();
+                        string towerEPriorityString = selectedTower.ElemPriority == ColorPriority.any ? " any" : selectedTower.ElemPriority.ToString();
                         Color elemColor;
                         switch (selectedRingPart)
                         {
                             case 7: elemColor = Color.Red; break;
                             case 8: elemColor = Color.LightGreen; break;
                             case 9: elemColor = Color.CornflowerBlue; break;
-                            default: elemColor = selectedTower.ElemPriority == ColorPriority.red ? Color.Red : selectedTower.ElemPriority == ColorPriority.green ? Color.LightGreen : Color.CornflowerBlue; break;
+                            default: elemColor = selectedTower.ElemPriority == ColorPriority.red ? Color.Red : selectedTower.ElemPriority == ColorPriority.green ? Color.LightGreen : selectedTower.ElemPriority == ColorPriority.blue ? Color.CornflowerBlue : Color.White; break;
                         }
 
                         int elemPriorityStringWidth = (int)CurrentGame.font.MeasureString("green").X;
@@ -2102,7 +2157,7 @@ namespace AlkuTD
                         Vector2 elemPriorityStringDrawPos = activeTilePos - new Vector2(elemPriorityStringWidth / 2, 20);
                         Vector2 targetPriorityStringDrawPos = activeTilePos - new Vector2(targPriorityStrWidth / 2, -10);
 
-                        if (selectedTower.ElemPriority != ColorPriority.none || (selectedRingPart >= 7 && selectedRingPart <=9))
+                        //if (selectedTower.ElemPriority != ColorPriority.none || (selectedRingPart >= 7 && selectedRingPart <=9))
                             sb.Draw(CurrentGame.pixel, new Rectangle((int)elemPriorityStringDrawPos.X, (int)elemPriorityStringDrawPos.Y - 1, elemPriorityStringWidth, CurrentGame.font.LineSpacing), Color.Black * 0.5f);
                         sb.Draw(CurrentGame.pixel, new Rectangle((int)targetPriorityStringDrawPos.X, (int)targetPriorityStringDrawPos.Y - 1, targPriorityStrWidth, CurrentGame.font.LineSpacing), Color.Black * 0.5f);
 
@@ -2128,200 +2183,200 @@ namespace AlkuTD
                         //----------------------------AFFORDCOLOR-----------------------------------------------------------------|  (28.5.16: riittämättömyyshohto symbolien päälle
                         //if (ParentMap.Players[0].EnergyPoints - ParentMap.ExampleTowers[selectedRingPart - 1].Cost >= 0)
                         //    sb.Draw(ParentMap.tileTextures[5], tileCorners[selectedRingPart] - new Vector2(ParentMap.tileTextures[5].Width / 2, ParentMap.tileTextures[5].Height / 2), Color.PowderBlue);
-                        if (selectedRingPart < 7 && !priorityRingActive && ParentMap.AvailableTowers[selectedRingPart - 1] > 0 && ParentMap.Players[0].EnergyPoints < HexMap.ExampleTowers[selectedRingPart - 1].Cost)
-                            sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.IndianRed); //----------------------TODO: geneAffords & noRedsOnSellETC
-                                                                                                                                                                    //foreach (Vector2 point in tileCorners)
-                                                                                                                                                                    //    sb.Draw(ParentMap.tileTextures[4], point, null, new Color(150, 150, 150, 150));
+                        if (towerTileRingActive && selectedRingPart > 1 && selectedRingPart < 5 && ParentMap.Players[0].GenePoints[selectedRingPart-2] < 33)
+                            sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.IndianRed); //----------------------TODO: noRedsOnSellETC
+                        else if (selectedRingPart < 7 && !priorityRingActive && ParentMap.AvailableTowers[selectedRingPart - 1] > 0 && ParentMap.Players[0].EnergyPoints < HexMap.ExampleTowers[selectedRingPart - 1].Cost)
+                            sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.IndianRed); 
                     }
                     #endregion
                 }
                 #endregion
                 #region MAP HOVER & CLICK
                 else if (hoveredCoord.X >= 0 && hoveredCoord.X < ParentMap.Layout.GetLength(1) && hoveredCoord.Y >= 0 && hoveredCoord.Y < ParentMap.Layout.GetLength(0)) // HOVERING OVER THE MAP
-                    {
-                        ParentGame.IsMouseVisible = true;
-                        char tileChar = ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X];
-                        #region switchOption
-                        //switch (tileChar)
-                        //{
-                        //    case '\'': 
-                        //    case '.':
-                        //    case 'a':
-                        //    case 'b':
-                        //    case 'c':
-                        //    case 'd':
-                        //    case 'e':
-                        //    case 'f':
-                        //    case 'g':
-                        //    case 'h':
-                        //    case 'i':
-                        //    case '1':
-                        //    case '2':
-                        //    case '3':
-                        //    case '4':
-                        //    case '5':
-                        //    case '6':
-                        //    case '7':
-                        //    case '8':
-                        //    case '9':
-                        //    case '0': if (mouse.LeftButton == ButtonState.Pressed)
-                        //        {
-                        //            activeTilePos = hoveredTilePos;
-                        //            newTileRingActive = true;
-                        //            activeTileCoord = new Point(hoveredCoord.X, hoveredCoord.Y);
-                        //            Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
-                        //            selectedRingPart = 0;
-                        //            //selectionBall = hoveredTilePos;
-                        //            hudCue = CurrentGame.soundBank.GetCue("bui");
-                        //            hudCue.Play();
-                        //        }
-                        //        if (tileHoverFade < hoverFadeCycles) 
-                        //            tileHoverFade++;
-                        //        //ColorConversion.SetLightness(ref color, 100f);
-                        //        break;
-                        //    default:
-                        //}
-                        #endregion
-                        //HOVERING OVER OPEN TILE OR TOWER
-                        if (tileChar == '0' || !(tileChar == ' ' || tileChar == '\'' || tileChar == '.' || (tileChar >= 'a' && tileChar <= 'i') || (tileChar >= '1' && tileChar <= '9')))
-                        {
-                            activeTilePos = hoveredTilePos;
-                            Vector2 belowTilePos = activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f));
-                            if (tileChar == '0') //-----OPEN TILE 
-                            {
-                                if (mouse.LeftButton == ButtonState.Pressed)
-                                {
-                                    newTileRingActive = true;
-                                    OpenTilering(true);
-                                }
-                            }
-                            else //---------------------TOWER
-                            {
-                                if (mouse.LeftButton == ButtonState.Pressed)
-                                {
-                                    towerTileRingActive = true;
-                                    OpenTilering(false);
-                                }
-                                if (mouse.RightButton == ButtonState.Pressed)
-                                {
-                                    priorityRingActive = true;
-                                    OpenTilering(false);
-                                }
-                                for (int i = 0; i < ParentMap.Players[0].Towers.Count; i++)
-                                {
-                                    if (ParentMap.Players[0].Towers[i].MapCoord == hoveredCoord)
-                                    {
-                                        selectedTower = ParentMap.Players[0].Towers[i];
-                                        if (HoveredTowerInfoBox == null || HoveredTowerInfoBox.Target != selectedTower)
-                                        {
-                                            HoveredTowerInfoBox = new TowerInfoBox(selectedTower, belowTilePos, false);
-                                            towerHoverCounter = -towerHoverPopUpDelayCycles;
-                                        }
-                                        if (towerHoverCounter < towerHoverCycles)
-                                            towerHoverCounter++;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (HoveredTowerInfoBox != null && hoveredCoord != HoveredTowerInfoBox.Target.MapCoord)
-                                towerHoverCounter--;
-
-                            if (tileHoverFade < hoverFadeCycles)
-                                tileHoverFade++;
-                        }
-                        else //----------------------------------------------HOVERING OVER VOID OR PATH
-                        {
-                            if (tileHoverFade > 0)
-                                tileHoverFade--;
-                            towerHoverCounter--;
-                        }
-                        //----------------------------------------------------------------------------------------------------------------'
-                        if (tileRingFade > 0)
-                        {
-                            tileRingFade--;
-                            sb.Draw(tilering, activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
-                        }
-                    }
-                    //else
+                {
+                    ParentGame.IsMouseVisible = true;
+                    char tileChar = ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X];
+                    #region switchOption
+                    //switch (tileChar)
                     //{
-                    //    if (tileHoverFade > 0) tileHoverFade--;
+                    //    case '\'': 
+                    //    case '.':
+                    //    case 'a':
+                    //    case 'b':
+                    //    case 'c':
+                    //    case 'd':
+                    //    case 'e':
+                    //    case 'f':
+                    //    case 'g':
+                    //    case 'h':
+                    //    case 'i':
+                    //    case '1':
+                    //    case '2':
+                    //    case '3':
+                    //    case '4':
+                    //    case '5':
+                    //    case '6':
+                    //    case '7':
+                    //    case '8':
+                    //    case '9':
+                    //    case '0': if (mouse.LeftButton == ButtonState.Pressed)
+                    //        {
+                    //            activeTilePos = hoveredTilePos;
+                    //            newTileRingActive = true;
+                    //            activeTileCoord = new Point(hoveredCoord.X, hoveredCoord.Y);
+                    //            Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
+                    //            selectedRingPart = 0;
+                    //            //selectionBall = hoveredTilePos;
+                    //            hudCue = CurrentGame.soundBank.GetCue("bui");
+                    //            hudCue.Play();
+                    //        }
+                    //        if (tileHoverFade < hoverFadeCycles) 
+                    //            tileHoverFade++;
+                    //        //ColorConversion.SetLightness(ref color, 100f);
+                    //        break;
+                    //    default:
                     //}
                     #endregion
-                    #endregion
-
-                    #region CREATURES
-                    //--------------------HP BARS---------------------------------.
-                    for (int c = 0; c < ParentMap.AliveCreatures.Count; c++)
+                    //HOVERING OVER OPEN TILE OR TOWER
+                    if (tileChar == '0' || !(tileChar == ' ' || tileChar == '\'' || tileChar == '.' || (tileChar >= 'a' && tileChar <= 'i') || (tileChar >= '1' && tileChar <= '9')))
                     {
-                        if (ParentMap.AliveCreatures[c].hp != ParentMap.AliveCreatures[c].InitHp)
+                        activeTilePos = hoveredTilePos;
+                        Vector2 belowTilePos = activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f));
+                        if (tileChar == '0') //-----OPEN TILE 
                         {
-                            Creature creature = ParentMap.AliveCreatures[c];
-                            Color hpBarColor = new Color(1 - creature.hp / creature.InitHp, creature.hp / creature.InitHp, 0);
-                            creature.HpBarColor = hpBarColor;
-                            sb.Draw(CurrentGame.pixel, new Rectangle((int)creature.Location.X - creature.hpBarWidth / 2, (int)(creature.Location.Y - creature.Height * creature.SpriteScale / 2 - 1), creature.hpBarWidth, 4), Color.Black); //black background
-                            sb.Draw(CurrentGame.pixel, new Rectangle((int)creature.Location.X - creature.hpBarWidth / 2 + 1, (int)(creature.Location.Y - creature.Height * creature.SpriteScale / 2), (int)((creature.hpBarWidth - 2) * (creature.hp / creature.InitHp)), 2), hpBarColor);
-                        }
-                    }//-----------------------------------------------------------'
-                    for (int w = 0; w < ParentMap.Waves.Length; w++) //-----------SPLATTERS-------------------
-                    {
-                        for (int g = 0; g < ParentMap.Waves[w].Groups.Length; g++)
-                        {
-                            for (int c = 0; c < ParentMap.Waves[w].Groups[g].Creatures.Length; c++)
+                            if (mouse.LeftButton == ButtonState.Pressed)
                             {
-                                //ParentMap.Waves[w].Groups[g].Creatures[c].TrailEngine.Draw(sb); //----------TRAIL
-                                if (ParentMap.Waves[w].Groups[g].Creatures[c].Splatter.IsActive)
-                                    ParentMap.Waves[w].Groups[g].Creatures[c].Splatter.Draw(sb);
+                                newTileRingActive = true;
+                                OpenTilering(true);
                             }
                         }
+                        else //---------------------TOWER
+                        {
+                            if (mouse.LeftButton == ButtonState.Pressed)
+                            {
+                                towerTileRingActive = true;
+                                OpenTilering(false);
+                            }
+                            if (mouse.RightButton == ButtonState.Pressed)
+                            {
+                                priorityRingActive = true;
+                                OpenTilering(false);
+                            }
+                            for (int i = 0; i < ParentMap.Players[0].Towers.Count; i++)
+                            {
+                                if (ParentMap.Players[0].Towers[i].MapCoord == hoveredCoord)
+                                {
+                                    selectedTower = ParentMap.Players[0].Towers[i];
+                                    if (HoveredTowerInfoBox == null || HoveredTowerInfoBox.Target != selectedTower)
+                                    {
+                                        HoveredTowerInfoBox = new TowerInfoBox(selectedTower, belowTilePos, false);
+                                        towerHoverCounter = -towerHoverPopUpDelayCycles;
+                                    }
+                                    if (towerHoverCounter < towerHoverCycles)
+                                        towerHoverCounter++;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (HoveredTowerInfoBox != null && hoveredCoord != HoveredTowerInfoBox.Target.MapCoord)
+                            towerHoverCounter--;
+
+                        if (tileHoverFade < hoverFadeCycles)
+                            tileHoverFade++;
                     }
-
-                    #endregion
-
-                    #region INFOBOXES
-                    if (newTileRingActive && selectedRingPart > 0 && TileRingInfoBox != null)
-                        TileRingInfoBox.Draw(sb, 1);
-                    else if (towerTileRingActive && TileRingInfoBox != null)
-                        TileRingInfoBox.Draw(sb, 1);
-                    else if (HoveredTowerInfoBox != null && selectedTower != null && !(towerTileRingActive || newTileRingActive || priorityRingActive))
+                    else //----------------------------------------------HOVERING OVER VOID OR PATH
                     {
-                        HoveredTowerInfoBox.Draw(sb, Math.Min(towerHoverCounter / towerHoverCycles, 1));
+                        if (tileHoverFade > 0)
+                            tileHoverFade--;
+                        towerHoverCounter--;
                     }
-                    for (int i = 0; i < BugBoxes.Count; i++)
+                    //----------------------------------------------------------------------------------------------------------------'
+                    if (tileRingFade > 0)
                     {
-                        if (!BugBoxes[i].locked)
-                            BugBoxes[i].Draw(sb, Math.Min((float)bugHoverCounter / (bugHoverFade * 0.333f), 1));
-                        else
-                            BugBoxes[i].Draw(sb, 1);
+                        tileRingFade--;
+                        sb.Draw(tilering, activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
                     }
-                    for (int i = 0; i < NexWaveInfoBoxes.Count; i++)
-                        NexWaveInfoBoxes[i].Draw(sb, 1);
-                    for (int i = 0; i < CurrWaveInfoBoxes.Count; i++)
-                        CurrWaveInfoBoxes[i].Draw(sb, 1);
-                    #endregion
+                }
+                //else
+                //{
+                //    if (tileHoverFade > 0) tileHoverFade--;
+                //}
+                #endregion
+                #endregion
 
-                    #region HARDCODED TEXTS
-                    string waveXofN = "Wave " + (ParentMap.currentWave + 1) + " / " + (ParentMap.Waves == null ? 0 : ParentMap.Waves.Length);
+                #region CREATURES
+                //--------------------HP BARS---------------------------------.
+                for (int c = 0; c < ParentMap.AliveCreatures.Count; c++)
+                {
+                    if (ParentMap.AliveCreatures[c].hp != ParentMap.AliveCreatures[c].InitHp)
+                    {
+                        Creature creature = ParentMap.AliveCreatures[c];
+                        Color hpBarColor = new Color(1 - creature.hp / creature.InitHp, creature.hp / creature.InitHp, 0);
+                        creature.HpBarColor = hpBarColor;
+                        sb.Draw(CurrentGame.pixel, new Rectangle((int)creature.Location.X - creature.hpBarWidth / 2, (int)(creature.Location.Y - creature.Height * creature.SpriteScale / 2 - 1), creature.hpBarWidth, 4), Color.Black); //black background
+                        sb.Draw(CurrentGame.pixel, new Rectangle((int)creature.Location.X - creature.hpBarWidth / 2 + 1, (int)(creature.Location.Y - creature.Height * creature.SpriteScale / 2), (int)((creature.hpBarWidth - 2) * (creature.hp / creature.InitHp)), 2), hpBarColor);
+                    }
+                }//-----------------------------------------------------------'
+                for (int w = 0; w < ParentMap.Waves.Length; w++) //-----------SPLATTERS-------------------
+                {
+                    for (int g = 0; g < ParentMap.Waves[w].Groups.Length; g++)
+                    {
+                        for (int c = 0; c < ParentMap.Waves[w].Groups[g].Creatures.Length; c++)
+                        {
+                            //ParentMap.Waves[w].Groups[g].Creatures[c].TrailEngine.Draw(sb); //----------TRAIL
+                            if (ParentMap.Waves[w].Groups[g].Creatures[c].Splatter.IsActive)
+                                ParentMap.Waves[w].Groups[g].Creatures[c].Splatter.Draw(sb);
+                        }
+                    }
+                }
 
-                    sb.DrawString(font, "fps " + (int)Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.9f, 20), Color.DarkTurquoise);
-                    if (ParentMap.currentWave >= 0)
-                        sb.DrawString(font, waveXofN, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.5f - (int)font.MeasureString(waveXofN).X / 2, 20), Color.Orange);//, 0, Vector2.Zero,2f, SpriteEffects.None,0);
-                    else sb.DrawString(font, "Setup phase", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.5f - (int)font.MeasureString("Setup phase").X / 2, 50), Color.Orange);
-                    sb.DrawString(font, "Life:   " + ParentMap.Players[0].LifePoints, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.7f, 20), Color.IndianRed);
-                    sb.DrawString(font, "Biomass: " + ParentMap.Players[0].EnergyPoints, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.7f, 40), Color.LightSeaGreen);
-                    sb.DrawString(font, "Genes: ", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.8f, 20), Color.LightGray);
-                    sb.DrawString(font, ParentMap.Players[0].GenePoints[0].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.8f, 40), Color.Red);
-                    sb.DrawString(font, ParentMap.Players[0].GenePoints[1].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.83f, 40), Color.Green);
-                    sb.DrawString(font, ParentMap.Players[0].GenePoints[2].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.86f, 40), Color.Blue);
-                    //sb.DrawString(font, "Genes:  " + ParentMap.Players[0].UpgradePoints, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.7f, 60), Color.Plum);
-                    //sb.DrawString(font, Environment.CurrentDirectory, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.3f, 70), Color.Plum);
-                    //sb.DrawString(font, "Td, aT, at, dT, a7, AVAK T;, zgj", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.4f, 90), Color.Plum);
-                    //sb.DrawString(font, "mapTime:  " + CurrentMap.mapTimer, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.7f, 80), Color.Wheat);
-                    #endregion
+                #endregion
 
-                    //DrawWaveInfo(sb);
+                #region INFOBOXES
+                if (newTileRingActive && selectedRingPart > 0 && TileRingInfoBox != null)
+                    TileRingInfoBox.Draw(sb, 1);
+                else if (towerTileRingActive && TileRingInfoBox != null)
+                    TileRingInfoBox.Draw(sb, 1);
+                else if (HoveredTowerInfoBox != null && selectedTower != null && !(towerTileRingActive || newTileRingActive || priorityRingActive))
+                {
+                    HoveredTowerInfoBox.Draw(sb, Math.Min(towerHoverCounter / towerHoverCycles, 1));
+                }
+                for (int i = 0; i < BugBoxes.Count; i++)
+                {
+                    if (!BugBoxes[i].locked)
+                        BugBoxes[i].Draw(sb, Math.Min((float)bugHoverCounter / (bugHoverFade * 0.333f), 1));
+                    else
+                        BugBoxes[i].Draw(sb, 1);
+                }
+                for (int i = 0; i < NexWaveInfoBoxes.Count; i++)
+                    NexWaveInfoBoxes[i].Draw(sb, 1);
+                for (int i = 0; i < CurrWaveInfoBoxes.Count; i++)
+                    CurrWaveInfoBoxes[i].Draw(sb, 1);
+                #endregion
 
-                    if (CurrentGame.gameState == GameState.MapTestInGame || CurrentGame.gameState == GameState.MapTestInitSetup /*|| (CurrentGame.prevState == GameState.MapTestInGame && CurrentGame.gameState == GameState.Paused)*/)
+                #region HARDCODED TEXTS
+                string waveXofN = "Wave " + (ParentMap.currentWave + 1) + " / " + (ParentMap.Waves == null ? 0 : ParentMap.Waves.Length);
+
+                sb.DrawString(font, "fps " + (int)Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.9f, 20), Color.DarkTurquoise);
+                if (ParentMap.currentWave >= 0)
+                    sb.DrawString(font, waveXofN, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.5f - (int)font.MeasureString(waveXofN).X / 2, 20), Color.Orange);//, 0, Vector2.Zero,2f, SpriteEffects.None,0);
+                else sb.DrawString(font, "Setup phase", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.5f - (int)font.MeasureString("Setup phase").X / 2, 50), Color.Orange);
+                sb.DrawString(font, "Life:   " + ParentMap.Players[0].LifePoints + "/" + CurrentGame.currentMap.PlayerInitLife, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.62f, 20), Color.IndianRed);
+                sb.DrawString(font, "Biomass: " + ParentMap.Players[0].EnergyPoints, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.62f, 40), Color.LightSeaGreen);
+                sb.DrawString(font, "Genes: ", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.8f, 20), Color.LightGray);
+                sb.DrawString(font, ParentMap.Players[0].GenePoints[0].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.8f, 40), Color.Red);
+                sb.DrawString(font, ParentMap.Players[0].GenePoints[1].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.83f, 40), Color.Green);
+                sb.DrawString(font, ParentMap.Players[0].GenePoints[2].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.86f, 40), Color.Blue);
+                //sb.DrawString(font, "Genes:  " + ParentMap.Players[0].UpgradePoints, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.7f, 60), Color.Plum);
+                //sb.DrawString(font, Environment.CurrentDirectory, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.3f, 70), Color.Plum);
+                //sb.DrawString(font, "Td, aT, at, dT, a7, AVAK T;, zgj", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.4f, 90), Color.Plum);
+                //sb.DrawString(font, "mapTime:  " + CurrentMap.mapTimer, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.7f, 80), Color.Wheat);
+                #endregion
+
+                //DrawWaveInfo(sb);
+
+                if (CurrentGame.gameState == GameState.MapTestInGame || CurrentGame.gameState == GameState.MapTestInitSetup /*|| (CurrentGame.prevState == GameState.MapTestInGame && CurrentGame.gameState == GameState.Paused)*/)
                     #region MAPTEST WAVETABLE
                     {
                         BackToEditButton.Draw(sb);
@@ -2500,7 +2555,7 @@ namespace AlkuTD
 
                                     newTileRingActive = false;
                                 }
-                                sb.Draw(tileringGlow, Magnetize(tileCorners), Color.White * 0.7f); //restricted & magnetized object
+                                sb.Draw(tileringGlow, MagnetizeMouse(tileCorners, sb, gameTime), Color.White * 0.7f); //restricted & magnetized object
                             }
                             else if (towerTileRingActive)
                             {
@@ -2546,7 +2601,7 @@ namespace AlkuTD
                                 }
                             }
                             if (tileHoverFade > 0) tileHoverFade--;
-                            sb.Draw(tileringGlow, Magnetize(tileCorners), Color.White * 0.7f); //restricted & magnetized object
+                            sb.Draw(tileringGlow, MagnetizeMouse(tileCorners,sb, gameTime), Color.White * 0.7f); //restricted & magnetized object
                                                                                                //sb.Draw(tileOverlay, activeTilePos, null, Color.White * (hoverFade / hoverFadeCycles) * 0.8f /*new Color(230, 230, 250, 255)*/, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0);
 
                             if (selectedRingPart > 0) //-----------kaikissa tileringeissä
@@ -2712,8 +2767,31 @@ namespace AlkuTD
 
                 prevRingPart = selectedRingPart;
 
+            /*
+                //sb.DrawString(font, mousePos.ToString(), mousePos, Color.White);
+                Vector2 testPos = mousePos;
+                float angle = (float)Math.Atan2(hoveredTilePos.Y - mousePos.Y, hoveredTilePos.X - mousePos.X);
+                sb.DrawString(font, angle.ToString(), mousePos + new Vector2(50,0), Color.White);
 
-            }
+                Vector2 dir = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
+                sb.DrawString(font, dir.ToString(), mousePos + new Vector2(50,20), Color.White);
+                dir *= 50;
+            
+                testPos -= new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2);
+
+                float angleOffset = (float)(Math.PI * 0.5f) * ((float)ParentMap.rnd.NextDouble() - 0.5f);
+                float ca = (float)Math.Cos(angleOffset);
+                float sa = (float)Math.Sin(angleOffset);
+                Vector2 sprayTarget = new Vector2(dir.X * ca - dir.Y * sa, dir.X * sa + dir.Y * ca);
+                sprayTarget = testPos - sprayTarget;
+
+                sb.Draw(tileringSlot, sprayTarget, Color.Yellow);
+                sb.Draw(tileringSlot, testPos - dir, Color.White);
+                sb.Draw(tileringSlot, testPos, Color.White);
+            */
+
+            //sb.DrawString(font, CurrentGame.gameState.ToString(), mousePos + new Vector2(50, 0), Color.White);
         }
+    }
     }
 

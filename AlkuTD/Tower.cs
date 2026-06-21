@@ -156,7 +156,7 @@ namespace AlkuTD
 			PossibleTargets = new List<Creature>();
 
 			GeneSpecs = geneSpecs;
-			GeneSpecs.BaseTiers[Math.Max((int)GeneSpecs.GetPrimaryElem() - 1, 0)] = (int)(GeneSpecs.GetPrimaryElemStrength() * 100) / GeneSpecs.TierSize;
+			GeneSpecs.BaseTiers[Math.Max((int)GeneSpecs.GetPrimaryElem() - 1, 0)] = (int)(GeneSpecs.GetPrimaryElemStrength()) / GeneSpecs.TierSize;
 
 			FireRateSec = 1000 / (firerate * (float)ParentMap.ParentGame.TargetElapsedTime.TotalMilliseconds);
 			DPS = dmg * FireRateSec;
@@ -279,7 +279,7 @@ namespace AlkuTD
 		}
 
         //Shoot at creature
-        public virtual void Shoot(Creature targetCreature)
+        internal virtual void Shoot(Creature targetCreature)
         {
 			Bullet freeBullet = Bullets.Find(b => b.active == false);
 			if (freeBullet == null && Bullets.Count < 10)
@@ -352,6 +352,7 @@ namespace AlkuTD
 					else return;
 				}
 			}
+            
         }
 
 		Vector2 closestIterAim;
@@ -365,7 +366,7 @@ namespace AlkuTD
 				UpgradeLvl++;
                 towerTypeIdx += 6;
 				Tower exampleTower = HexMap.ExampleTowers[towerTypeIdx];
-				BuildTime = exampleTower.BuildTime;
+                BuildTime = exampleTower.BuildTime;
 				buildTimer = BuildTime;
 				buildFinishedCounter = buildFinishedInit;
 
@@ -376,6 +377,7 @@ namespace AlkuTD
                 Cost = exampleTower.Cost;
                 Dmg = exampleTower.Dmg;
                 DmgType = exampleTower.DmgType;
+
                 //Element //---------------------------------------------------------------------------säilyykö vanhat elems?
                 //firerateCounter //-------------------------------------------------------------------mielenkiintois. Vrt. Kingdom Rush jossa resetoituu
                 FireRate = exampleTower.FireRate;
@@ -406,9 +408,7 @@ namespace AlkuTD
 				{
 					int cost = GeneSpecs.TierSize;
 					GeneSpecs.BaseTiers[geneIdx]++;
-					if (GeneSpecs.BaseTiers[geneIdx] == 100 / GeneSpecs.TierSize)
-						cost = GeneSpecs.TierSize + 1; // 33 33 34 -----!!
-					GeneSpecs[geneType] += cost * 0.01f; 
+					GeneSpecs[geneType] = GeneSpecs.BaseTiers[geneIdx] * (100f/3); 
 					CurrentGame.players[0].GenePoints[geneIdx] -= cost;
 					CurrentGame.HUD.UpdateGeneBars();
 					return true;
@@ -423,11 +423,12 @@ namespace AlkuTD
 			if (GeneSpecs.HasAny)
 			{
 				int cost = GeneSpecs.TierSize;
-				if (GeneSpecs.BaseTiers[geneIdx] == 2)
-					cost = GeneSpecs.TierSize +1; // 33 33 34 -----!!
 				GeneSpecs.BaseTiers[geneIdx]--;
-				GeneSpecs[mainType] -= cost * 0.01f;
-				CurrentGame.players[0].GenePoints[geneIdx] += (int)Math.Round(cost * CurrentGame.GeneSellRate);
+				GeneSpecs[mainType] = GeneSpecs.BaseTiers[geneIdx] * (100f/3);
+                if (CurrentGame.gameState != GameState.InitSetup && CurrentGame.gameState != GameState.MapTestInitSetup)
+                    CurrentGame.players[0].GenePoints[geneIdx] += (int)Math.Round(cost * CurrentGame.GeneSellRate);
+				else
+                    CurrentGame.players[0].GenePoints[geneIdx] += cost;
 				CurrentGame.HUD.UpdateGeneBars();
 				return true;
 			}
@@ -459,6 +460,13 @@ namespace AlkuTD
 			CurrentGame.soundEffects[1].Play(0.2f, -0.6f, 0);
 		}
 
+		public void Remove()
+		{
+            CurrentGame.players[0].Towers.Remove(this);
+            ParentMap.Layout[mapCoord.Y, mapCoord.X] = '0';
+            ParentMap.CurrentLayout[mapCoord] = '0';
+        }
+
 		internal int firerateCounter = 0;		
 		internal Creature currentTarget;
 		internal List<Creature> previousTargets;
@@ -477,12 +485,12 @@ namespace AlkuTD
                 if (aliveCreatures[i].Born && Vector2.Distance(aliveCreatures[i].Location, ScreenLocation) <= Range)
                 {
 					CreaturesInRange.Add(aliveCreatures[i]);
-					if (ElemPriority != AlkuTD.ColorPriority.none && aliveCreatures[i].ElemArmors[ElemPriority] > 0)
+					if (ElemPriority != AlkuTD.ColorPriority.any && aliveCreatures[i].ElemArmors[ElemPriority] > 0)
 						ColoredInRange.Add(aliveCreatures[i]);
 				}
 			}
 
-			if (ElemPriority != AlkuTD.ColorPriority.none && ColoredInRange.Count > 0)
+			if (ElemPriority != AlkuTD.ColorPriority.any && ColoredInRange.Count > 0)
 				PossibleTargets = ColoredInRange;
 			else PossibleTargets = CreaturesInRange;
 
@@ -604,6 +612,19 @@ namespace AlkuTD
 										smallDistToGoal = PossibleTargets[i].DistanceToGoal;
 										currentTarget = PossibleTargets[i];
 									}
+								}
+							}
+							break;
+					case TargetPriority.close:
+							float closest = 99999f;
+							for (int i = 0; i < PossibleTargets.Count; i++)
+							{
+								float distToCreature = Vector2.Distance(PossibleTargets[i].Location, ScreenLocation);
+
+                                if (distToCreature < closest)
+								{
+									closest = distToCreature;
+									currentTarget = PossibleTargets[i];
 								}
 							}
 							break;
@@ -796,12 +817,14 @@ namespace AlkuTD
         public static Tower Clone(Tower t) //--HARD CODED IsExample !!!
         {
             Type checkedType = t.GetType();
-            if (checkedType == typeof(SniperTower))
-                return new SniperTower(t.MapCoord, t.UpgradeLvl, false);
-            else if (checkedType == typeof(ParticleEaterTower))
-                return new ParticleEaterTower(t.MapCoord, t.UpgradeLvl, false);
-            else
-                return new Tower(t.Symbol, t.Name, t.mapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false);
+			if (checkedType == typeof(SniperTower))
+				return new SniperTower(t.MapCoord, t.UpgradeLvl, false);
+			else if (checkedType == typeof(ParticleEaterTower))
+				return new ParticleEaterTower(t.MapCoord, t.UpgradeLvl, false);
+			else if (checkedType == typeof(SprayTower))
+				return new SprayTower(t.MapCoord, t.UpgradeLvl, false);
+			else
+				return new Tower(t.Symbol, t.Name, t.mapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false);
         }
 
         Tower ITower.Clone(Tower t)
@@ -817,6 +840,8 @@ namespace AlkuTD
                 tempTower = new SniperTower(mapCoord, t.UpgradeLvl, false);
             else if (checkedType == typeof(ParticleEaterTower))
                 tempTower = new ParticleEaterTower(mapCoord, t.UpgradeLvl, false);
+            else if (checkedType == typeof(SprayTower))
+                tempTower = new SprayTower(mapCoord, t.UpgradeLvl, false);
             else
                 tempTower = new Tower(t.Symbol, t.Name, mapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false);
             tempTower.buildTimer = 0;

@@ -152,7 +152,8 @@ namespace AlkuTD
                                            //new Tower('U', "Grabber 1", Point.Zero, 120, 20, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri4") }, new GeneSpecs(), CurrentGame.ball, 12f, 1, 0, 0, new float[] {0,0}, 50, 200, true),
                                            new Tower('|', "Booster 1", Point.Zero, 350, 60, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57") }, new GeneSpecs(), CurrentGame.ball, 8f, 1, 0, 0, new float[] {0,0}, 15, 200, true),
 
-                                           new Tower('Ä', "Pruiter 2", Point.Zero, 90, 64, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri6") }, new GeneSpecs(), CurrentGame.ball, 12f, 2, 0, 0, new float[] {0,0}, 10, 300, true),
+                                           new SprayTower(Point.Zero, UpgLvl.Basic, true),
+                                           //new Tower('Ä', "Pruiter 2", Point.Zero, 90, 64, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN-66-57-väri6") }, new GeneSpecs(), CurrentGame.ball, 12f, 2, 0, 0, new float[] {0,0}, 10, 300, true),
                                            new Tower('Ë', "Splasher 2", Point.Zero, 250, 70, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\TORN2") }, new GeneSpecs(), CurrentGame.ball, 2f, 2, DmgType.Splash, 25, new float[] {0,0}, 20, 200, true),
                                            new SniperTower(Point.Zero, UpgLvl.Advanced, true),
                                            //new Tower('Ï', "Sniper 2", Point.Zero, 225, 100, new Texture2D[] { ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, 12f, 15, 0, 0, new float[] {0,0}, 30, 200, true),
@@ -308,29 +309,13 @@ namespace AlkuTD
             Players[0].Towers.Add(t);
             //Players[0].Towers.Insert(Players[0].Towers.Count, t);  //---- joku vanha numerotorni-idea?
         } //----käytetään kerran ja on lyhyt, oks järkee?
-
-        //public void AddTower(Tower t) //--------oston ja lisäyksen erottelua ei sit vissiin tarvitukaan
-        //{
-        //    Layout[t.mapCoord.Y, t.mapCoord.X] = t.Symbol;
-        //    Players[0].Towers.Insert(Players[0].Towers.Count, t);
-        //}
         
         public void ResetMap()
         {
             Array.Copy(InitLayout, Layout, InitLayout.Length);
             CurrentLayout = new MapLayout(Layout);
             InitialLayout = new MapLayout(InitLayout);
-            /*for (int y = 0; y <= Layout.GetUpperBound(0); y++)
-            { for (int x = 0; x <= Layout.GetUpperBound(1); x++)
-              {
-                  if (Layout[y, x] != 1) continue;
 
-                  int RND = rnd.Next(0, 100);
-                  if (RND < 50)
-                    Layout[y, x] = 1;
-                  else Layout[y, x] = 2;
-              }
-            }*/
             mapTimer = 0;
             currentWave = -1;
             //waveTimer = 0;
@@ -447,15 +432,17 @@ namespace AlkuTD
             {
 				Wave lastWave = Waves[Waves.GetUpperBound(0)];
 				SpawnGroup lastGroup = lastWave.Groups[lastWave.Groups.GetUpperBound(0)];
-				if (lastGroup.IsWholeGroupBorn)
-					CurrentGame.gameState = GameState.GameOver;
-                /*if (CurrentGame.gameState == GameState.InGame)
+                if (lastGroup.IsWholeGroupBorn)
                 {
-                    ParentGame.mainMenu.SavePlayerData(); //------------neeeds planning
-                    ParentGame.gameState = Game1.GameState.LevelComplete;  //----------------------TODO: LEVEL COMPLETION STATE-------------------------------!!
-                }*/
-                //else
-                   // CurrentGame.gameState = GameState.GameOver;
+                    //CurrentGame.gameState = GameState.LevelComplete;  //----------------------TODO: LEVEL COMPLETION STATE-------------------------------!!
+                    GameState prevState = CurrentGame.gameState;
+                    CurrentGame.gameState = GameState.GameOver;
+                    if (prevState != GameState.MapTestInGame && prevState != GameState.MapEditor && prevState != GameState.MapTestInitSetup)
+                    {
+                        ParentGame.mainMenu.SavePlayerData();
+                        ParentGame.mainMenu.LoadPlayerData(ParentGame.mainMenu.CurrentPlayerIndexes[0]);
+                    }
+                }
             }
             if (CurrentGame.gameState == GameState.InGame || CurrentGame.gameState == GameState.MapTestInGame/*!initSetupOn*/)
             {

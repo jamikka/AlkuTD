@@ -24,34 +24,34 @@ Wave 2--------------------------------------------------------------------------
 	8	Flo	Longoid		pitkubug	1	c	3	.6	1	1	0	0	0	150	75
 	8	Flo	Longoid		pitkubug	1	b	3	.6	1	1	0	0	0	150	1300
 Wave 3------------------------------------------------------------------------------------------------------------------------------------------
-	2	Flo	Toughtoid	armorbug	1	b	6	.4	2	2	.5	0	0	250	125
-	2	Flo	Toughtoid	armorbug	1	a	6	.4	2	2	.5	0	0	250	1800
+	2	Flo	Toughtoid	armorbug	1	b	6	.4	2	2	50	0	0	250	125
+	2	Flo	Toughtoid	armorbug	1	a	6	.4	2	2	50	0	0	250	1800
 Wave 4------------------------------------------------------------------------------------------------------------------------------------------
 	16	Flo	Fastoid		minibug		1	b	1	1.2	1	0	0	0	0	60	30
 	8	Flo	Longoid		pitkubug	1	c	3	.6	1	1	0	0	0	100	1300
 Wave 5------------------------------------------------------------------------------------------------------------------------------------------
-	5	Flo	Toughtoid	armorbug	1	b	6	.4	2	2	.5	0	0	250	125
-	5	Flo	Toughtoid	armorbug	1	c	6	.4	2	2	.5	0	0	250	2000
+	5	Flo	Toughtoid	armorbug	1	b	6	.4	2	2	50	0	0	250	125
+	5	Flo	Toughtoid	armorbug	1	c	6	.4	2	2	50	0	0	250	2000
 Wave 6------------------------------------------------------------------------------------------------------------------------------------------
 	16	Flo	Fastoid		minibug		1	c	1	1.2	1	0	0	0	0	60	90
 	16	Flo	Fastoid		minibug		1	c	1	1.2	1	0	0	0	0	60	90
 	16	Flo	Fastoid		minibug		1	b	1	1.2	1	0	0	0	0	60	1000
 Wave 7------------------------------------------------------------------------------------------------------------------------------------------
-	8	Flo	Toughtoid	armorbug	1	b	6	.4	2	2	.5	0	0	200	100
-	8	Flo	Toughtoid	armorbug	1	a	6	.4	2	2	.5	0	0	200	100
+	8	Flo	Toughtoid	armorbug	1	b	6	.4	2	2	50	0	0	200	100
+	8	Flo	Toughtoid	armorbug	1	a	6	.4	2	2	50	0	0	200	100
 	12	Flo	Longoid		pitkubug	1	c	3	.6	1	1	0	0	0	150	1500
 Wave 8------------------------------------------------------------------------------------------------------------------------------------------
-	10	Flo	Toughtoid	armorbug	1	a	6	.4	2	2	.5	0	0	250	125
-	10	Flo	Toughtoid	armorbug	1	b	6	.4	2	2	.5	0	0	250	125
-	10	Flo	Toughtoid	armorbug	1	c	6	.4	2	2	.5	0	0	250	2200
+	10	Flo	Toughtoid	armorbug	1	a	6	.4	2	2	50	0	0	250	125
+	10	Flo	Toughtoid	armorbug	1	b	6	.4	2	2	50	0	0	250	125
+	10	Flo	Toughtoid	armorbug	1	c	6	.4	2	2	50	0	0	250	2200
 Wave 9------------------------------------------------------------------------------------------------------------------------------------------
-	16	Flo	RFastoid	minibug		1	a	1	1.2	1	0	.5	0	0	60	90
-	16	Flo	RFastoid	minibug		1	b	1	1.2	1	0	.5	0	0	60	90
-	16	Flo	RFastoid	minibug		1	c	1	1.2	1	0	.5	0	0	60	2000
+	16	Flo	RFastoid	minibug		1	a	1	1.2	1	0	50	0	0	60	90
+	16	Flo	RFastoid	minibug		1	b	1	1.2	1	0	50	0	0	60	90
+	16	Flo	RFastoid	minibug		1	c	1	1.2	1	0	50	0	0	60	2000
 Wave 10------------------------------------------------------------------------------------------------------------------------------------------
 	8	Flo	Longoid		pitkubug	1	c	3	.6	1	1	0	0	0	100	50
 	8	Flo	Longoid		pitkubug	1	b	3	.6	1	1	0	0	0	100	50
-	2	Flo	Toughtoid	armorbug	1	b	6	.4	2	2	.5	0	0	200	100
-	2	Flo	Toughtoid	armorbug	1	a	6	.4	2	2	.5	0	0	200	100
-	16	Flo	RFastoid	minibug		1	a	1	1.2	1	0	.5	0	0	40	20
-	16	Flo	RFastoid	minibug		1	c	1	1.2	1	0	.5	0	0	40	2000
+	2	Flo	Toughtoid	armorbug	1	b	6	.4	2	2	50	0	0	200	100
+	2	Flo	Toughtoid	armorbug	1	a	6	.4	2	2	50	0	0	200	100
+	16	Flo	RFastoid	minibug		1	a	1	1.2	1	0	50	0	0	40	20
+	16	Flo	RFastoid	minibug		1	c	1	1.2	1	0	50	0	0	40	2000

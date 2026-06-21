@@ -78,13 +78,13 @@ namespace AlkuTD
                 if (distanceToParticle <= Range + preAimRangeBonus)
                 {
                     DebrisInPreAimRange.Add(floatingParticles[i]);
-                    if (ElemPriority != AlkuTD.ColorPriority.none && floatingParticles[i].Elems.HasAny)
+                    if (ElemPriority != AlkuTD.ColorPriority.any && floatingParticles[i].Elems.HasAny)
                         ColoredDebrisInPreAimRange.Add(floatingParticles[i]);
                 }
                 if (distanceToParticle <= Range)
                 {
                     DebrisInRange.Add(floatingParticles[i]);
-                    if (ElemPriority != AlkuTD.ColorPriority.none && floatingParticles[i].Elems.HasAny)
+                    if (ElemPriority != AlkuTD.ColorPriority.any && floatingParticles[i].Elems.HasAny)
                         ColoredDebrisInRange.Add(floatingParticles[i]);
                 }
             }
@@ -97,14 +97,14 @@ namespace AlkuTD
             }
             else if (DebrisInRange.Count == 0)
             {
-                if (ElemPriority != AlkuTD.ColorPriority.none && ColoredDebrisInPreAimRange.Count > 0)
+                if (ElemPriority != AlkuTD.ColorPriority.any && ColoredDebrisInPreAimRange.Count > 0)
                     PossibleDebrisTargets = ColoredDebrisInPreAimRange;
                 else PossibleDebrisTargets = DebrisInPreAimRange;
                 isOnlyPreaimTargets = true;
             }
             else
             {
-                if (ElemPriority != AlkuTD.ColorPriority.none && ColoredDebrisInPreAimRange.Count > 0)
+                if (ElemPriority != AlkuTD.ColorPriority.any && ColoredDebrisInPreAimRange.Count > 0)
                     PossibleDebrisTargets = ColoredDebrisInRange;
                 else PossibleDebrisTargets = DebrisInRange;
                 isOnlyPreaimTargets = false;

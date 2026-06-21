@@ -247,7 +247,7 @@ namespace AlkuTD
 					GeneType creaturePrimaryArmor = ElemArmors.GetPrimaryElem();
 					float bStr = bullet.ElemSpecs.GetPrimaryElemStrength();
 					float cArm = ElemArmors.GetPrimaryElemStrength();
-					float armorReducedNormalDmg = (bullet.dmg /** (1 - bStr)*/) * (1 - cArm); // normal vs armor = (dmg * (1-spec)) * (1-armor)
+					float armorReducedNormalDmg = (bullet.dmg /** (1 - bStr)*/) * ((100 - cArm)*0.01f); // normal vs armor = (dmg * (1-spec)) * (1-armor)
 					float penetratingDmg = bullet.dmg * bStr; //----------------------- penetration = dmg * specialization
 
 					if (bulletPrimarySpec == creaturePrimaryArmor) // match
@@ -258,7 +258,7 @@ namespace AlkuTD
 				else if (bullet.ElemSpecs.HasAny) // if just the bullet has specialization
 				{
 					float bStr = bullet.ElemSpecs.GetPrimaryElemStrength();
-					hpLoss = bullet.dmg * (1 - bStr);
+					hpLoss = bullet.dmg * ((100 - bStr) * 0.01f);
 				}
 				else
 					hpLoss = bullet.dmg;
@@ -762,31 +762,37 @@ namespace AlkuTD
                     sb.Draw(Spritesheet, Location, sourceRect, Color.White, -Angle /*+ AngleOffset*/, Origin, 2, SpriteEffects.None, creatureDrawDepth);
                 }
             else if (Name == "1") sb.Draw(Spritesheet, Location, null, Color.White, -Angle, Origin, 1, SpriteEffects.None, 0);
-            else
+            else if (Spritesheet != null)
 			{
 				sb.Draw(Spritesheet, Location + CreatureShadowDistance, null, Color.Black * 0.4f, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, creatureDrawDepth + 0.01f);
 				sb.Draw(Spritesheet, Location, null, Color.White, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, creatureDrawDepth);
 			}
-
-			//foreach (Vector2 p in Path)
-			//	sb.Draw(CurrentGame.pixel, p, null, Color.LightPink, 0, Vector2.Zero, 1, SpriteEffects.None, 0.0001f);
-			//sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint]), 1), null, Color.CadetBlue, (float)Math.Atan2(Path[nextWaypoint].Y - Location.Y, Path[nextWaypoint].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
-			//sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint-1]), 1), null, Color.Orange, (float)Math.Atan2(Path[nextWaypoint-1].Y - Location.Y, Path[nextWaypoint-1].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
-			//sb.Draw(Spritesheet, imagPos, null, Color.White * 0.5f, -Angle, Origin, 1, SpriteEffects.None, 0);
-			//sb.DrawString(CurrentGame.font, Math.Round(imagDist).ToString(), Location, Color.Wheat);
-			//sb.DrawString(CurrentGame.font, vecPos.ToString(), Location, Color.Wheat);
-			//sb.Draw(CurrentGame.pixel, imagDest, null, Color.Green, 0, Vector2.Zero, 2, SpriteEffects.None, 0);
-			//sb.DrawString(CurrentGame.font, Speed.ToString(), Vector2.One, Color.Wheat);
+			else
+            {
+                sb.Draw(CurrentGame.smallBall, Location + CreatureShadowDistance, null, Color.Black * 0.4f, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, creatureDrawDepth + 0.01f);
+                sb.Draw(CurrentGame.smallBall, Location, null, Color.White, Angle, Origin /*Vector2.One*/, 1, SpriteEffects.None, creatureDrawDepth);
+            }
 
 
-			/*if (hp != InitHp)//-------------SIIRRETTY HUDIIN PIIRTYMÄÄN ÖRÖJEN PÄÄLLE---------------------------------------------------------------------------
+            //foreach (Vector2 p in Path)
+            //	sb.Draw(CurrentGame.pixel, p, null, Color.LightPink, 0, Vector2.Zero, 1, SpriteEffects.None, 0.0001f);
+            //sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint]), 1), null, Color.CadetBlue, (float)Math.Atan2(Path[nextWaypoint].Y - Location.Y, Path[nextWaypoint].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+            //sb.Draw(CurrentGame.pixel, new Rectangle((int)Location.X, (int)Location.Y, (int)Vector2.Distance(Location, Path[nextWaypoint-1]), 1), null, Color.Orange, (float)Math.Atan2(Path[nextWaypoint-1].Y - Location.Y, Path[nextWaypoint-1].X - Location.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+            //sb.Draw(Spritesheet, imagPos, null, Color.White * 0.5f, -Angle, Origin, 1, SpriteEffects.None, 0);
+            //sb.DrawString(CurrentGame.font, Math.Round(imagDist).ToString(), Location, Color.Wheat);
+            //sb.DrawString(CurrentGame.font, vecPos.ToString(), Location, Color.Wheat);
+            //sb.Draw(CurrentGame.pixel, imagDest, null, Color.Green, 0, Vector2.Zero, 2, SpriteEffects.None, 0);
+            //sb.DrawString(CurrentGame.font, Speed.ToString(), Vector2.One, Color.Wheat);
+
+
+            /*if (hp != InitHp)//-------------SIIRRETTY HUDIIN PIIRTYMÄÄN ÖRÖJEN PÄÄLLE---------------------------------------------------------------------------
             {
                 sb.Draw(ParentGame.pixel, new Rectangle((int)Location.X - hpBarWidth / 2, (int)(Location.Y - Height * SpriteScale / 2 - 1), hpBarWidth, 4), Color.Black); //black background
                 sb.Draw(ParentGame.pixel, new Rectangle((int)Location.X - hpBarWidth / 2 + 1, (int)(Location.Y - Height * SpriteScale / 2), (int)((hpBarWidth -2) * (hp / InitHp)), 2), new Color(1 - hp / InitHp, hp / InitHp, 0));
             }*/
-			//}
-			//sb.DrawString(CurrentGame.font, Math.Round(DistanceToGoal).ToString(), Location, Color.Wheat);
-		}
+            //}
+            //sb.DrawString(CurrentGame.font, Math.Round(DistanceToGoal).ToString(), Location, Color.Wheat);
+        }
 
         public static Creature Clone(Creature model)
         {

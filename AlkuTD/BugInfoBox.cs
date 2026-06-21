@@ -43,7 +43,7 @@ namespace AlkuTD
 			hpStringWidth = CurrentGame.font.MeasureString(hpString).X;
 			float nameStringWidth = CurrentGame.font.MeasureString(Target.Name).X;
 			float resStringWidth = 0;
-			string elemValueString = ((int)((Target.ElemArmors.GetPrimaryElemStrength()) * 100)).ToString();
+			string elemValueString = ((int)((Target.ElemArmors.GetPrimaryElemStrength()))).ToString();
 			if (Target.ElemArmors.HasAny)
 				resStringWidth = CurrentGame.font.MeasureString(elemValueString + "%" + " RES").X;
 			float biggestWidth = nameStringWidth > resStringWidth ? nameStringWidth : resStringWidth;

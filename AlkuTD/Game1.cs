@@ -178,8 +178,20 @@ namespace AlkuTD
                         //brightnessFX.Parameters["value"].SetValue(brightnessValue);
                         break;
                     case GameState.Paused:
-                        if (keyboard.IsKeyDown(Keys.Space)) this.Exit();
-                        else if (keyboard.IsKeyDown(Keys.Escape) && !prevKeyboard.IsKeyDown(Keys.Escape)) gameState = prevState;
+                        if (keyboard.IsKeyDown(Keys.Space))
+                            gameState = GameState.InGame;
+                        else if (keyboard.IsKeyDown(Keys.LeftControl) && !prevKeyboard.IsKeyDown(Keys.LeftControl))
+                        {
+                            gameState = GameState.MainMenu;
+                            mainMenu.menuState = MainMenu.MenuState.Main;
+                        }
+                        else if (keyboard.IsKeyDown(Keys.Escape) && !prevKeyboard.IsKeyDown(Keys.Escape))
+                        {
+                            if (prevState == GameState.MainMenu)
+                                gameState = GameState.InGame;
+                            else
+                                gameState = prevState;
+                        }
                         else if (keyboard.IsKeyDown(Keys.M) && !prevKeyboard.IsKeyDown(Keys.M))
                         {
                             gameState = GameState.MainMenu;

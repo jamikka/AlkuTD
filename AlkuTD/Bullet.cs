@@ -12,6 +12,7 @@ namespace AlkuTD
         Random Rnd;
         public Vector2 Target; //------maahan ampuvia torneja varten, ei vielä implemented
         public Creature targetCreature;
+        public float defSpeed;
         public float speed;
         public float angle;
         public float dmg;
@@ -33,6 +34,8 @@ namespace AlkuTD
 		Vector2 ExplosionLocation;
 
 		public GeneSpecs ElemSpecs;
+        public int DefLifeTime = 60;
+        public int LifeTime;
 
         //--------Constructors------------------------------
         public Bullet(Creature targetCreature,
@@ -47,6 +50,7 @@ namespace AlkuTD
 					  HexMap currMap)
         {
             this.targetCreature = targetCreature;
+            this.defSpeed = speed;
             this.speed = speed;
             this.dmg = dmg;
             DmgType = dmgType;
@@ -74,10 +78,13 @@ namespace AlkuTD
                       float dmg,
 					  DmgType dmgType,
                       float[] slow,
+                      GeneSpecs elems,
                       Vector2 originPoint,
-                      Texture2D texture)
+                      Texture2D texture,
+                      HexMap currMap)
         {
             this.speed = speed;
+            this.defSpeed = speed;
             this.dmg = dmg;
             DmgType = dmgType;
             this.slow = slow;
@@ -86,8 +93,10 @@ namespace AlkuTD
 
             //active = true;
             textureOrigin = new Vector2(texture.Width / 2, texture.Height / 2);
+            ParentMap = currMap;
+            ElemSpecs = elems;
 
-            Rnd = targetCreature.ParentMap.rnd;
+            //Rnd = targetCreature.ParentMap.rnd;
             //ShootAt(target);
         }
 
@@ -150,6 +159,7 @@ namespace AlkuTD
         {
             if (active)
             {
+                LifeTime++;
                 if (DmgType == AlkuTD.DmgType.Splash) //--------------splash-torneja varten, ei vielä käytössä
                 {
                     if (Vector2.Distance(location, Target) <= speed)
@@ -161,6 +171,31 @@ namespace AlkuTD
                     //angle = (float)Math.Atan2(location.Y - target.Y, location.X - target.X);
 					dir = Vector2.Normalize(Target - location);
 				}
+                else if (DmgType == AlkuTD.DmgType.Spray)
+                {
+                    if (LifeTime < DefLifeTime)
+                    {
+                        for (int i = 0; i < ParentMap.AliveCreatures.Count; i++)
+                        {
+                            if (Vector2.Distance(location, ParentMap.AliveCreatures[i].Location) <= defSpeed + 3) // ---HARDCODED HIT DIST
+                            {
+                                ParentMap.AliveCreatures[i].TakeAHit(this);
+                                active = false;
+                                return;
+                            }
+                        }
+                        if (Vector2.Distance(location, Target) < speed)
+                            speed = 0.5f;
+
+                        dir = Vector2.Normalize(Target - location);
+                    }
+                    else
+                    {
+                        active = false;
+                    }
+
+                    //angle = (float)Math.Atan2(location.Y - targetCreature.PosY, location.X - targetCreature.PosX);
+                }
                 else
                 {
                     if (Vector2.Distance(location, targetCreature.Location) <= speed)

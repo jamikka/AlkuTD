@@ -8,7 +8,7 @@ namespace AlkuTD
 	public class GeneSpecs
 	{
 		//public float RStrength, GStrength, BStrength;
-		public const int TierSize = 33;
+		public const int TierSize = 10;
 		public int[] BaseTiers;
 		public float RStrength { get { return r; } set { r = value; HasAny = value > 0 || g > 0 || b > 0; } }
 		public float GStrength { get { return g; } set { g = value; HasAny = value > 0 || r > 0 || b > 0; } }

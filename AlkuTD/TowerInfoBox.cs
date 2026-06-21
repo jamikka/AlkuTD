@@ -82,7 +82,7 @@ namespace AlkuTD
 					case GeneType.Blue: geneString = "B: "; LineColors.Add(Color.CornflowerBlue); break;
 				}
 				string enters = string.Concat(Enumerable.Repeat<string>(enter, Lines.Count));
-				Lines.Add(enters + geneString + Math.Round(Target.GeneSpecs.GetPrimaryElemStrength() * 100).ToString() + "%");
+				Lines.Add(enters + geneString + Math.Round(Target.GeneSpecs.GetPrimaryElemStrength()).ToString() + "%");
 			}
 
 			if (Target.SplashRange > 0)

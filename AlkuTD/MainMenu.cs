@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Linq;
 //using System.Linq;
 
 
@@ -37,7 +38,8 @@ namespace AlkuTD
         public string[] PlayerNames;
         //public Player[] CurrentPlayers; // = ParentGame.players
         public int[] CurrentPlayerIndexes;
-        public byte currentMap;
+        public string currentMap;
+        public string[] MapNames;
 
         public SpriteFont Font;
 
@@ -112,10 +114,10 @@ namespace AlkuTD
             NewPlayerButtons[1] = new Button("text entry", playerButtonX + playerButtonWidth/4, rootButtonY + buttonHeight, playerButtonWidth, buttonHeight, padding, TextAlignment.Left, buttonColors[1], Color.Orange, CurrentGame.pixel);
             NewPlayerButtons[2] = new Button("Name already exists", playerButtonX, rootButtonY + 2*buttonHeight, playerButtonWidth, buttonHeight, 15, TextAlignment.Left, Color.Transparent, Color.Orange, CurrentGame.pixel);
 
-            string[] mapNames = Array.ConvertAll<string, string>(Directory.GetFiles(CurrentGame.MapDir), Path.GetFileNameWithoutExtension);
-            MapButtons = new Button[mapNames.Length];
-            for (int m = 0; m < mapNames.Length; m++)
-                MapButtons[m] = new Button(mapNames[m], mapButtonX, mapButtonY + m*buttonHeight, mapButtonWidth, buttonHeight, padding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel);
+            MapNames = Array.ConvertAll<string, string>(Directory.GetFiles(CurrentGame.MapDir), Path.GetFileNameWithoutExtension);
+            MapButtons = new Button[MapNames.Length];
+            for (int m = 0; m < MapNames.Length; m++)
+                MapButtons[m] = new Button(MapNames[m], mapButtonX, mapButtonY + m*buttonHeight, mapButtonWidth, buttonHeight, padding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel);
 
             MapEditorButtons = new Button[] {new Button("New map", playerButtonX, rootButtonY + 3*buttonHeight, rootButtonWidth, buttonHeight, padding, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel)};
 
@@ -152,18 +154,22 @@ namespace AlkuTD
             #endregion
         }
 
-        void LoadPlayerData(int fileIndex)
+        public void LoadPlayerData(int fileIndex)
         {
             Player loadedPlayer = new Player(PlayerNames[fileIndex]);
 
             using (StreamReader reader = new StreamReader(PlayerFilePaths[fileIndex]))
             {
-                reader.ReadLine();
-                loadedPlayer.CompletedLevels = Convert.ToByte(reader.ReadLine());
-                reader.ReadLine();
-                loadedPlayer.HighScores[0] = Convert.ToInt32(reader.ReadLine());
-                loadedPlayer.HighScores[1] = Convert.ToInt32(reader.ReadLine());
-                loadedPlayer.HighScores[2] = Convert.ToInt32(reader.ReadLine());
+                string[] read = reader.ReadToEnd().Split(new string[]{ Environment.NewLine }, StringSplitOptions.None);
+                for (int n = 0; n < MapButtons.Length; n++)
+                {
+                    MapButtons[n].Text = MapNames[n];
+                    for (int i = 0; i < read.Length; i++)
+                    {
+                        if (read[i].Contains(MapButtons[n].Text + " "))
+                            MapButtons[n].Text += "  (" + read[i].Split('-')[1].Trim() + ")";
+                    }
+                }
             }
             CurrentGame.players[0] = loadedPlayer;
 			CurrentGame.players[1] = null;
@@ -173,24 +179,27 @@ namespace AlkuTD
         void LoadMap(Button mapButton)
         {
             //currentMap = byte.Parse(mapName.Substring(mapName.Length -1, 1)); //-------------------------------------------------risky.
+            string mapName = mapButton.Text.Split('(')[0].Trim();
+            string mapFileName = mapName + ".txt";
 
-            if (File.Exists(CurrentGame.MapDir + mapButton.Text + ".txt"))
+            if (File.Exists(CurrentGame.MapDir + mapFileName))
             {
                 //try
                 //{
                     string[] read;
-					HexMap loadedMap = new HexMap(ParentGame, mapButton.Text, new char[1, 1], null, null, CurrentGame.players);
+                    currentMap = mapName;
+					HexMap loadedMap = new HexMap(ParentGame, currentMap, new char[1, 1], null, null, CurrentGame.players);
                     char[,] layout = new char[11, 21];
                     List<Point> spawnPoints = new List<Point>();
                     List<Point> goalPoints = new List<Point>();
                     List<Wave> waves = new List<Wave>();
-                    byte initLife;
+                    int initLife;
                     int initEnergy;
                     int[] initGenePoints;
                     byte[] availableTowers = new byte[6];
                     List<Tower> initTowers = new List<Tower>();
 
-                    using (StreamReader reader = new StreamReader(CurrentGame.MapDir + mapButton.Text + ".txt"))
+                    using (StreamReader reader = new StreamReader(CurrentGame.MapDir + mapFileName))
                     {
                         //for (int i = 0; i < 12; i++)
                         //  Debug.WriteLine(reader.ReadLine());
@@ -234,8 +243,9 @@ namespace AlkuTD
                         for (int i = 0; i < availableTowers.Length; i++)
                             byte.TryParse(read[i + 3], out availableTowers[i]);
 
-                        initLife = byte.Parse(reader.ReadLine().Split(':')[1]);
-                        initEnergy = int.Parse(reader.ReadLine().Split(':')[1]);
+                        //string[] test = reader.ReadLine().Split(new char[]{':', ' '}, StringSplitOptions.RemoveEmptyEntries);
+                        initLife = int.Parse(reader.ReadLine().Split(new char[] { ':', ' ' }, StringSplitOptions.RemoveEmptyEntries)[1]);
+                        initEnergy = int.Parse(reader.ReadLine().Split(new char[] { ':', ' ' }, StringSplitOptions.RemoveEmptyEntries)[1]);
 						read = reader.ReadLine().Split(':', ',');
                         initGenePoints = new int[] { int.Parse(read[1]), int.Parse(read[2]), int.Parse(read[3]) };
 
@@ -399,7 +409,7 @@ namespace AlkuTD
                     loadedMap.Waves = waves.ToArray();*/
                     #endregion
 
-                    loadedMap.PlayerInitLife = initLife;
+                    loadedMap.PlayerInitLife = (short)initLife;
                     loadedMap.PlayerInitEnergy = initEnergy;
                     loadedMap.PlayerInitGenePoints = initGenePoints;
                     loadedMap.Waves = waves.ToArray();
@@ -419,26 +429,95 @@ namespace AlkuTD
             else Debug.WriteLine("\"" + mapButton.Text + "\" doesn't exist");
         }
 
+        internal void CreateNewPlayer(string nameInput)
+        {
+            if (nameInput.Length <= 0) return;
+            for (int i = 0; i < PlayerNames.Length; i++)
+            {
+                if (PlayerNames[i].Equals(nameInput, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    nameAlreadyExists = true;
+                    return;
+                }
+            }
+            using (StreamWriter sw = new StreamWriter(CurrentGame.SaveDir + nameInput + ".txt"))
+            {
+                Debug.WriteLine("Creating player file!");
+                sw.WriteLine("CompletedLevels:" + Environment.NewLine);
+                //sw.WriteLine("HighScores:\r\n");
+            }
+            ;
+            CurrentGame.players[0] = new Player(nameInput);
+            //CurrentPlayerIndexes[0] = ParentGame.SaveDir + nameInput + ".txt";
+            CurrentPlayerIndexes[0] = 0;
+            RefreshPlayerSaveData();
+            menuState = MenuState.MapSelection;
+        }
+
         public void SavePlayerData()
         {
-			if (CurrentGame.players[0].UpdateScore() > CurrentGame.players[0].HighScores[currentMap - 1])
-				CurrentGame.players[0].HighScores[currentMap - 1] = CurrentGame.players[0].Score;
+            //string completedLevel = currentMap;
+            //if (CurrentGame.players[0].UpdateScore() > CurrentGame.players[0].CompletedLevels[currentMap])
+            //	CurrentGame.players[0].CompletedLevels[currentMap] = CurrentGame.players[0].Score;
+            CurrentGame.players[0].UpdateScore();
+
+            using (FileStream stream = new FileStream(PlayerFilePaths[CurrentPlayerIndexes[0]], FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+            {
+                StreamWriter writer = new StreamWriter(stream);
+                StreamReader reader = new StreamReader(stream);
+
+                Debug.WriteLine("Saving player file!");
+                stream.Position = 0;
+                string[] read = reader.ReadToEnd().Split(new string[]{ Environment.NewLine }, StringSplitOptions.None);
+                List<string> readList = read.ToList();
+                bool containsMap = false;
+                
+                for (int i = 0; i < readList.Count; i++)
+                {
+                    if (readList[i].Contains(currentMap))
+                    {
+                        //update score
+                        containsMap = true;
+                        int oldScore = int.Parse(readList[i].Split('-')[1]);
+                        if (oldScore < CurrentGame.players[0].Score)
+                        {
+                            readList[i] = currentMap + " - " + CurrentGame.players[0].Score;
+                        }
+                    }
+                }
+
+                if(!containsMap)
+                {
+                    readList.Insert(1, currentMap + " - " + CurrentGame.players[0].Score);
+                }
+
+                stream.Position = 0;
+                foreach (string line in readList)
+                {
+                    writer.WriteLine(line);
+                }
+                writer.Flush();
+                stream.SetLength(stream.Position);
+            }
+
+            /*if (CurrentGame.players[0].UpdateScore() > CurrentGame.players[0].HighScores[currentMap - 1])
+                CurrentGame.players[0].HighScores[currentMap - 1] = CurrentGame.players[0].Score;
             using (StreamWriter writer = new StreamWriter(PlayerFilePaths[CurrentPlayerIndexes[0]]))
             {
                 Debug.WriteLine("Saving player file!");
-				if (CurrentGame.players[0].CompletedLevels < currentMap)
+                if (CurrentGame.players[0].CompletedLevels < currentMap)
                 {
                     writer.WriteLine("CompletedLevels:" + Environment.NewLine + currentMap);
-					CurrentGame.players[0].CompletedLevels = currentMap;
+                    CurrentGame.players[0].CompletedLevels = currentMap;
                 }
-				else writer.WriteLine("CompletedLevels:" + Environment.NewLine + CurrentGame.players[0].CompletedLevels);
+                else writer.WriteLine("CompletedLevels:" + Environment.NewLine + CurrentGame.players[0].CompletedLevels);
                 writer.WriteLine("HighScores:");
-				writer.WriteLine(CurrentGame.players[0].HighScores[0]);
-				writer.WriteLine(CurrentGame.players[0].HighScores[1]);
-				writer.WriteLine(CurrentGame.players[0].HighScores[2]);
-            }            
+                writer.WriteLine(CurrentGame.players[0].HighScores[0]);
+                writer.WriteLine(CurrentGame.players[0].HighScores[1]);
+                writer.WriteLine(CurrentGame.players[0].HighScores[2]);
+            }*/
         }
-       
+        
         public void RefreshPlayerSaveData()
         {
             FileInfo[] pfiles = new DirectoryInfo(CurrentGame.SaveDir).GetFiles();
@@ -512,12 +591,15 @@ namespace AlkuTD
                 RootButtons[r].Update(mouse, CurrentGame.prevMouse);
                 if (RootButtons[r].State == ButnState.Released)
                 {
+                    CurrentGame.soundBank.PlayCue("kansi");
+
                     switch (r)
                     {
                         case 0: menuState = MenuState.NewGame;
                                 nameAlreadyExists = false;
                                 backspaceRefreshCounter = 0;
-                                nameInput = ""; break;
+                                nameInput = "";
+                                break;
                         case 1: menuState = MenuState.Continue; break;
                         case 2: menuState = MenuState.Options; break;
                         case 3: menuState = MenuState.MapEditor; break;
@@ -547,28 +629,8 @@ namespace AlkuTD
                         else if (CurrentGame.prevKeyboard.IsKeyUp(key))
                         {
                             if (key == Keys.Enter)
-                            {
-                                if (nameInput.Length <= 0) return;
-                                for (int i = 0; i < PlayerNames.Length; i++)
-                                {
-                                    if (PlayerNames[i].Equals(nameInput, StringComparison.CurrentCultureIgnoreCase))
-                                    {
-                                        nameAlreadyExists = true;
-                                        return;
-                                    }
-                                }
-                                using (StreamWriter sw = new StreamWriter(CurrentGame.SaveDir + nameInput + ".txt"))
-                                {
-                                    Debug.WriteLine("Creating player file!");
-                                    sw.WriteLine("CompletedLevels: " + Environment.NewLine + "0");
-                                    sw.WriteLine("HighScores:\r\n0\r\n0\r\n0");
-                                };
-								CurrentGame.players[0] = new Player(nameInput);
-                                //CurrentPlayerIndexes[0] = ParentGame.SaveDir + nameInput + ".txt";
-                                CurrentPlayerIndexes[0] = 0;
-                                RefreshPlayerSaveData();
-                                menuState = MenuState.MapSelection;
-                            }
+                                CreateNewPlayer(nameInput);
+                            
                             else if (nameInput.Length < 15)
                             {
                                 nameAlreadyExists = false;
@@ -594,6 +656,8 @@ namespace AlkuTD
                     PlayerButtons[p].Update(mouse, CurrentGame.prevMouse);
                     if (PlayerButtons[p].State == ButnState.Released)
                     {
+                        CurrentGame.soundBank.PlayCue("kansi");
+
                         LoadPlayerData(p);
                         CurrentPlayerIndexes[0] = p;
                         menuState = MenuState.MapSelection;
@@ -603,15 +667,17 @@ namespace AlkuTD
             }
             else if (menuState == MenuState.MapEditor)
             {
+                RefreshMapData();
                 for (int m = 0; m < MapButtons.Length; m++)
                 {
                     MapButtons[m].Update(mouse, CurrentGame.prevMouse);
                     if (MapButtons[m].State == ButnState.Released)
                     {
+                        CurrentGame.soundBank.PlayCue("kansi");
                         CurrentGame.gameState = GameState.MapEditor;
 						CurrentGame.HUD.MapEditorSpawnPoints = new List<Point>();
 						CurrentGame.HUD.MapEditorGoalPoints = new List<Point>();
-						CurrentGame.currentMap = new HexMap(ParentGame, "newMap", new char[11, 21], new Point[1], new Point[1], new Player[] { new Player("map editor person") }); //-----------------------------------------------täällä !;
+						CurrentGame.currentMap = new HexMap(ParentGame, "loadedMap", new char[11, 21], new Point[1], new Point[1], new Player[] { new Player("map editor person") }); //-----------------------------------------------täällä !;
 						CurrentGame.HUD.ParentMap = CurrentGame.currentMap;
 						CurrentGame.currentMap.MapEditorTempWaves = new List<Wave>();
 						CurrentGame.HUD.EditorMapLoad(MapButtons[m]);
@@ -623,6 +689,7 @@ namespace AlkuTD
                 //ParentGame.HUD.inWaveEdit = true;//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------!!poista
                 if (MapEditorButtons[0].State == ButnState.Released)
                 {
+                    CurrentGame.soundBank.PlayCue("kansi");
                     char[,] emptyLayout = new char[11,21];
                     for (int dim1 = 0; dim1 < emptyLayout.GetLength(0); dim1++)
                         for (int dim2 = 0; dim2 < emptyLayout.GetLength(1); dim2++)
@@ -653,6 +720,7 @@ namespace AlkuTD
                     MapButtons[m].Update(CurrentGame.mouse, CurrentGame.prevMouse);
                     if (MapButtons[m].State == ButnState.Released)
                     {
+                        CurrentGame.soundBank.PlayCue("kansi");
                         HexMap TempMap = new HexMap(ParentGame, "newMap", new char[11, 21], null, null, new Player[] { new Player("map editor person") }); //----------täällä temp mappia ku static CoordToScrLoc puuttuu!
 						CurrentGame.currentMap = TempMap;
                         LoadMap(MapButtons[m]);

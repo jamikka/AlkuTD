@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace AlkuTD
 {
-    public enum DmgType { Basic, Splash, None }
+    public enum DmgType { Basic, Splash, Spray, None }
     public enum UpgLvl { Basic, Advanced, Max }
-    public enum ColorPriority { none, red, green, blue }
+    public enum ColorPriority { any, red, green, blue }
     public enum TargetPriority
     {
         none = 0,

@@ -41,7 +41,33 @@ namespace AlkuTD
 			GenerateText();
 		}
 
-		void GenerateText()
+		public TileringInfoBox(Vector2 pos, bool concatLast, Color?[] specColors, params string[] lines)
+            : base(pos)
+        {
+            Lines = new List<string>();
+            LineColors = new List<Color>();
+            if (specColors != null)
+            {
+                for (int i = 0; i < specColors.Length; i++)
+                {
+                    LineColors.Add(specColors[i].Value);
+                }
+            }
+            costStringWidth = CurrentGame.font.MeasureString("Cost: ").X;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string enters;
+                if (concatLast && i == lines.Length - 1 && LineColors.Count > 0)
+                    enters = string.Concat(Enumerable.Repeat<string>(Environment.NewLine, Math.Max(i - 1, 0)));
+                else
+                    enters = string.Concat(Enumerable.Repeat<string>(Environment.NewLine, i));
+
+                Lines.Add(enters + lines[i]);
+            }
+            GenerateText();
+        }
+
+        void GenerateText()
 		{
 			if (LineColors.Count > 0)
 				Height = Math.Max(Lines.Count - 1, 1) * CurrentGame.font.LineSpacing + YPadding;
