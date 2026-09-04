@@ -11,16 +11,16 @@ namespace AlkuTD
 {
     class SprayTower : Tower
     {
-        static char[] defChar = { 'Ä', 'Ä', 'Â' };
-        static string[] defName = { "Pruiter 2", "Sprayer 2", "Sprayer 3" };
+        static char[] defChar = { 'Â', 'Â', 'Â' };
+        static string[] defName = { "Pruiter 3", "Pruiter 3", "Pruiter 3" };
         static float[] defRange = { 65, 65, 65 };
-        static float[] defFirerate = { 70, 100, 100 };
+        static float[] defFirerate = { 70, 70, 70 };
         static float defBulletspeed = 8f;
-        static short[] defDmg = { 1, 2, 3 };
+        static short[] defDmg = { 1, 1, 1 };
         static int defSplashRange = 0;
-        static int[] defCost = { 20, 30, 50 };
+        static int[] defCost = { 20, 20, 20 };
         static int[] defBuildTime = { 200, 300, 400 };
-        static int bulletCount = 30;
+        static int bulletCount = 20;
         static float sprayRandomizationDistance = 35f;
         public static int sprayDegrees = 60; 
 

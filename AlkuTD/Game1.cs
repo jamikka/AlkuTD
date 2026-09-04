@@ -20,6 +20,7 @@ namespace AlkuTD
         InitSetup,
         MapTestInitSetup,
         MapTestInGame,
+        MapTestPaused,
         Paused,
         GameOver,
         LevelComplete,
@@ -53,10 +54,13 @@ namespace AlkuTD
         public static Texture2D pixel;
         public static Texture2D ball;
         public static Texture2D smallBall;
+        public static Texture2D bigBall;
         public static Texture2D[] CreatureTextures;
+        public static Texture2D tilering;
+        public static Texture2D tileringSlot;
         public Texture2D dashLine;
 
-        public MainMenu mainMenu;
+        public static MainMenu mainMenu;
         public static Player[] players = new Player[] { null, null };
         public static HexMap currentMap;
         public static HUD HUD;
@@ -111,8 +115,11 @@ namespace AlkuTD
             pixel = Content.Load<Texture2D>("pixel");
             smallBall = Content.Load<Texture2D>("ball-3x3");
             ball = Content.Load<Texture2D>("ball-5x5");
+            bigBall = Content.Load<Texture2D>("bigEgg");
             dashLine = Content.Load<Texture2D>("dashLine");
-            font = Content.Load<SpriteFont>("Fonts\\minifont");
+            font = Content.Load<SpriteFont>("Fonts\\New folder\\minifont");
+            tilering = Content.Load<Texture2D>("Tilering\\tilering7");
+            tileringSlot = Content.Load<Texture2D>("Tilering\\singleSlot");
             mainMenu = new MainMenu(this);
             HUD = new HUD(this);
             //brightnessFX = Content.Load<Effect>("brightnessFX");
@@ -152,7 +159,13 @@ namespace AlkuTD
                     case GameState.MapTestInitSetup:
                     case GameState.MapTestInGame:
                     case GameState.InGame:
-                        if (keyboard.IsKeyDown(Keys.Escape) && !prevKeyboard.IsKeyDown(Keys.Escape)) gameState = GameState.Paused;
+                        if (keyboard.IsKeyDown(Keys.Escape) && !prevKeyboard.IsKeyDown(Keys.Escape))
+                        {
+                            if (prevState == GameState.MapTestInitSetup || prevState == GameState.MapTestInGame)
+                                gameState = GameState.MapTestPaused;
+                            else
+                                gameState = GameState.Paused;
+                        }
                         if (keyboard.IsKeyDown(Keys.S))
                         {
                             if (TargetElapsedTime.Ticks != 40000)
@@ -178,6 +191,7 @@ namespace AlkuTD
                         //brightnessFX.Parameters["value"].SetValue(brightnessValue);
                         break;
                     case GameState.Paused:
+                    case GameState.MapTestPaused:
                         if (keyboard.IsKeyDown(Keys.Space))
                             gameState = GameState.InGame;
                         else if (keyboard.IsKeyDown(Keys.LeftControl) && !prevKeyboard.IsKeyDown(Keys.LeftControl))
@@ -199,6 +213,10 @@ namespace AlkuTD
                         }
                         HUD.Update(mouse, prevMouse, keyboard, prevKeyboard);
                         break;
+                    case GameState.LevelComplete:
+                        HUD.Update(mouse, prevMouse, keyboard, prevKeyboard);
+                        
+                        break;
                     case GameState.GameOver:
                         IsMouseVisible = true;
                         if (keyboard.IsKeyDown(Keys.Escape) || (mouse.LeftButton == ButtonState.Released && prevMouse.LeftButton == ButtonState.Pressed))
@@ -212,6 +230,7 @@ namespace AlkuTD
                                 gameState = GameState.MapEditor;
                             }
                         }
+                        HUD.Update(mouse, prevMouse, keyboard, prevKeyboard);
                         break;
                     case GameState.MapEditor:
                         if (keyboard.IsKeyDown(Keys.M) && !prevKeyboard.IsKeyDown(Keys.M) && keyboard.IsKeyDown(Keys.Escape))
@@ -229,7 +248,7 @@ namespace AlkuTD
                 base.Update(gameTime);
                 GameTime = gameTime;
                 gameTimer++;
-                if (gameState == GameState.InGame || gameState == GameState.MapTestInGame)
+                if (gameState == GameState.InGame || gameState == GameState.MapTestInGame || gameState == GameState.MapTestInitSetup)
                     prevState = gameState;
             }
         }
@@ -262,6 +281,7 @@ namespace AlkuTD
                     break;
 
                 case GameState.Paused:
+                case GameState.MapTestPaused:
                     spriteBatch.End();
                     spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone);
                     currentMap.Draw(spriteBatch);
@@ -270,6 +290,17 @@ namespace AlkuTD
                     HUD.Draw(spriteBatch, gameTime, mouse);
                     //spriteBatch.Draw(pixel, GraphicsDevice.Viewport.Bounds, new Color(0, 0, 0, 100));
                     spriteBatch.DrawString(font, "Paused", new Vector2(GraphicsDevice.Viewport.Width * 0.05f, GraphicsDevice.Viewport.Height * 0.5f), Color.Orange);
+                    break;
+
+                case GameState.LevelComplete:
+                    spriteBatch.End();
+                    spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone);
+                    currentMap.Draw(spriteBatch);
+                    spriteBatch.End();
+                    spriteBatch.Begin();
+                    spriteBatch.Draw(pixel, GraphicsDevice.Viewport.Bounds, new Color(0, 0, 0, 100));
+                    HUD.Draw(spriteBatch, gameTime, mouse);
+                    spriteBatch.DrawString(font, "LEVEL COMPLETE", new Vector2(GraphicsDevice.Viewport.Width * 0.5f - font.MeasureString("LEVEL COMPLETE").X * 0.5f, GraphicsDevice.Viewport.Height * 0.03f), Color.Orange);
                     break;
 
                 case GameState.GameOver:

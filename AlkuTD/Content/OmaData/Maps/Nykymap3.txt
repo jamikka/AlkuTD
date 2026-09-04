@@ -10,7 +10,9 @@
 '.'.'.00             
     ' c              
 
-Available towers: 3 3 3 3 3 3
+Story Map: Yes
+Target score: 0
+Available towers: 3 3 - 3 3 3
 Life:   20
 Biomass:32
 Genes:  0, 0, 0

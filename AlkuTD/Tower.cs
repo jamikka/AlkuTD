@@ -76,11 +76,22 @@ namespace AlkuTD
         public bool ShowRadius;
         public bool Built;
         public bool IsExample;
+		public bool Active;
 		public float DPS;
+        public float InitFireRate;
         public float FireRate;
 		public float FireRateSec;
         public float BulletSpeed;
         public Texture2D[] Textures;
+        public int SpritesheetRows { get; set; }
+        public int SpritesheetColumns { get; set; }
+        int totalFrames;
+        internal int currentFrame;
+        int animationCycles;
+        public int CurrentFrame { get { return currentFrame; } set { currentFrame = value; } }
+        byte AnimationUpdatePhase;
+        public int Width { get { return Textures[0].Width / SpritesheetColumns; } }
+        public int Height { get { return Textures[0].Height / SpritesheetRows; } }
         internal Vector2 texOrigin;
         internal Texture2D bulletTexture;
         internal Texture2D[] radiusTextures;
@@ -125,6 +136,7 @@ namespace AlkuTD
             Range = range;
             InitRange = range;
             FireRate = firerate;
+			InitFireRate = firerate;
             BulletSpeed = bulletSpeed;
             radiusTextures = new Texture2D[2];
             //this.radiusTextures[0] = radiusTexture;
@@ -162,16 +174,29 @@ namespace AlkuTD
 			DPS = dmg * FireRateSec;
 
 			if (slow[0] > 0)
-				TargetPriority = TargetPriority.fast;
+				TargetPriority = TargetPriority.quick;
 			else if (splashRange > 0)
 				TargetPriority = TargetPriority.mob;
 			else
 				TargetPriority = TargetPriority.first;
+
+			Active = true;
 		}
+		public Tower(char symbol, string name, Point mapCoord, float range, float firerate, Texture2D[] textures, GeneSpecs geneSpecs, Texture2D bulletTexture, float bulletSpeed, short dmg, DmgType dmgType, int splashRange, float[] slow, int cost, int buildTime, int spritesheetRows, int spritesheetCols, bool isExample)
+			: this (symbol, name, mapCoord, range, firerate, textures, geneSpecs, bulletTexture, bulletSpeed, dmg, dmgType, splashRange, slow, cost, buildTime, isExample)
+		{
+            SpritesheetRows = spritesheetRows;
+            SpritesheetColumns = spritesheetCols;
+            totalFrames = spritesheetRows * spritesheetCols;
+            currentFrame = 0;
+            AnimationUpdatePhase = 0;
+            texOrigin = new Vector2(Width / 2, Height / 2);
+        }
 
-        //----------Methods-------------------------------
 
-        int oldDiameter;
+            //----------Methods-------------------------------
+
+            int oldDiameter;
         public void MakeRadiusCircle() // HEMMETIN RASKAS KREAATIO (hm pitäiskö tehdä heti alkuun yks iso tekstuuri ("canvas"), josta näytetään rangen mukaan vaan osa
         {
             int diameter = (int)Math.Round(Range * 2) % 2 == 0 ? (int)Math.Round(Range * 2) - 1 : (int)Math.Round(Range * 2); //--ensure oddness (center-pixel) (downwards)
@@ -308,7 +333,7 @@ namespace AlkuTD
 			{
 				freeBullet.ShootAt(targetCreature);
 				firerateCounter = (int)FireRate;
-				targetCreature.DmgHeadedThisWay.Add(new KeyValuePair<uint,int>(CurrentGame.gameTimer + (uint)Math.Round(Vector2.Distance(ScreenLocation, targetCreature.Location) / BulletSpeed + 20), Dmg));
+				targetCreature.DmgHeadedThisWay.Add(new KeyValuePair<uint,int>(CurrentGame.gameTimer + (uint)Math.Round(Vector2.Distance(ScreenLocation, targetCreature.Location) / BulletSpeed), Dmg));
 				targetCreature.TowersTargetingThis.Remove(this);
 				ParentMap.towerCue = CurrentGame.soundBank.GetCue("kansi"); //-----------------------------randomization implemented in XACT
 				ParentMap.towerCue.Play();
@@ -484,17 +509,26 @@ namespace AlkuTD
             {
                 if (aliveCreatures[i].Born && Vector2.Distance(aliveCreatures[i].Location, ScreenLocation) <= Range)
                 {
-					CreaturesInRange.Add(aliveCreatures[i]);
-					if (ElemPriority != AlkuTD.ColorPriority.any && aliveCreatures[i].ElemArmors[ElemPriority] > 0)
-						ColoredInRange.Add(aliveCreatures[i]);
+					if (aliveCreatures[i].Type != "Own")
+					{
+						if ((ElemPriority == ColorPriority.normal || ElemPriority == ColorPriority.any) && aliveCreatures[i].ElemArmors.HasAny)
+							ColoredInRange.Add(aliveCreatures[i]);
+                        else
+                            CreaturesInRange.Add(aliveCreatures[i]);
+						if (ElemPriority != AlkuTD.ColorPriority.any && ElemPriority != AlkuTD.ColorPriority.normal && aliveCreatures[i].ElemArmors[ElemPriority] > 0)
+							ColoredInRange.Add(aliveCreatures[i]);
+					}
 				}
 			}
 
-			if (ElemPriority != AlkuTD.ColorPriority.any && ColoredInRange.Count > 0)
-				PossibleTargets = ColoredInRange;
-			else PossibleTargets = CreaturesInRange;
+			if (ElemPriority != AlkuTD.ColorPriority.any && ElemPriority != ColorPriority.normal && ColoredInRange.Count > 0)
+				PossibleTargets.AddRange(ColoredInRange);
+			else if (CreaturesInRange.Count == 0 && ColoredInRange.Count > 0)
+                PossibleTargets.AddRange(ColoredInRange);
+            else
+                PossibleTargets.AddRange(CreaturesInRange);
 
-			if (previousTargets != null) // Remove targeted status from creatures that fled range
+            if (previousTargets != null) // Remove targeted status from creatures that fled range
 			{
 				for (int i = 0; i < previousTargets.Count; i++) 
 				{
@@ -560,7 +594,7 @@ namespace AlkuTD
 								}
 							}
 							break;
-					case TargetPriority.fast:
+					case TargetPriority.quick:
 							float fastest = 0;
 							for (int i = 0; i < PossibleTargets.Count; i++)
 							{
@@ -661,8 +695,10 @@ namespace AlkuTD
 
 			if (buildTimer == 0)
             {
-                if (firerateCounter > 0)
-                    firerateCounter--;
+				if (firerateCounter > 0)
+				{
+					firerateCounter--;
+				}
 
                 if (Built == false)
                 {
@@ -675,14 +711,16 @@ namespace AlkuTD
                 if (buildFinishedCounter > 0) 
 					buildFinishedCounter--; //---afterglow effect
 
-                Hunt(aliveCreatures);
+				if (Active && DmgType != DmgType.None)
+				{
+					Hunt(aliveCreatures);
 
-                for (int i = 0; i < Bullets.Count; i++)
-                {
-                    if (!Bullets[i].active) continue;
-                    Bullets[i].Update();
-                }
-
+					for (int i = 0; i < Bullets.Count; i++)
+					{
+						if (!Bullets[i].active) continue;
+						Bullets[i].Update();
+					}
+				}
             }
             else buildTimer--;
 
@@ -699,20 +737,34 @@ namespace AlkuTD
             float buildPhase = (BuildTime - buildTimer) / (float)BuildTime;
 			byte buildPhaseSixth = (byte)(buildPhase * 6);
 
-            if (buildTimer == 0)
-            {
-                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight + TowerShadowHeight, null, Color.Black * 0.5f, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0.11f);
-                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0.1f);
+			if (buildTimer == 0)
+			{
+				if (totalFrames > 1)
+				{
+					int row = 0;
+					int column = currentFrame % SpritesheetColumns;
+					Rectangle sourceRect = new Rectangle(Width * column, Height * row, Width, Height);
+					sb.Draw(Textures[0], ScreenLocation, sourceRect, Color.White, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0);
+				}
+				else
+				{
+					sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight + TowerShadowHeight, null, Color.Black * 0.5f, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0.11f);
+					if (Active)
+						sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White, angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0.1f);
+					else
+						sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.DarkGray, 0, texOrigin, 0.8f, SpriteEffects.None, 0.1f);
+				}
+				//---FirerateLoadBars 
+				if (DmgType != DmgType.None)
+				{
+					sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f - 1), loadBarWidth, 4), null, Color.Black, 0, Vector2.Zero, SpriteEffects.None, 0.1f); //black background
+					sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2 + 1, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f), (int)((loadBarWidth - 2) * ((FireRate - firerateCounter) / FireRate)), 2), null, loadBarColor, 0, Vector2.Zero, SpriteEffects.None, 0.09f);
+				}
 
-                //---FirerateLoadBars 
-
-                sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f - 1), loadBarWidth, 4), null, Color.Black, 0, Vector2.Zero, SpriteEffects.None, 0.1f); //black background
-                sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2 + 1, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f), (int)((loadBarWidth - 2) * ((FireRate - firerateCounter) / FireRate)), 2), null, loadBarColor, 0, Vector2.Zero, SpriteEffects.None, 0.09f);
-
-                if (GeneSpecs.HasAny)
+				if (GeneSpecs.HasAny)
 				{
 					GeneType gt = GeneSpecs.GetPrimaryElem();
-					int geneIdx = (int)gt -1;
+					int geneIdx = (int)gt - 1;
 					Color geneUpgColor = Color.DarkGray;
 					switch (gt)
 					{
@@ -726,10 +778,19 @@ namespace AlkuTD
 						sb.Draw(CurrentGame.ball, firstLocation + new Vector2(i * 11, 0), geneUpgColor);
 					}
 				}
-            }
-            else if (IsExample || IsUpgrading || buildTimer > 0)
-                sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White * 0.6f, 0, texOrigin, 1, SpriteEffects.None, 0.11f);
-            
+			}
+			else if (IsExample || IsUpgrading || buildTimer > 0)
+			{
+				if (totalFrames > 0)
+				{
+                    Rectangle sourceRect = new Rectangle(0, 0, Width, Height);
+                    sb.Draw(Textures[0], ScreenLocation, sourceRect, Color.White, -angle + angleOffset, texOrigin, 1, SpriteEffects.None, 0);
+                }
+				else
+					sb.Draw(Textures[0], ScreenLocation - HexMap.TileWallHeight, null, Color.White * 0.6f, 0, texOrigin, 1, SpriteEffects.None, 0.11f);
+
+			}
+
             if (buildFinishedCounter > 0 && buildTimer < BuildTime)
             {
                 #region UGLY OUTLINE ANIMATION
@@ -823,7 +884,9 @@ namespace AlkuTD
 				return new ParticleEaterTower(t.MapCoord, t.UpgradeLvl, false);
 			else if (checkedType == typeof(SprayTower))
 				return new SprayTower(t.MapCoord, t.UpgradeLvl, false);
-			else
+            else if (checkedType == typeof(BoosterTower))
+                return new BoosterTower(t.MapCoord, t.UpgradeLvl, false);
+            else
 				return new Tower(t.Symbol, t.Name, t.mapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false);
         }
 
@@ -836,12 +899,15 @@ namespace AlkuTD
 		{
             Type checkedType = t.GetType();
             Tower tempTower;
+
             if (checkedType == typeof(SniperTower))
                 tempTower = new SniperTower(mapCoord, t.UpgradeLvl, false);
             else if (checkedType == typeof(ParticleEaterTower))
                 tempTower = new ParticleEaterTower(mapCoord, t.UpgradeLvl, false);
             else if (checkedType == typeof(SprayTower))
                 tempTower = new SprayTower(mapCoord, t.UpgradeLvl, false);
+            else if (checkedType == typeof(BoosterTower))
+                tempTower = new BoosterTower(mapCoord, t.UpgradeLvl, false);
             else
                 tempTower = new Tower(t.Symbol, t.Name, mapCoord, t.InitRange, t.FireRate, t.Textures, new GeneSpecs(t.GeneSpecs[GeneType.Red], t.GeneSpecs[GeneType.Green], t.GeneSpecs[GeneType.Blue]), t.bulletTexture, t.BulletSpeed, t.Dmg, t.DmgType, t.SplashRange, t.slow, t.Cost, t.BuildTime, false);
             tempTower.buildTimer = 0;

@@ -12,16 +12,17 @@ namespace AlkuTD
     {
         static char[] defChar = { 'U', 'Ü', 'Û' };
         static string[] defName = { "Debris Eater 1", "Debris Eater 2", "Debris Eater 3" };
-        static float[] defRange = { 100, 120, 140 };
+        static float[] defRange = { 100, 160, 200 };
         static float[] defFirerate = { 60, 80, 100 };
-        static int[] defCost = { 5, 30, 60 };
+        static int[] defCost = { 5, 5, 10 };
         static int[] defBuildTime = { 200, 300, 400 };
         static float[] defEnergyMultiplier = { 1, 1, 1.5f };
-        static float[] defGeneMultipliers = { 1, 1.5f, 2 };
+        static float[] defGeneMultipliers = { 1, 2, 3 };
         static float defBulletspeed = 3f;
         static short[] defDmg = { 0, 0, 0 };
         static int defSplashRange = 0;
         public static int preAimRangeBonus = 60;
+        public static int[] defEaterArmsCount = { 2, 3, 4 };
 
         List<FloatingParticle> DebrisInPreAimRange;
         List<FloatingParticle> DebrisInRange;

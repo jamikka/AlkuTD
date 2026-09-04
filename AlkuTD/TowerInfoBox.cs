@@ -51,21 +51,29 @@ namespace AlkuTD
 			Lines.Add(Target.Name);
 			LineColors.Add(Color.SlateGray);
 
-			if (Target.slow[0] > 0)
+			if (Target.GetType() == typeof(ParticleEaterTower))
 			{
-				Lines.Add(enter + "Slo: " + ((int)(Target.slow[0] * 100)).ToString() + " (" + Math.Round(((Target.slow[1] * CurrentGame.LoopTimeTicks * 0.0000001)), 2) + "s)");
+				Lines.Add(enter + "Arms: " + ParticleEaterTower.defEaterArmsCount[(int)Target.UpgradeLvl].ToString());
+                LineColors.Add(Color.Aquamarine);
+            }
+            if (Target.slow[0] > 0)
+			{
+				Lines.Add(enter + "Slo: " + ((int)(Target.slow[0] * 100)).ToString() + "% (" + Math.Round(((Target.slow[1] * CurrentGame.LoopTimeTicks * 0.0000001)), 2) + "s)");
 				LineColors.Add(Color.Aquamarine);
 			}
-			else
+			else if (Target.Dmg > 0)
 			{
 				Lines.Add(enter + "Dmg: " + Target.Dmg.ToString());
 				LineColors.Add(Color.Orange);
 			}
 
-			Lines.Add(enter + enter + "Spd: " + Math.Round(Target.FireRateSec, 2).ToString());
-			LineColors.Add(Color.PaleTurquoise);
+			if (Target.FireRate > 0)
+			{
+				Lines.Add(string.Concat(Enumerable.Repeat<string>(Environment.NewLine, Lines.Count)) + "Spd: " + Math.Round(Target.FireRateSec, 2).ToString());
+				LineColors.Add(Color.PaleTurquoise);
+			}
 
-			if (Target.slow[0] == 0)
+			if (Target.Dmg > 0)
 			{
 				Lines.Add(enter + enter + enter + "DPS: " + Math.Round(Target.DPS, 2).ToString() + enter);
 				LineColors.Add(Color.Red);

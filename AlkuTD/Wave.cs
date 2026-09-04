@@ -46,7 +46,7 @@ namespace AlkuTD
 
         public void Update()
         {
-            if (Groups[0].spawnTimer == 0)
+            if (!Groups[0].GroupSkipped && Groups[0].spawnTimer == 0)
             {
                 ParentMap.creatureCue = CurrentGame.soundBank.GetCue("plurputus1");
                 ParentMap.creatureCue.Play();

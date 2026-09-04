@@ -10,6 +10,8 @@
   1     '. . .'      
           ' '        
 
+Story Map: No
+Target score: 0
 Available towers: 3 3 3 3 3 3
 Life:   1
 Biomass:55

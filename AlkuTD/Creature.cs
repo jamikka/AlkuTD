@@ -117,7 +117,8 @@ namespace AlkuTD
 			CurrentSlowEffect = new float[2];
 			DmgHeadedThisWay = new List<KeyValuePair<uint, int>>();
 
-			ElemArmors = new GeneSpecs();
+			if (ElemArmors == null) 
+				ElemArmors = new GeneSpecs();
 
 			HpBarColor = new Color(0, 255, 0);
 
@@ -245,9 +246,9 @@ namespace AlkuTD
 				{
 					GeneType bulletPrimarySpec = bullet.ElemSpecs.GetPrimaryElem();
 					GeneType creaturePrimaryArmor = ElemArmors.GetPrimaryElem();
-					float bStr = bullet.ElemSpecs.GetPrimaryElemStrength();
+					float bStr = bullet.ElemSpecs.GetPrimaryElemStrength() * 0.01f;
 					float cArm = ElemArmors.GetPrimaryElemStrength();
-					float armorReducedNormalDmg = (bullet.dmg /** (1 - bStr)*/) * ((100 - cArm)*0.01f); // normal vs armor = (dmg * (1-spec)) * (1-armor)
+					float armorReducedNormalDmg = bullet.dmg * ((100 - cArm)*0.01f); // normal vs armor = (dmg * (1-spec)) * (1-armor)
 					float penetratingDmg = bullet.dmg * bStr; //----------------------- penetration = dmg * specialization
 
 					if (bulletPrimarySpec == creaturePrimaryArmor) // match
@@ -272,9 +273,21 @@ namespace AlkuTD
 					//ParentMap.Players[0].GenePoints[2] += (int)Math.Round(ElemArmors[GeneType.Blue] * 10);
 					//CurrentGame.HUD.UpdateGeneBars();
 					//ParentMap.Players[0].EnergyPoints += EnergyBounty;
-					if (EnergyBounty > 0)
-						ParentMap.FloatingParticles.Add(new FloatingParticle(this));
 
+
+					if (EnergyBounty > 0)
+					{
+						if (Type == "Own")
+						{
+							ElemArmors.RStrength = 0;
+                            ElemArmors.GStrength = 0;
+                            ElemArmors.BStrength = 0;
+							EnergyBounty = 1;
+                            ParentMap.FloatingParticles.Add(new FloatingParticle(this));
+						}
+                        else ParentMap.FloatingParticles.Add(new FloatingParticle(this));
+
+					}
 					ParentMap.AliveCreatures.Remove(this);
 					BugInfoBox bugBox = HUD.BugBoxes.Find(bb => bb.Target == this);
 					if (bugBox != null)
@@ -341,22 +354,34 @@ namespace AlkuTD
 
         void TakeLifePoints(Player[] targetPlayers)
         {
+			
             foreach (Player p in targetPlayers)
             {
                 if (p != null)
                 {
                     if (p.Alive && p.LifePoints > 0)
                     {
-                        if (p.LifePoints - LifeDmg <= 0)
-                        {
-                            p.LifePoints = 0;
-                            p.Alive = false;
-                            CurrentGame.gameState = GameState.GameOver;
-                            ParentMap.creatureCue = CurrentGame.soundBank.GetCue("loppukumi");
-                            ParentMap.creatureCue.Play();
-							break;
+						if (Type == "Own")
+						{
+							p.LifePoints += LifeDmg;
+							p.EnergyPoints += EnergyBounty;
+							p.GenePoints[0] += (int)Math.Round(ElemArmors.RStrength);
+							p.GenePoints[1] += (int)Math.Round(ElemArmors.GStrength);
+							p.GenePoints[2] += (int)Math.Round(ElemArmors.BStrength);
                         }
-						else p.LifePoints -= LifeDmg;
+                        else
+						{
+							if (p.LifePoints - LifeDmg <= 0)
+							{
+								p.LifePoints = 0;
+								p.Alive = false;
+								CurrentGame.gameState = GameState.GameOver;
+								ParentMap.creatureCue = CurrentGame.soundBank.GetCue("loppukumi");
+								ParentMap.creatureCue.Play();
+								break;
+							}
+							else p.LifePoints -= LifeDmg;
+						}
 
 						BugInfoBox bugBox = HUD.BugBoxes.Find(bb => bb.Target == this);
 						if (bugBox != null)

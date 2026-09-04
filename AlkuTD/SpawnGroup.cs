@@ -26,6 +26,7 @@ namespace AlkuTD
 		public bool IsWholeGroupBorn;
         private Creature LastCreature;
         public BugInfoBox BugBox;
+        public bool GroupSkipped;
 
         public SpawnGroup()
         {
@@ -144,7 +145,7 @@ namespace AlkuTD
             {
                 for (int i = 0; i < LastCreature.Path.Count - 1; i++)
                 {
-                    if (i < Creatures[0].nextWaypoint - 1)
+                    if (Creatures.Length == 0 || i < Creatures[0].nextWaypoint - 1)
                         continue;
                     //liukukatkoviiva (dashLine -tekstuurilla)
                     sb.Draw(ParentGame.dashLine, new Rectangle((int)LastCreature.OrigPath[i].X, (int)LastCreature.OrigPath[i].Y, ParentMap.TileHeight, 2),
@@ -160,6 +161,8 @@ namespace AlkuTD
 
         public void Update()
         {
+            if (GroupSkipped)
+                return;
             for (int i = 0; i < Creatures.Length && i <= spawnTimer / SpawnFrequency; i++)
             {
                 if (!Creatures[i].Born)

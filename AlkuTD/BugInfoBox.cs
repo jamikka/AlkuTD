@@ -45,7 +45,7 @@ namespace AlkuTD
 			float resStringWidth = 0;
 			string elemValueString = ((int)((Target.ElemArmors.GetPrimaryElemStrength()))).ToString();
 			if (Target.ElemArmors.HasAny)
-				resStringWidth = CurrentGame.font.MeasureString(elemValueString + "%" + " RES").X;
+				resStringWidth = CurrentGame.font.MeasureString(elemValueString + "%").X;
 			float biggestWidth = nameStringWidth > resStringWidth ? nameStringWidth : resStringWidth;
 			Lines = new List<string>();
 			LineColors = new List<Color>();
@@ -72,7 +72,7 @@ namespace AlkuTD
 				if (IsMovingTarget)
 					Lines.Add(enter + enter + elemValueString + "%");
 				else
-					Lines.Add(enter + enter + elemValueString + "%" + " RES");
+					Lines.Add(enter + enter + elemValueString + "%");
 				lines++;
 				switch (gt)
 				{

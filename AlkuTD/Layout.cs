@@ -19,6 +19,7 @@ namespace AlkuTD
         }
 
         public char[,] Layout;
+        public char[] NeighborTiles;
 
         public char this[Point mapCoord]
         {
@@ -78,12 +79,68 @@ namespace AlkuTD
             }
         }
 
-        public char[] NeighborTiles;
+        public char this[Point mapCoord, Adjacent direction]
+        {
+            get
+            {
+                return this[mapCoord.Y, mapCoord.X, direction];
+            }
+        }
 
         public MapLayout (char[,] layout)
         {
             Layout = layout;
         }
 
+        public Point GetAdjacent(Point mapCoord, Adjacent direction)
+        {
+            switch (direction)
+            {
+                case Adjacent.Above:
+                    if (mapCoord.Y > 0)
+                        return new Point(mapCoord.X, mapCoord.Y - 1); break;
+                case Adjacent.Below:
+                    if (mapCoord.Y < Layout.GetUpperBound(0))
+                        return new Point(mapCoord.X, mapCoord.Y + 1); break;
+                case Adjacent.UpRight:
+                    if (mapCoord.X < Layout.GetUpperBound(1))
+                    {
+                        if (mapCoord.X % 2 == 0 && mapCoord.Y > 0)
+                            return new Point(mapCoord.X + 1, mapCoord.Y - 1);
+                        else
+                            return new Point(mapCoord.X + 1, mapCoord.Y);
+                    }
+                    break;
+                case Adjacent.DownRight:
+                    if (mapCoord.X < Layout.GetUpperBound(1))
+                    {
+                        if (mapCoord.X % 2 == 0)
+                            return new Point(mapCoord.X + 1, mapCoord.Y);
+                        else if (mapCoord.Y < Layout.GetUpperBound(0))
+                            return new Point(mapCoord.X + 1, mapCoord.Y + 1);
+                    }
+                    break;
+
+                case Adjacent.DownLeft:
+                    if (mapCoord.X > 0)
+                    {
+                        if (mapCoord.X % 2 == 0)
+                            return new Point(mapCoord.X-1, mapCoord.Y);
+                        else if (mapCoord.Y < Layout.GetUpperBound(0))
+                            return new Point(mapCoord.X - 1, mapCoord.Y + 1);
+                    }
+                    break;
+                case Adjacent.UpLeft:
+                    if (mapCoord.X > 0)
+                    {
+                        if (mapCoord.X % 2 == 0 && mapCoord.Y > 0)
+                            return new Point(mapCoord.X - 1, mapCoord.Y - 1);
+                        else
+                            return new Point(mapCoord.X - 1, mapCoord.Y);
+                    }
+                    break;
+            }
+            return Point.Zero;
+        }
     }
 }

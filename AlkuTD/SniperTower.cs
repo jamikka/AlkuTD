@@ -29,7 +29,7 @@ namespace AlkuTD
         static float defBulletspeed = 14f;
         static short[] defDmg = { 5, 15, 25 };
         static int defSplashRange = 0;
-        static int[] defCost = { 30, 50, 60 };
+        static int[] defCost = { 30, 30, 50 };
         static int[] defBuildTime = { 200, 300, 400 };
         static int preAimRangeBonus = 75;
         static int loadIters = 55;
@@ -39,8 +39,11 @@ namespace AlkuTD
         bool isLoaded;
         bool charging;
 
+        float targetAngle;
+        static float turningSpeed = 0.25f;
+
         public SniperTower(Point pos, UpgLvl upgLvl, bool isExample) 
-            : base(defChar[(int)upgLvl], defName[(int)upgLvl], pos, defRange[(int)upgLvl], defFirerate[(int)upgLvl], new Texture2D[] { CurrentGame.currentMap.ParentGame.Content.Load<Texture2D>("Towers\\solubug") }, new GeneSpecs(), CurrentGame.ball, defBulletspeed, defDmg[(int)upgLvl], DmgType.Basic, defSplashRange, new float[] {0,0}, defCost[(int)upgLvl], defBuildTime[(int)upgLvl], isExample)
+            : base(defChar[(int)upgLvl], defName[(int)upgLvl], pos, defRange[(int)upgLvl], defFirerate[(int)upgLvl], new Texture2D[] { CurrentGame.currentMap.ParentGame.Content.Load<Texture2D>("Towers\\nuTower1_Anim2") }, new GeneSpecs(), CurrentGame.ball, defBulletspeed, defDmg[(int)upgLvl], DmgType.Basic, defSplashRange, new float[] {0,0}, defCost[(int)upgLvl], defBuildTime[(int)upgLvl], 1, 3, isExample)
         {
             ParentMap = CurrentGame.currentMap;
             UpgradeLvl = upgLvl;
@@ -61,7 +64,13 @@ namespace AlkuTD
                 loadCounter++;
                 isLoaded = false;
             }
-            
+
+            if (firerateCounter < 5)
+                currentFrame = 2;
+            else if (firerateCounter < 10)
+                currentFrame = 1;
+            else currentFrame = 0;
+
             return;
         }
 
@@ -91,17 +100,27 @@ namespace AlkuTD
             PossibleTargets.Clear();
             for (int i = 0; i < aliveCreatures.Count; i++) // Fill CreaturesInPreAimRange & ColoredInRange from that list
             {
-                if (aliveCreatures[i].Born && Vector2.Distance(aliveCreatures[i].Location, ScreenLocation) <= Range + preAimRangeBonus)
+                Creature creature = aliveCreatures[i];
+                if (creature.Born && Vector2.Distance(creature.Location, ScreenLocation) <= Range + preAimRangeBonus)
                 {
-                    CreaturesInPreAimRange.Add(aliveCreatures[i]);
-                    if (ElemPriority != AlkuTD.ColorPriority.any && aliveCreatures[i].ElemArmors[ElemPriority] > 0)
-                        ColoredInRange.Add(aliveCreatures[i]);
+                    if (creature.Type != "Own")
+                    {
+                        if ((ElemPriority == ColorPriority.normal || ElemPriority == ColorPriority.any) && creature.ElemArmors.HasAny)
+                            ColoredInRange.Add(creature);
+                        else
+                            CreaturesInPreAimRange.Add(creature);
+                        if (ElemPriority != AlkuTD.ColorPriority.any && ElemPriority != AlkuTD.ColorPriority.normal && creature.ElemArmors[ElemPriority] > 0)
+                            ColoredInRange.Add(creature);
+                    }
                 }
-            }     
+            }
 
-            if (ElemPriority != AlkuTD.ColorPriority.any && ColoredInRange.Count > 0) // Fill PossibleTargets from CreaturesInPreAimRange or ColoredInRange if tower has a ElemPriority
-                PossibleTargets = ColoredInRange;
-            else PossibleTargets = CreaturesInPreAimRange;
+            if (ElemPriority != AlkuTD.ColorPriority.any && ElemPriority != ColorPriority.normal && ColoredInRange.Count > 0) // Fill PossibleTargets from CreaturesInPreAimRange or ColoredInRange if tower has a ElemPriority
+                PossibleTargets.AddRange(ColoredInRange);
+            else if (CreaturesInPreAimRange.Count == 0 && ColoredInRange.Count > 0)
+                PossibleTargets.AddRange(ColoredInRange);
+            else
+                PossibleTargets.AddRange(CreaturesInPreAimRange);
 
             if (previousTargets != null) // Remove targeted status from creatures that fled range
             {
@@ -123,7 +142,14 @@ namespace AlkuTD
 
             currentTarget = ChooseTarget();
 
-            angle = (float)Math.Atan2(ScreenLocation.Y - currentTarget.Location.Y, ScreenLocation.X - currentTarget.Location.X);
+            targetAngle = (float)Math.Atan2(ScreenLocation.Y - currentTarget.Location.Y, ScreenLocation.X - currentTarget.Location.X);
+            if (targetAngle > angle && Math.Abs(targetAngle - angle) >= turningSpeed)
+                angle += turningSpeed;
+            else if (targetAngle < angle && Math.Abs(targetAngle - angle) >= turningSpeed)
+                angle -= turningSpeed;
+            else
+                angle = targetAngle;
+
             ChargeShot();
 
             for (int i = 0; i < PossibleTargets.Count; i++)
@@ -132,12 +158,19 @@ namespace AlkuTD
                 {
                     CreaturesInRange.Add(aliveCreatures[i]);
                 }
+                else
+                {
+                    Creature fledTarget = PossibleTargets[i];
+                    PossibleTargets.Remove(fledTarget);
+                    if (currentTarget == fledTarget)
+                    {
+                        currentTarget = ChooseTarget();
+                    }
+                }
             }
 
             if (CreaturesInRange.Count == 0)
-            {
                 return;
-            }
 
             // --------------SHOOT!
 
@@ -168,6 +201,8 @@ namespace AlkuTD
                 else
                     sb.Draw(CurrentGame.pixel, new Rectangle((int)ScreenLocation.X - loadBarWidth / 2 + 1, (int)(ScreenLocation.Y + ParentMap.TileHeight * 0.44f), (int)((loadBarWidth - 2) * (loadCounter / (float)loadIters)), 2), null, loadBarColor, 0, Vector2.Zero, SpriteEffects.None, 0.09f);
             }
+
+            //sb.DrawString(CurrentGame.font, firerateCounter.ToString(), ScreenLocation, Color.AliceBlue);
         }
 
         /*public override void Shoot(Creature targetCreature) // ----Tää tarvii overridettää toistaseks ainoastaan laukasusaundia vaihtaakseen

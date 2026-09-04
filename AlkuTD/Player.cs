@@ -34,11 +34,11 @@ namespace AlkuTD
 			CurrentGame.players[0] = this;
 		}
 
-        public int UpdateScore()
+        public int UpdateScore(HexMap currentMap)
         {
 			//Score = LifePoints * 10 + EnergyPoints / 10 + UpgradePoints * 10; // VANHA
-			Score = LifePoints * 100 + EnergyPoints;
-            if (CurrentGame.gameState == GameState.GameOver)
+			Score = (LifePoints * 100 * ((currentMap.currentWave+1)) / currentMap.Waves.Length) + EnergyPoints;
+            if (CurrentGame.gameState == GameState.LevelComplete)
                 foreach (FloatingParticle p in CurrentGame.currentMap.FloatingParticles)
                     Score += p.EnergyBounty;
             return Score;

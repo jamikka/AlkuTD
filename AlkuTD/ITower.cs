@@ -8,7 +8,7 @@ namespace AlkuTD
 {
     public enum DmgType { Basic, Splash, Spray, None }
     public enum UpgLvl { Basic, Advanced, Max }
-    public enum ColorPriority { any, red, green, blue }
+    public enum ColorPriority { any, normal, Red, Green, Blue }
     public enum TargetPriority
     {
         none = 0,
@@ -19,12 +19,12 @@ namespace AlkuTD
         tough = 3,
         weak = 4,
 
-        fast = 5,
+        quick = 5,
         slow = 6,
 
         mob = 7,
 
-        far = 8,
+        distant = 8,
         close = 9
     }
 

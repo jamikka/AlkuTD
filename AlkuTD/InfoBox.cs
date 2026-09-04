@@ -16,7 +16,7 @@ namespace AlkuTD
 		string text;
 		public string Text { get { return text; } set { text = value; } }
 		public const int Padding = 4;
-		public const int YPadding = 2;
+		public const int YPadding = 0;
 		public Vector2 TextPos;
 		public const int DefaultWidth = 66;
 		public const int DefaultHeight = 56;

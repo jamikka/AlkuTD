@@ -10,9 +10,11 @@
                      
                      
 
+Story Map: Yes
+Target score: 0
 Available towers: 1 - - - - -
 Life:   5
-Energy: 17
+Biomass:17
 Genes:  0, 0, 0
 
 	Creamt	Type	Name		Texture		SpawnP	Goals	HP	SPD	LifeDmg	Energy	RRes	GRes	BRes	SpawnD	Duration

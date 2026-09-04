@@ -19,7 +19,7 @@ namespace AlkuTD
 	}
     public enum InputType { text, integer, floating }
     public enum DropDownMenuPos { Below, Above, Left, Right }
-    public enum TextAlignment { Center, Left, Right }
+    public enum TextAlignment { Center, Left, Right, HalfLeft }
 
     public class Button
     {
@@ -39,11 +39,13 @@ namespace AlkuTD
         public ButnState State;
         public ButnState PrevState;
         string text;
+        string[] texts;
         public string Text { get { return text; } set { text = value; RealignText(); } }
+        public string[] Texts { get { return texts; } set { texts = value; RealignText(); } }
         //public int TextSize;
         public Vector2 TextDimensions;
         public int Padding;
-        public int YPadding;
+        public int YPadding = -2;
         public Vector2 TextPos;
         
 
@@ -66,6 +68,26 @@ namespace AlkuTD
             TextDimensions.Y = CurrentGame.font.MeasureString(text == "" ? "A" : text.ToUpper()).Y;
             Padding = 10;
             Bounds = new Rectangle(xPos, yPos, (int)Math.Round(TextDimensions.X) + 2*Padding, (int)Math.Round(TextDimensions.Y) + Padding);
+
+            ButtonColors = buttonColors;
+            TextColors = textColors;
+            ButtonTexture = texture;
+            TextAlign = textAlign;
+
+            //State = ButState.Passive;
+            RealignText();
+        }
+        public Button(int xPos, int yPos, int width, int height, TextAlignment textAlign, Color[] buttonColors, Color[] textColors, Texture2D texture, params string[] texts)
+        {
+            text = texts[0];
+            Texts = texts;
+
+            //for (int i = 0; i < texts.Length; i++)
+            //    TextDimensions.X += CurrentGame.font.MeasureString(texts[i]).X;
+            TextDimensions.X = CurrentGame.font.MeasureString(text).X;
+            TextDimensions.Y = CurrentGame.font.MeasureString(text == "" ? "A" : text.ToUpper()).Y;
+            Padding = 10;
+            Bounds = new Rectangle(xPos, yPos, width, height);
 
             ButtonColors = buttonColors;
             TextColors = textColors;
@@ -121,11 +143,20 @@ namespace AlkuTD
 
         public void RealignText()
         {
-            TextDimensions.X = CurrentGame.font.MeasureString(text).X;
+            if (Texts == null)
+                TextDimensions.X = CurrentGame.font.MeasureString(text).X;
+            else
+            {
+                //for (int i = 0; i < texts.Length; i++)
+                //    TextDimensions.X += CurrentGame.font.MeasureString(texts[i]).X;
+                TextDimensions.X = CurrentGame.font.MeasureString(text).X;
+            }
             if (TextAlign == TextAlignment.Left)
                 TextPos = new Vector2(Bounds.X + Padding, Bounds.Center.Y - (int)TextDimensions.Y/2 + YPadding);
             else if (TextAlign == TextAlignment.Center)
                 TextPos = new Vector2(Bounds.Center.X - (int)TextDimensions.X/2, Bounds.Center.Y - (int)TextDimensions.Y/2 + YPadding);
+            else if (TextAlign == TextAlignment.HalfLeft)
+                TextPos = new Vector2(Bounds.Center.X - (int)TextDimensions.X, Bounds.Center.Y - (int)TextDimensions.Y / 2 + YPadding);
             else //(TextAlign == TextAlignment.Right)
                 TextPos = new Vector2(Bounds.Right - (int)TextDimensions.X - Padding, Bounds.Center.Y - (int)TextDimensions.Y/2 + YPadding);
         }
@@ -205,8 +236,20 @@ namespace AlkuTD
 
         public void Draw(SpriteBatch sb)
         {
-            sb.Draw(ButtonTexture, Bounds, ButtonColors[Math.Min((int)State, 2)]);
-            sb.DrawString(CurrentGame.font, Text, TextPos, TextColors[Math.Min((int)State, 2)]);
+            if (ButtonTexture != null)
+                sb.Draw(ButtonTexture, Bounds, ButtonColors[Math.Min((int)State, 2)]);
+            if (Texts == null)
+                sb.DrawString(CurrentGame.font, Text, TextPos, TextColors[Math.Min((int)State, 2)]);
+            else
+            {
+                for (int i = 0; i < Texts.Length; i++)
+                {
+                    if (i == 0)
+                        sb.DrawString(CurrentGame.font, Texts[i], TextPos, TextColors[Math.Min((int)State, 2)]);
+                    else 
+                        sb.DrawString(CurrentGame.font, Texts[i], TextPos + new Vector2(CurrentGame.font.MeasureString(Texts[i-1]).X, 0), TextColors[2]);
+                }
+            }
             if (IsDropDownMenu && DropDownButtons != null && State == ButnState.Active)
             {
                 for (int i = 0; i < DropDownButtons.Length; i++)

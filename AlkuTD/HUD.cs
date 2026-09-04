@@ -77,6 +77,7 @@ namespace AlkuTD
         int toolButtonY;
         public Point mapTestWTEditPos;
         public Point mapEditWTEditPos;
+        Vector2 backToMenuButtonLocation;
         Color[] buttonColors;
         //Color[] buttonColors { get { return buttonColorsS; }
         //    set { buttonColorsS = value; } }
@@ -112,6 +113,12 @@ namespace AlkuTD
         static TowerInfoBox HoveredTowerInfoBox;
         static InfoBox TileRingInfoBox;
 
+        Button RestartButton;
+        Button BackToMenuButton;
+        public static Button ScoreButton;
+
+        bool ShowPrioritiesActive;
+
         public HUD(CurrentGame game)
         {
             #region MAIN INITIALIZATIONS
@@ -124,14 +131,14 @@ namespace AlkuTD
                                           game.Content.Load<Texture2D>("Tilering\\ringFill-NE"), };
             tileOverlay = game.Content.Load<Texture2D>("Tiles\\hex-66-57-overlay");
             tileringGlow = game.Content.Load<Texture2D>("Tilering\\tileringGlow");
-            tilering = game.Content.Load<Texture2D>("Tilering\\tilering7");
-            tileringSlot = game.Content.Load<Texture2D>("Tilering\\singleSlot");
+            tilering = CurrentGame.tilering;
+            tileringSlot = CurrentGame.tileringSlot;
 
             tileringCenter = new Vector2((float)Math.Round(tilering.Width / 2f), (float)Math.Round(tilering.Height / 2f));
 
             onePadding = 9; //orig 10
             menuButtonHeight = font.LineSpacing + onePadding - 2;
-            cellButtonHeight = font.LineSpacing;
+            cellButtonHeight = font.LineSpacing -3;
             menuButtonWidth = (int)Math.Round(font.MeasureString("MENU").X) + 2 * onePadding;
             toolButtonWidth = (int)Math.Round(font.MeasureString("00").X) + 2 * onePadding;
             menuButtonX = menuButtonWidth / 2;
@@ -195,6 +202,7 @@ namespace AlkuTD
             Rectangle nrgLabelBOUNDS = new Rectangle((int)(game.GraphicsDevice.Viewport.Width * 0.5f), topButtonY, (int)font.MeasureString("Biomass: ").X, menuButtonHeight);
             Rectangle geneLabelBOUNDS = new Rectangle(nrgLabelBOUNDS.Right + resCellWidth + onePadding * 2, topButtonY, (int)font.MeasureString("Genes: ").X, menuButtonHeight);
             Rectangle lifeLabelBOUNDS = new Rectangle(geneLabelBOUNDS.Right + resCellWidth * 3 + onePadding * 2, topButtonY, (int)font.MeasureString("Life: ").X, menuButtonHeight);
+            Rectangle scoreLabelBOUNDS = new Rectangle(lifeLabelBOUNDS.Right + resCellWidth + onePadding * 2, topButtonY, (int)font.MeasureString("Target score: ").X, menuButtonHeight);
             MapEditorTopButtons = new Button[] { new Button("Map name:", mapNameBoxXPOS, topButtonY, (int)font.MeasureString("Map name:").X + 2*onePadding, menuButtonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
                                                  //new Button("Edit waves", game.GraphicsDevice.Viewport.Width/2 - ((int)font.MeasureString("Edit waves").X + 2*padding) /2 /*(int)(game.GraphicsDevice.Viewport.Width*0.43f)*/, topButtonY, (int)font.MeasureString("Edit waves").X + 2*padding, buttonHeight, padding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel),
                                                  //new Button("Energy:", (int)(game.GraphicsDevice.Viewport.Width*0.597f), topButtonY, (int)font.MeasureString("200").X + 2*padding, buttonHeight, padding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
@@ -203,7 +211,10 @@ namespace AlkuTD
                                                  new Button("Biomass:", nrgLabelBOUNDS.X, topButtonY, nrgLabelBOUNDS.Width, menuButtonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
                                                  new Button("Genes:", geneLabelBOUNDS.X, topButtonY, geneLabelBOUNDS.Width, menuButtonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
                                                  //new Button("Life:", (int)(game.GraphicsDevice.Viewport.Width*0.807f), topButtonY, (int)font.MeasureString("200").X + 2*padding, buttonHeight, padding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel)};
-                                                 new Button("Life:", lifeLabelBOUNDS.X, topButtonY, lifeLabelBOUNDS.Width, menuButtonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel)};
+                                                 new Button("Life:", lifeLabelBOUNDS.X, topButtonY, lifeLabelBOUNDS.Width, menuButtonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
+                                                 new Button("Target score:", scoreLabelBOUNDS.X, topButtonY, scoreLabelBOUNDS.Width, menuButtonHeight, onePadding, TextAlignment.Center, transparent, buttonTextColors, CurrentGame.pixel),
+                                                 new Button("Story map", scoreLabelBOUNDS.Center.X - 20, topButtonY + menuButtonHeight * 3, scoreLabelBOUNDS.Width, menuButtonHeight, onePadding, TextAlignment.Left, transparent, buttonTextColors, CurrentGame.pixel),
+                                                 new Button("No", scoreLabelBOUNDS.Center.X, topButtonY + menuButtonHeight * 4, menuButtonWidth - 10, menuButtonHeight, onePadding, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel)};
             MapEditorTopButtons[1].InToggleMode = true;
 
             mapEditWTEditPos = MapEditorTopButtons[1].Pos;
@@ -214,7 +225,8 @@ namespace AlkuTD
                                                       new TextCell("0", geneLabelBOUNDS.Right, topButtonY, resCellWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
                                                       new TextCell("0", geneLabelBOUNDS.Right + resCellWidth, topButtonY, resCellWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
                                                       new TextCell("0", geneLabelBOUNDS.Right + resCellWidth*2, topButtonY, resCellWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
-                                                      new TextCell("0", lifeLabelBOUNDS.Right, topButtonY, resCellWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true)};
+                                                      new TextCell("0", lifeLabelBOUNDS.Right, topButtonY, resCellWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true),
+                                                      new TextCell("0", scoreLabelBOUNDS.Center.X, topButtonY + menuButtonHeight, resCellWidth *2, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel, InputType.integer, false, true)};
 
             MapEditorResourceCells[1].ButtonColors = new Color[] { new Color(60, 10, 20), new Color(70, 20, 30), new Color(80, 30, 40) }; //----passive,hovered,pressed
             MapEditorResourceCells[2].ButtonColors = new Color[] { new Color(20, 60, 30), new Color(30, 70, 40), new Color(40, 80, 50) };
@@ -285,7 +297,7 @@ namespace AlkuTD
                                                       CurrentGame.pixel,
                                                       MapEditorLabelButtons[i % (MapEditorTableCols - 1)].inputType,
                                                       MapEditorLabelButtons[i % (MapEditorTableCols - 1)].IsDropDownMenu,
-                                                      i % (MapEditorTableCols - 1) >= 6);
+                                                      i % (MapEditorTableCols - 1) >= 6 || i % (MapEditorTableCols - 1) == 0);
                 //if (i % (MapEditorTableCols-1) == 7)
                 //    MapEditorTableCells[i].Text = "-";
                 MapEditorTableCells[i].Index = i; //------------------------------------------------NOLOUS
@@ -307,7 +319,7 @@ namespace AlkuTD
             for (int i = 0; i < MapEditorWaveLabels.Length; i++)
             {
                 MapEditorWaveLabels[i] = new Button("Wave 1", menuButtonX + menuButtonWidth + cellGap, tableButtonY + i * tableButtonYDist, WaveLabelWidth - cellGap, tableButtonYDist - 1, onePadding, TextAlignment.Center, tableLabelColors, tableLabelTextColors, CurrentGame.pixel, InputType.integer, false);
-                MapEditorWaveLabels[i].YPadding = 2;
+                MapEditorWaveLabels[i].YPadding = 0;
             }
             MapEditorWaveLabels[1].Text = "Add";
 
@@ -365,6 +377,15 @@ namespace AlkuTD
             BugBoxes = new List<BugInfoBox>();
             NexWaveInfoBoxes = new List<GroupInfoBox>();
             CurrWaveInfoBoxes = new List<GroupInfoBox>();
+
+            int levelCompleteButtonsX = CurrentGame.graphicsDevice.Viewport.Width / 2 - (int)CurrentGame.font.MeasureString("Restart").X / 2;
+            int levelComleteButtonsY = CurrentGame.graphicsDevice.Viewport.Height / 2;
+            int levelComleteButtonsWidth = (int)CurrentGame.font.MeasureString("Restart").X;
+            RestartButton = new Button("Restart", levelCompleteButtonsX, levelComleteButtonsY, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel);
+            backToMenuButtonLocation = new Vector2(HUDbuttons[1].Bounds.Center.X - levelComleteButtonsWidth * 0.5f, HUDbuttons[1].Pos.Y + menuButtonHeight + 5);
+            BackToMenuButton = new Button("Menu", (int)backToMenuButtonLocation.X, (int)backToMenuButtonLocation.Y, levelComleteButtonsWidth, menuButtonHeight, onePadding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel);
+            ScoreButton = new Button(levelCompleteButtonsX, levelComleteButtonsY - RestartButton.Height, (int)CurrentGame.font.MeasureString("Score: 100000").X, RestartButton.Height, TextAlignment.HalfLeft, buttonColors, buttonTextColors, CurrentGame.pixel, "Score", "0");
+
         }
 
         void InitGenesChanged()
@@ -457,6 +478,17 @@ namespace AlkuTD
 
                     reader.ReadLine();
                     reader.ReadLine();
+
+                    read = reader.ReadLine().Split(':');
+                    if (read[1].Trim() == "Yes")
+                    {
+                        ParentMap.IsStoryMap = true;
+                        MapEditorTopButtons[7].Text = "Yes";
+                    }
+                    else MapEditorTopButtons[7].Text = "No";
+
+                    read = reader.ReadLine().Split(':');
+                    MapEditorResourceCells[5].Text = read[1].Trim(); //target score
                     read = reader.ReadLine().Split(':', ' ');
                     for (int i = 0; i < availableTowers.Length; i++)
                     {
@@ -534,6 +566,7 @@ namespace AlkuTD
                 //    mapButton.Text += " (bad file!)";
                 //   CurrentGame.gameState = GameState.MainMenu;
                 //} 
+                HexMap.ProgressBlockedTowers = new byte[6];
             }
             //checkVisTile = ParentMap.ToScreenLocation(MapEditorSpawnPoints[0]);
 
@@ -779,12 +812,26 @@ namespace AlkuTD
                     Vector2 spawnpoint = map.ToScreenLocation(map.SpawnPoints[i]);
                     Vector2 creatureFirstMoveTile = Vector2.Zero;
 
+                    Vector2[] PossibleDrawTiles = new Vector2[6];
+
+                    for (int j = 0; j < 6; j++)
+                    {
+                        //Point spwn = map.SpawnPoints[i];
+                        //MapLayout.Adjacent adj = (MapLayout.Adjacent)j;
+                        //Point adjP = map.InitialLayout.GetAdjacent(map.SpawnPoints[i], (MapLayout.Adjacent)j);
+                        //char adjC = map.InitialLayout[map.SpawnPoints[i], (MapLayout.Adjacent)j];
+                        if (map.InitialLayout[map.SpawnPoints[i], (MapLayout.Adjacent)j] == ' ')
+                            PossibleDrawTiles[j] = map.ToScreenLocation(map.InitialLayout.GetAdjacent(map.SpawnPoints[i], (MapLayout.Adjacent)j));
+                    }
+                    Vector2 tempVec = PossibleDrawTiles[1];
+                    PossibleDrawTiles[1] = PossibleDrawTiles[3];
+                    PossibleDrawTiles[3] = tempVec;
+
                     for (int g = 0; g < nextWave.Groups.Length; g++)
                     {
                         if (nextWave.Groups[g].SpawnPointIndex == i)
                         {
                             spGroups.Add(nextWave.Groups[g]);
-                            creatureFirstMoveTile = nextWave.Groups[g].Creatures[0].OrigPath[1];
                         }
                     }
                     if (spGroups.Count < 1)
@@ -792,18 +839,31 @@ namespace AlkuTD
 
                     int groupsOnSP = spGroups.Count;
                     bool aboveSP = true;
-                    Vector2 firstBoxPos = spawnpoint - new Vector2(groupsOnSP * boxWidth * 0.5f, 0);
-                    float pathDir = (float)Math.Atan2(spawnpoint.Y - creatureFirstMoveTile.Y, spawnpoint.X - creatureFirstMoveTile.X);
-                    if (pathDir > 0)
+
+                    Vector2 firstBoxPos = spawnpoint;
+                    for (int p = 0; firstBoxPos == spawnpoint && p < PossibleDrawTiles.Length; p++)
                     {
-                        firstBoxPos.Y += map.TileHalfHeight + 2;
-                        aboveSP = false;
+                        if (PossibleDrawTiles[p] != Vector2.Zero)
+                        {
+                            firstBoxPos = PossibleDrawTiles[p];
+                            if (p == 5 || p == 0 || p == 3)
+                            {
+                                aboveSP = true;
+                                firstBoxPos.Y -= 6;
+                            }
+                            else
+                            {
+                                aboveSP = false;
+                                firstBoxPos.Y -= map.TileHalfHeight;
+                            }
+                        }
                     }
-                    else
-                        firstBoxPos.Y -= map.TileHalfHeight + GroupInfoBox.boxHeight;
+                    firstBoxPos.X -= groupsOnSP * boxWidth * 0.5f;
+
                     for (int b = 0; b < spGroups.Count; b++)
                     {
                         NexWaveInfoBoxes.Add(new GroupInfoBox(firstBoxPos + new Vector2(b * boxWidth, 0), spGroups[b], aboveSP));
+                        NexWaveInfoBoxes[b].BugBox.PosX -= 20 * (spGroups.Count / 2 - b);
                     }
                 }
             }
@@ -856,6 +916,93 @@ namespace AlkuTD
             //hudCue.Play();
         }
 
+        private void StartMapFromWave(int waveNumber)
+        {
+            ParentMap.SpawnPoints = MapEditorSpawnPoints.ToArray(); // case 0: TEST
+            ParentMap.GoalPoints = MapEditorGoalPoints.ToArray();
+            Array.Copy(ParentMap.Layout, ParentMap.InitLayout, ParentMap.Layout.Length);
+            ParentMap.Pathfinder.InitializeTiles();
+
+            if (ValidateMap()) //--------------------------------table cell info (at least dur) doesn't refresh---OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOÖÖÖÖÖÖÖLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL>>>>>>>>>>>>>>>>
+            {
+                int groupRow = 0;
+                ParentMap.Waves = ParentMap.MapEditorTempWaves.ToArray();
+                for (int w = 0; w < ParentMap.Waves.Length; w++)
+                {
+                    ParentMap.Waves[w].Groups = ParentMap.MapEditorTempWaves[w].TempGroups.ToArray();
+                    for (int g = 0; g < ParentMap.MapEditorTempWaves[w].Groups.Length; g++)
+                    {
+                        int indexRow = groupRow * (MapEditorTableCols - 1);
+
+                        int creAmt = MapEditorTableCells[0 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[0 + indexRow].Text);
+                        string type = MapEditorTableCells[1 + indexRow].Text;
+                        string name = MapEditorTableCells[2 + indexRow].Text;
+                        string texName = MapEditorTableCells[3 + indexRow].Text;
+                        int spIndex = MapEditorTableCells[4 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[4 + indexRow].Text) - 1;
+                        int gpIndex = MapEditorTableCells[5 + indexRow].Text == "" ? 0 : (int)char.Parse(MapEditorTableCells[5 + indexRow].Text) - 97; //Goalpoint
+                        int hp = MapEditorTableCells[6 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[6 + indexRow].Text);
+                        float spd = MapEditorTableCells[7 + indexRow].Text == "" ? 0 : float.Parse(MapEditorTableCells[7 + indexRow].Text, System.Globalization.NumberFormatInfo.InvariantInfo);
+                        byte ldmg = MapEditorTableCells[8 + indexRow].Text == "" ? (byte)0 : byte.Parse(MapEditorTableCells[8 + indexRow].Text);
+                        int nrg = MapEditorTableCells[9 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[9 + indexRow].Text);
+                        float rArm = MapEditorTableCells[10 + indexRow].Text == "" ? 0 : float.Parse(MapEditorTableCells[10 + indexRow].Text, System.Globalization.NumberFormatInfo.InvariantInfo);
+                        float gArm = MapEditorTableCells[11 + indexRow].Text == "" ? 0 : float.Parse(MapEditorTableCells[11 + indexRow].Text, System.Globalization.NumberFormatInfo.InvariantInfo);
+                        float bArm = MapEditorTableCells[12 + indexRow].Text == "" ? 0 : float.Parse(MapEditorTableCells[12 + indexRow].Text, System.Globalization.NumberFormatInfo.InvariantInfo);
+                        GeneSpecs armors = new GeneSpecs(rArm, gArm, bArm);
+                        int spwnFrq = MapEditorTableCells[13 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[13 + indexRow].Text);
+                        int spwnDur = MapEditorTableCells[14 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[14 + indexRow].Text);
+
+                        ParentMap.Waves[w].Groups[g] = new SpawnGroup(creAmt, new Creature(type, name, ParentMap, texName, spIndex, gpIndex, hp, spd, armors, ldmg, nrg, 1f), spwnFrq, spwnDur, g, w);
+
+                        groupRow++;
+                    }
+
+                    ParentMap.Waves[w].Initialize();
+                }
+                ParentMap.PlayerInitEnergy = int.Parse(MapEditorResourceCells[0].Text);
+                ParentMap.PlayerInitGenePoints = new int[] { int.Parse(MapEditorResourceCells[1].Text), int.Parse(MapEditorResourceCells[2].Text), int.Parse(MapEditorResourceCells[3].Text) };
+                ParentMap.PlayerInitLife = short.Parse(MapEditorResourceCells[4].Text);
+
+                for (int i = 0; i < AvailableTowersCells.Length; i++)
+                    byte.TryParse(AvailableTowersCells[i].Text, out ParentMap.AvailableTowers[i]);
+
+                //ParentMap.SaveMap(CurrentGame.MapDir + "temp.txt");
+                //EditorMapLoad("temp");
+                ParentMap.ResetMap();
+                MapEditorTopButtons[1].Pos = mapTestWTEditPos;
+
+                if (waveNumber > 1)
+                {
+                    ParentMap.currentWave = waveNumber - 2;
+
+                    int nrgBountySummation = 0;
+                    int rGeneBountySummation = 0;
+                    int gGeneBountySummation = 0;
+                    int bGeneBountySummation = 0;
+                    int spawnTimerOffset = 0;
+
+                    for (int w = 0; w < ParentMap.Waves.Length && w < waveNumber - 1; w++)
+                    {
+                        for (int g = 0; g < ParentMap.Waves[w].Groups.Length; g++)
+                        {
+                            nrgBountySummation += ParentMap.Waves[w].Groups[g].Creatures.Length * ParentMap.Waves[w].Groups[g].ExampleCreature.EnergyBounty;
+                            rGeneBountySummation += ParentMap.Waves[w].Groups[g].Creatures.Length * (ParentMap.Waves[w].Groups[g].ExampleCreature.ElemArmors[GeneType.Red] > 0 ? 1 : 0);
+                            gGeneBountySummation += ParentMap.Waves[w].Groups[g].Creatures.Length * (ParentMap.Waves[w].Groups[g].ExampleCreature.ElemArmors[GeneType.Green] > 0 ? 1 : 0);
+                            bGeneBountySummation += ParentMap.Waves[w].Groups[g].Creatures.Length * (ParentMap.Waves[w].Groups[g].ExampleCreature.ElemArmors[GeneType.Blue] > 0 ? 1 : 0);
+
+                            ParentMap.Waves[w].Groups[g].GroupSkipped = true;
+                        }
+                        spawnTimerOffset += ParentMap.Waves[w].Duration;
+                    }
+                    ParentMap.Players[0].EnergyPoints += nrgBountySummation;
+                    ParentMap.Players[0].GenePoints[0] += rGeneBountySummation;
+                    ParentMap.Players[0].GenePoints[1] += gGeneBountySummation;
+                    ParentMap.Players[0].GenePoints[2] += bGeneBountySummation;
+
+                    UpdateWaveInfo();
+                }
+            }
+        }
+
         #region UPDATEVARIABLES
         int tabRefreshCounter;
         int dirKeyRefreshCounter;
@@ -878,14 +1025,48 @@ namespace AlkuTD
             if (ParentMap.InitialLayout[hoveredCoord] == '0' || ((ParentMap.InitialLayout[hoveredCoord] >= 64 && ParentMap.InitialLayout[hoveredCoord] <= 90) || (ParentMap.InitialLayout[hoveredCoord] >= 124)))
                 hoveredTilePos -= HexMap.TileWallHeight;
 
-            if (CurrentGame.gameState != GameState.MapEditor)
+            BackToMenuButton.Update(mouse, prevMouse);
+            if (BackToMenuButton.State == ButnState.Released)
+            {
+                CurrentGame.gameState = GameState.MainMenu;
+                MapEditorTopButtons[1].Pos = mapEditWTEditPos;
+            }
+
+            if (keyboard.IsKeyDown(Keys.T) && prevKeyboard.IsKeyUp(Keys.T))
+                ShowPrioritiesActive = !ShowPrioritiesActive;
+
+            if (CurrentGame.gameState != GameState.MapEditor && CurrentGame.gameState != GameState.MapTestInitSetup && CurrentGame.gameState != GameState.MapTestInGame && CurrentGame.gameState != GameState.MapTestPaused)
             #region BASIC HUD
             {
+                
+
+                if (CurrentGame.gameState == GameState.LevelComplete)
+                {
+                    RestartButton.Update(mouse, prevMouse);
+                    if (RestartButton.State == ButnState.Released)
+                    {
+                        ParentMap.ResetMap();
+                        return;
+                    }
+                    
+
+                    //ScoreButton.Texts = new string[] { "Score: ", CurrentGame.players[0].UpdateScore(ParentMap).ToString() };
+
+                    if (CurrentGame.prevState == GameState.MapTestInGame)
+                    {
+                        if (mouse.LeftButton == ButtonState.Released && prevMouse.LeftButton == ButtonState.Pressed)
+                        {
+                            ParentMap.ResetMap();
+                            MapEditorTopButtons[1].Pos = mapEditWTEditPos;
+                            CurrentGame.gameState = GameState.MapEditor;
+                        }
+                    }
+                }
 
                 for (int i = 0; i < HUDbuttons.Length; i++)
                     HUDbuttons[i].Update(mouse, prevMouse);
 
-                //INITSETUP WAVEINFOBOXES
+                #region INITSETUP WAVEINFOBOXES
                 if (CurrentGame.gameState == GameState.InitSetup || CurrentGame.gameState == GameState.MapTestInitSetup/*!initSetupOn*/)
                 {
                     bool isNoneLocked = true;
@@ -912,7 +1093,8 @@ namespace AlkuTD
                         }
                     }
                 }
-                //INGAME WAVEINFOBOXES
+                #endregion
+                #region INGAME WAVEINFOBOXES
                 else
                 {
                     //---------------------------------------------------------------eikös tänkin vois laittaa on-demand, öröjen vastuulle
@@ -939,23 +1121,6 @@ namespace AlkuTD
                             }
                         }
                     }
-                }
-
-                #region MAPTEST
-                if (CurrentGame.gameState == GameState.MapTestInGame || CurrentGame.gameState == GameState.MapTestInitSetup)
-                {
-                    BackToEditButton.Update(mouse, prevMouse);
-                    if (BackToEditButton.State == ButnState.Released)
-                    {
-                        MapEditorTopButtons[1].Pos = mapEditWTEditPos;
-                        ParentMap.ResetMap();
-                        UpdateGeneBarsMAPEDIT();
-                        CurrentGame.gameState = GameState.MapEditor;
-                    }
-                    MapEditorTopButtons[1].Update(mouse, prevMouse);
-
-                    if (keyboard.IsKeyDown(Keys.F1) && prevKeyboard.IsKeyUp(Keys.F1))
-                        MapEditorTopButtons[1].State = MapEditorTopButtons[1].State == ButnState.Active ? ButnState.Passive : ButnState.Active;
                 }
                 #endregion
 
@@ -1078,7 +1243,183 @@ namespace AlkuTD
             else
             #region MAP EDITOR
             {
+                if (keyboard.IsKeyDown(Keys.F1) && prevKeyboard.IsKeyUp(Keys.F1))
+                {
+                    MapEditorTopButtons[1].State = MapEditorTopButtons[1].State == ButnState.Active ? ButnState.Passive : ButnState.Active;
+                    //inWaveEdit = !inWaveEdit;
+                }
 
+                #region MAPTEST
+                if (CurrentGame.gameState == GameState.MapTestInGame || CurrentGame.gameState == GameState.MapTestInitSetup)
+                {
+                    for (int i = 0; i < HUDbuttons.Length; i++)
+                        HUDbuttons[i].Update(mouse, prevMouse);
+                    #region NEXTWAVE & RESTART COPIED
+                    if (HUDbuttons[0].State == ButnState.Released || (keyboard.IsKeyDown(Keys.Space) && !prevKeyboard.IsKeyDown(Keys.Space)))
+                    {
+                            CurrentGame.gameState = GameState.MapTestInGame;
+
+                        if (ParentMap.currentWave == -1)
+                        {
+                            ParentMap.currentWave = 0;
+                            HUD.UpdateWaveInfo();
+                            HUDbuttons[0].Text = "Send next wave";
+                        }
+                        else if (ParentMap.currentWave + 1 < ParentMap.Waves.Length)
+                        {
+                            ParentMap.currentWave++;
+                            HUD.UpdateWaveInfo();
+                            if (ParentMap.currentWave == ParentMap.Waves.GetUpperBound(0))
+                                HUDbuttons[0].Text = "Final Wave";
+                        }
+                    }
+                    else if (HUDbuttons[1].State == ButnState.Released)
+                        ParentMap.ResetMap();
+                    #endregion
+
+                    BackToEditButton.Update(mouse, prevMouse);
+                    if (BackToEditButton.State == ButnState.Released)
+                    {
+                        MapEditorTopButtons[1].Pos = mapEditWTEditPos;
+                        ParentMap.ResetMap();
+                        UpdateGeneBarsMAPEDIT();
+                        CurrentGame.gameState = GameState.MapEditor;
+                    }
+                    //MapEditorTopButtons[1].Update(mouse, prevMouse);
+
+                    #region WAVEINFOBOXES COPIED
+                    for (int i = 0; i < CurrWaveInfoBoxes.Count; i++)
+                        CurrWaveInfoBoxes[i].Update(mouse, prevMouse);
+                    for (int i = 0; i < NexWaveInfoBoxes.Count; i++)
+                        NexWaveInfoBoxes[i].Update(mouse, prevMouse);
+
+                    #endregion
+
+                    #region MOVING_INFOBOXES COPIED
+                    for (int i = 0; i < ParentMap.AliveCreatures.Count; i++)
+                    {
+                        Creature currentCreature = ParentMap.AliveCreatures[i];
+                        //currentCreature.ParentGroup.ShowingPath = false;
+                        if (Vector2.Distance(mousePos, currentCreature.Location) <= 15)
+                        {
+                            if (BugBoxes.Count > 0)
+                            {
+                                if (!BugBoxes[0].locked)
+                                    BugBoxes[0] = new BugInfoBox(currentCreature.Location - new Vector2(66, 20), currentCreature, true, false, null);
+                                else if (BugBoxes[0].Target != currentCreature)
+                                    BugBoxes.Insert(0, new BugInfoBox(currentCreature.Location - new Vector2(66, 20), currentCreature, true, false, null));
+                            }
+                            else
+                                BugBoxes.Add(new BugInfoBox(currentCreature.Location - new Vector2(66, 20), currentCreature, true, false, null));
+
+
+                            hoveredCreature = currentCreature;
+                            hoveredGroup = hoveredCreature.ParentGroup;
+                            hoveredCreature.ParentGroup.ShowingPath = true;
+
+                            //hoveredCreature.ParentGroup.showPathFade = hoveredCreature.ParentGroup.showPathFadeCycles;
+                            bugHoverCounter = bugHoverFade;
+                            if (mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton == ButtonState.Released)
+                            {
+                                BugBoxes[0].locked = !BugBoxes[0].locked;
+                                BugBoxes[0].justRemoteLocked = true;
+                                break;
+                            }
+                        }
+                        else
+                            hoveredCreature = null;
+                    }
+
+                    for (int i = 0; i < BugBoxes.Count; i++)
+                    {
+                        if (BugBoxes[i].locked)
+                        {
+                            BugBoxes[i].Pos = BugBoxes[i].Target.Location;
+                            BugBoxes[i].Update(mouse, prevMouse);
+                            BugBoxes[i].Target.ParentGroup.ShowingPath = true;
+                            if (!BugBoxes[i].locked)
+                            {
+                                //BugBoxes[i].Target.ParentGroup.ShowingPath = false;
+                                BugBoxes.Remove(BugBoxes[i]);
+                            }
+                        }
+                        else
+                        {
+                            BugBoxes[i].Pos = BugBoxes[i].Target.Location;
+                            bugHoverCounter--;
+                            if (bugHoverCounter <= 0)
+                            {
+                                BugBoxes[i].Target.ParentGroup.ShowingPath = false;
+                                BugBoxes.Remove(BugBoxes[i]);
+                            }
+                            else
+                            {
+                                BugBoxes[i].Update(mouse, prevMouse);
+                                //BugBoxes[i].Target.ParentGroup.ShowingPath = BugBoxes[i].hoveredOver;
+                            }
+                        }
+                    }
+                    #endregion
+
+                    #region INITSETUP WAVEINFOBOXES COPIED
+                    if (CurrentGame.gameState == GameState.InitSetup || CurrentGame.gameState == GameState.MapTestInitSetup)
+                    {
+                        bool isNoneLocked = true;
+                        for (int w = 0; w < ParentMap.Waves.Length; w++)
+                        {
+                            for (int g = 0; g < ParentMap.Waves[w].Groups.Length; g++)
+                            {
+                                SpawnGroup spwnG = ParentMap.Waves[w].Groups[g];
+                                if (spwnG.BugBox.locked || spwnG.BugBox.hoveredOver)
+                                {
+                                    foreach (SpawnGroup sg in ParentMap.Waves[w].Groups)
+                                    {
+                                        if (!sg.BugBox.locked)
+                                            sg.ShowingPath = false;
+                                    }
+                                    spwnG.ShowingPath = true;
+                                    isNoneLocked = false;
+                                    continue;
+                                }
+                                if (isNoneLocked)
+                                    spwnG.ShowingPath = true;
+                                else
+                                    spwnG.ShowingPath = false;
+                            }
+                        }
+                    }
+                    #endregion
+                    #region INGAME WAVEINFOBOXES COPIED
+                    else
+                    {
+                        //---------------------------------------------------------------eikös tänkin vois laittaa on-demand, öröjen vastuulle
+                        bool PKeyDown = CurrentGame.keyboard.IsKeyDown(Keys.P);
+                        for (int w = 0; w < ParentMap.Waves.Length; w++)
+                        {
+                            for (int g = 0; g < ParentMap.Waves[w].Groups.Length; g++)
+                            {
+                                SpawnGroup spwnG = ParentMap.Waves[w].Groups[g];
+                                if (!spwnG.BugBox.locked)
+                                    spwnG.ShowingPath = false;
+                                if (PKeyDown)
+                                    spwnG.ShowingPath = true;
+
+                                if (spwnG.BugBox.locked || spwnG.BugBox.hoveredOver)
+                                {
+                                    foreach (SpawnGroup sg in ParentMap.Waves[w].Groups)
+                                    {
+                                        if (!sg.BugBox.locked)
+                                            sg.ShowingPath = false;
+                                    }
+                                    spwnG.ShowingPath = true;
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                }
+                #endregion
 
                 #region ---------------------------   BUTTON UPDATES   --------------------------------
                 #region MENU BUTTONS
@@ -1094,61 +1435,8 @@ namespace AlkuTD
                         switch (m)
                         {
                             case 0:
-                                #region LOAD TEST
-                                ParentMap.SpawnPoints = MapEditorSpawnPoints.ToArray(); // case 0: TEST
-                                ParentMap.GoalPoints = MapEditorGoalPoints.ToArray();
-                                Array.Copy(ParentMap.Layout, ParentMap.InitLayout, ParentMap.Layout.Length);
-                                ParentMap.Pathfinder.InitializeTiles();
-
-                                if (ValidateMap()) //--------------------------------table cell info (at least dur) doesn't refresh---OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOÖÖÖÖÖÖÖLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL>>>>>>>>>>>>>>>>
-                                {
-                                    int groupRow = 0;
-                                    ParentMap.Waves = ParentMap.MapEditorTempWaves.ToArray();
-                                    for (int w = 0; w < ParentMap.Waves.Length; w++)
-                                    {
-                                        ParentMap.Waves[w].Groups = ParentMap.MapEditorTempWaves[w].TempGroups.ToArray();
-                                        for (int g = 0; g < ParentMap.MapEditorTempWaves[w].Groups.Length; g++)
-                                        {
-                                            int indexRow = groupRow * (MapEditorTableCols - 1);
-
-                                            int creAmt = MapEditorTableCells[0 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[0 + indexRow].Text);
-                                            string type = MapEditorTableCells[1 + indexRow].Text;
-                                            string name = MapEditorTableCells[2 + indexRow].Text;
-                                            string texName = MapEditorTableCells[3 + indexRow].Text;
-                                            int spIndex = MapEditorTableCells[4 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[4 + indexRow].Text) - 1;
-                                            int gpIndex = MapEditorTableCells[5 + indexRow].Text == "" ? 0 : (int)char.Parse(MapEditorTableCells[5 + indexRow].Text) - 97; //Goalpoint
-                                            int hp = MapEditorTableCells[6 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[6 + indexRow].Text);
-                                            float spd = MapEditorTableCells[7 + indexRow].Text == "" ? 0 : float.Parse(MapEditorTableCells[7 + indexRow].Text, System.Globalization.NumberFormatInfo.InvariantInfo);
-                                            byte ldmg = MapEditorTableCells[8 + indexRow].Text == "" ? (byte)0 : byte.Parse(MapEditorTableCells[8 + indexRow].Text);
-                                            int nrg = MapEditorTableCells[9 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[9 + indexRow].Text);
-                                            float rArm = MapEditorTableCells[10 + indexRow].Text == "" ? 0 : float.Parse(MapEditorTableCells[10 + indexRow].Text, System.Globalization.NumberFormatInfo.InvariantInfo);
-                                            float gArm = MapEditorTableCells[11 + indexRow].Text == "" ? 0 : float.Parse(MapEditorTableCells[11 + indexRow].Text, System.Globalization.NumberFormatInfo.InvariantInfo);
-                                            float bArm = MapEditorTableCells[12 + indexRow].Text == "" ? 0 : float.Parse(MapEditorTableCells[12 + indexRow].Text, System.Globalization.NumberFormatInfo.InvariantInfo);
-                                            GeneSpecs armors = new GeneSpecs(rArm, gArm, bArm);
-                                            int spwnFrq = MapEditorTableCells[13 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[13 + indexRow].Text);
-                                            int spwnDur = MapEditorTableCells[14 + indexRow].Text == "" ? 0 : int.Parse(MapEditorTableCells[14 + indexRow].Text);
-
-                                            ParentMap.Waves[w].Groups[g] = new SpawnGroup(creAmt, new Creature(type, name, ParentMap, texName, spIndex, gpIndex, hp, spd, armors, ldmg, nrg, 1f), spwnFrq, spwnDur, g, w);
-
-                                            groupRow++;
-                                        }
-
-                                        ParentMap.Waves[w].Initialize();
-                                    }
-                                    ParentMap.PlayerInitEnergy = int.Parse(MapEditorResourceCells[0].Text);
-                                    ParentMap.PlayerInitGenePoints = new int[] { int.Parse(MapEditorResourceCells[1].Text), int.Parse(MapEditorResourceCells[2].Text), int.Parse(MapEditorResourceCells[3].Text) };
-                                    ParentMap.PlayerInitLife = short.Parse(MapEditorResourceCells[4].Text);
-
-                                    for (int i = 0; i < AvailableTowersCells.Length; i++)
-                                        byte.TryParse(AvailableTowersCells[i].Text, out ParentMap.AvailableTowers[i]);
-
-                                    //ParentMap.SaveMap(CurrentGame.MapDir + "temp.txt");
-                                    //EditorMapLoad("temp");
-                                    ParentMap.ResetMap();
-                                    MapEditorTopButtons[1].Pos = mapTestWTEditPos;
-                                }
+                                StartMapFromWave(1);
                                 break;
-                            #endregion
                             case 1:
                                 #region SAVE IF NOT EXISTING
                                 if (MapNameBox.Text == "")
@@ -1169,8 +1457,8 @@ namespace AlkuTD
                             #endregion
                             case 2: break; // LOAD MAP HAPPENS BELOW (oh why...
                             case 3:
-                                ParentGame.mainMenu.RefreshMapData();
-                                ParentGame.mainMenu.menuState = MainMenu.MenuState.Main;
+                                CurrentGame.mainMenu.RefreshMapData();
+                                CurrentGame.mainMenu.menuState = MainMenu.MenuState.Main;
                                 CurrentGame.gameState = GameState.MainMenu; break;
                             case 4: ParentGame.Exit(); break;
                         }
@@ -1246,14 +1534,24 @@ namespace AlkuTD
                     {
                         if (i == 0)
                             MapNameBox.State = ButnState.Active;
-                        else if (i == 1)
-                            inWaveEdit = !inWaveEdit;
+                        //else if (i == 1)
+                        //    inWaveEdit = !inWaveEdit;
                         else if (i == 2)
                             MapEditorResourceCells[0].State = ButnState.Active;
                         else if (i == 4)
                             MapEditorResourceCells[4].State = ButnState.Active;
+                        else if (i == 7)
+                        {
+                            if (MapEditorTopButtons[7].Text == "No")
+                                MapEditorTopButtons[7].Text = "Yes";
+                            else MapEditorTopButtons[7].Text = "No";
+                        }
                     }
                 }
+                if (MapEditorTopButtons[1].State == ButnState.Active)
+                    inWaveEdit = true;
+                else
+                    inWaveEdit = false;
                 #endregion
 
                 for (int i = 0; i < AvailableTowersCells.Length; i++)
@@ -1294,8 +1592,7 @@ namespace AlkuTD
 
                 #region ----------------------------   WAVE TABLE  -----------------------------------
 
-                if (keyboard.IsKeyDown(Keys.F1) && prevKeyboard.IsKeyUp(Keys.F1))
-                    MapEditorTopButtons[1].State = MapEditorTopButtons[1].State == ButnState.Active ? ButnState.Passive : ButnState.Active;
+                
 
                 int hoveredCell = -1;
                 int hoveredRow = -1;
@@ -1445,6 +1742,34 @@ namespace AlkuTD
                     }
                     #endregion
 
+                    #region ---------------------------   WAVELABEL UPDATE   --------------------------------
+                    int labelPos = 0; //---------------------------WAVELABEL UPDATE-----
+                    for (int i = 0; i < ParentMap.MapEditorTempWaves.Count; i++)
+                    {
+                        if (i == 0)
+                            labelPos = 0;
+                        else
+                            labelPos += ParentMap.MapEditorTempWaves[i - 1].TempGroups.Count;
+                        MapEditorWaveLabels[labelPos].Update(mouse, prevMouse);
+                        if (MapEditorWaveLabels[labelPos].State == ButnState.Hovered)
+                        {
+                            for (int k = labelPos * (MapEditorTableCols - 1); k < labelPos * (MapEditorTableCols - 1) + ParentMap.MapEditorTempWaves[i].TempGroups.Count * (MapEditorTableCols - 1); k++)
+                            {
+                                if (MapEditorTableCells[k].State != ButnState.Selected)
+                                    MapEditorTableCells[k].State = ButnState.Hovered;
+                            }
+                        }
+                        else if (MapEditorWaveLabels[labelPos].State == ButnState.Released)
+                        {
+                            if (MapEditorWaveLabels[labelPos].Text != "Add")
+                                StartMapFromWave(int.Parse(MapEditorWaveLabels[labelPos].Text.Split(new string[] { "Wave " }, StringSplitOptions.None)[1]));
+
+                            for (int k = labelPos * (MapEditorTableCols - 1); k < labelPos * (MapEditorTableCols - 1) + ParentMap.MapEditorTempWaves[i].TempGroups.Count * (MapEditorTableCols - 1); k++)
+                                MapEditorTableCells[k].State = ButnState.Selected;
+                        }
+                    }
+                    #endregion
+
                     #region ---------------------------   WAVE ADD   --------------------------------
                     MapEditorWaveLabels[totalGroups].Update(mouse, prevMouse);
                     if (MapEditorWaveLabels[totalGroups].State == ButnState.Released && totalGroups < MapEditorTableRows - 1)
@@ -1533,36 +1858,13 @@ namespace AlkuTD
                     }
                     #endregion
 
-                    #region ---------------------------   WAVELABEL UPDATE   --------------------------------
-                    int labelPos = 0; //---------------------------WAVELABEL UPDATE-----
-                    for (int i = 0; i < ParentMap.MapEditorTempWaves.Count; i++)
-                    {
-                        if (i == 0)
-                            labelPos = 0;
-                        else
-                            labelPos += ParentMap.MapEditorTempWaves[i - 1].TempGroups.Count;
-                        MapEditorWaveLabels[labelPos].Update(mouse, prevMouse);
-                        if (MapEditorWaveLabels[labelPos].State == ButnState.Hovered)
-                        {
-                            for (int k = labelPos * (MapEditorTableCols - 1); k < labelPos * (MapEditorTableCols - 1) + ParentMap.MapEditorTempWaves[i].TempGroups.Count * (MapEditorTableCols - 1); k++)
-                            {
-                                if (MapEditorTableCells[k].State != ButnState.Selected)
-                                    MapEditorTableCells[k].State = ButnState.Hovered;
-                            }
-                        }
-                        else if (MapEditorWaveLabels[labelPos].State == ButnState.Released)
-                        {
-                            for (int k = labelPos * (MapEditorTableCols - 1); k < labelPos * (MapEditorTableCols - 1) + ParentMap.MapEditorTempWaves[i].TempGroups.Count * (MapEditorTableCols - 1); k++)
-                                MapEditorTableCells[k].State = ButnState.Selected;
-                        }
-                    }
-                    #endregion
+                    
 
                     tabRefreshCounter--;
                     dirKeyRefreshCounter--;
                 }//------------------------------------------------------------------------------------------------------------------'
                 #endregion
-                else
+                else if (CurrentGame.gameState != GameState.MapTestInGame && CurrentGame.gameState != GameState.MapTestInitSetup && CurrentGame.gameState != GameState.MapTestPaused)
                 {
                     #region ---------------------------   MAP EDITS   --------------------------------
                     #region DRAWS
@@ -1775,7 +2077,29 @@ namespace AlkuTD
                 #endregion
             }
             #endregion
+            UpdateDoubleClickCounter();
         }
+
+        
+
+        static int towerDoubleClickTime = 20;
+        int towerDoubleClickCounter;
+        bool isDoubleClickCounterActive;
+        void StartDoubleClickCounter ()
+        {
+            isDoubleClickCounterActive = true;
+        }
+        void StopDoubleClickCounter()
+        {
+            isDoubleClickCounterActive = false;
+            towerDoubleClickCounter = 0;
+        }
+        void UpdateDoubleClickCounter()
+        {
+            if (isDoubleClickCounterActive)
+                towerDoubleClickCounter++;
+        }
+
 
         #region DRAWVARIABLES
         public bool newTileRingActive;
@@ -1803,11 +2127,14 @@ namespace AlkuTD
         private int LOSPixelDistanceCounter;
         private string tileringLabelString;
         public Vector2 PrevLOSCollisionPos { get; private set; }
+        
         #endregion
         public void Draw(SpriteBatch sb, GameTime gameTime, MouseState mouse)
         {
             mousePos = new Vector2(mouse.X, mouse.Y);
             //sb.DrawString(font, mouse.Position.ToString(), mousePos + new Vector2(-20, -80), Color.MintCream);
+            //sb.DrawString(font, MapEditorTopButtons[1].ToString(), mousePos, Color.White);
+
 
             if (overlayPos == Vector2.Zero)
                 overlayPos = new Vector2(mousePos.X, mousePos.Y);
@@ -1815,9 +2142,29 @@ namespace AlkuTD
             //sb.DrawString(font, hoveredCoord.ToString(), mousePos - new Vector2(20, 20), Color.WhiteSmoke);
             //foreach (Tile t in ParentMap.)
 
-            // InGame-------------------------------------------------------.
-            if (CurrentGame.gameState != GameState.MapEditor)
+            if (CurrentGame.gameState == GameState.LevelComplete)
             {
+                RestartButton.Draw(sb);
+                ScoreButton.Draw(sb);
+                MapEditorTopButtons[0].Draw(sb);
+                sb.DrawString(font, "Life:   " + ParentMap.Players[0].LifePoints + "/" + CurrentGame.currentMap.PlayerInitLife, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.62f, 20), Color.IndianRed);
+                sb.DrawString(font, "Biomass: " + ParentMap.Players[0].EnergyPoints, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.62f, 40), Color.LightSeaGreen);
+                sb.DrawString(font, "Genes: ", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.8f, 20), Color.LightGray);
+                sb.DrawString(font, ParentMap.Players[0].GenePoints[0].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.8f, 40), Color.Red);
+                sb.DrawString(font, ParentMap.Players[0].GenePoints[1].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.83f, 40), Color.Green);
+                sb.DrawString(font, ParentMap.Players[0].GenePoints[2].ToString(), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.86f, 40), Color.Blue);
+                sb.DrawString(font, ParentMap.Name, new Vector2(HUDbuttons[1].Bounds.Right + 10, HUDbuttons[1].Pos.Y), Color.Orange);
+
+            }
+            // InGame-------------------------------------------------------.
+            else if (CurrentGame.gameState != GameState.MapEditor)
+            {
+                //CurrentGame.players[0].UpdateScore();
+                //sb.DrawString(font, CurrentGame.players[0].Score.ToString(), mousePos, Color.White);
+                //sb.DrawString(font, inWaveEdit.ToString(), mousePos, Color.White);
+                //sb.DrawString(font, ParentMap.IsStoryMap.ToString(), mousePos, Color.White);
+
+
                 for (int i = 0; i < HUDbuttons.Length; i++)
                     HUDbuttons[i].Draw(sb);
 
@@ -1825,7 +2172,7 @@ namespace AlkuTD
 
                 //-------!!
                 #region OIKEESTI UPDATEEN KUULUVA MOUSELOGIC
-                if (newTileRingActive || towerTileRingActive || priorityRingActive)
+                if (!inWaveEdit && (newTileRingActive || towerTileRingActive || priorityRingActive))
                 {
                     if (tileRingFade < tileRingFadeCycles)
                         tileRingFade++;
@@ -1860,16 +2207,28 @@ namespace AlkuTD
                             }
                             else
                             {
-                                TileRingInfoBox = new TileringInfoBox(activeTilePos, null, new string[] { "Tower type", "not available" });
+                                if (HexMap.ProgressBlockedTowers[selectedRingPart-1] > 0)
+                                    TileRingInfoBox = new TileringInfoBox(activeTilePos, null, new string[] { "Tower type", "not unlocked" });
+                                else TileRingInfoBox = new TileringInfoBox(activeTilePos, null, new string[] { "Tower type", "not available" });
                                 TileRingInfoBox.Pos = activeTilePos - new Vector2(TowerInfoBox.DefaultWidth * 0.5f, -(ParentMap.TileHalfHeight + tileringSlot.Height * 0.5f));
                             }
                         }
 
-                        sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
-                        //afford-hohdot symbolien alle--------------------------------------------------------------------------------------------------------------------------------O
                         sb.Draw(ringFills[1], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                        for (int i = 0; i < ParentMap.AvailableTowers.Length; i++)
+                        {
+                            if (ParentMap.IsStoryMap && CurrentGame.gameState != GameState.MapTestInitSetup && CurrentGame.gameState != GameState.MapTestInGame)
+                            {
+                                if (ParentMap.AvailableTowers[i] > 0 && CurrentGame.mainMenu.PlayerAvailableTowersTileringTextures[i + 1] != null)
+                                    sb.Draw(MainMenu.TowersTileringTextures[i * 3], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                            }
+                            else if (ParentMap.AvailableTowers[i] > 0)
+                                sb.Draw(MainMenu.TowersTileringTextures[i * 3], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                        }
+                        //sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
+                        //afford-hohdot symbolien alle--------------------------------------------------------------------------------------------------------------------------------O
                         sb.Draw(tilering, activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.03f);
-                        sb.Draw(ringFills[0], activeTilePos + new Vector2(1,1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
+                        //sb.Draw(ringFills[0], activeTilePos + new Vector2(1,1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
 
                         if (mouse.LeftButton == ButtonState.Released)
                         {
@@ -1906,12 +2265,36 @@ namespace AlkuTD
                     #region OLD TOWER TILERING
                     else if (towerTileRingActive)
                     {
+
                         selectedRingPart = CheckNearestPoint(tileCorners);
 
-                        sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
+                        //sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
                         sb.Draw(ringFills[1], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+
+                        int t = selectedTower.towerBranch;
+                        Vector2 drawPos = activeTilePos;
+                        switch (t)
+                        {
+                            case 0: break;
+                            case 1: drawPos -= new Vector2(ParentMap.TileHalfWidth, 0); break;
+                            case 2: drawPos -= new Vector2(ParentMap.TileHalfWidth + ParentMap.TileWidth * 0.24f, ParentMap.TileHalfHeight); break;
+                            case 3: drawPos -= new Vector2(ParentMap.TileHalfWidth, ParentMap.TileHeight); break;
+                            case 4: drawPos -= new Vector2(0, ParentMap.TileHeight); break;
+                            case 5: drawPos -= new Vector2(ParentMap.TileWidth * -0.26f, ParentMap.TileHalfHeight); break;
+                        }
+
+                        if (ParentMap.IsStoryMap)
+                        {
+                            int smallerUpgradeLvl = Math.Min((int)selectedTower.UpgradeLvl+1, (Math.Min(ParentMap.AvailableTowers[t], CurrentGame.mainMenu.playerAvailableTowers[t]) - 1));
+                            if (ParentMap.AvailableTowers[t] > 1 && CurrentGame.mainMenu.PlayerAvailableTowersTileringTextures[t + 1] != null)
+                                sb.Draw(MainMenu.TowersTileringTextures[t * 3 + smallerUpgradeLvl], drawPos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                        }
+                        else if (selectedTower.UpgradeLvl != UpgLvl.Max)
+                            sb.Draw(MainMenu.TowersTileringTextures[t * 3 + (int)selectedTower.UpgradeLvl + 1], drawPos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+
+
                         sb.Draw(tilering, activeTilePos, null, Color.Gray * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.03f);
-                        sb.Draw(ringFills[0], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
+                        //sb.Draw(ringFills[0], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
                         //sb.Draw(ringFills[1], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
                         //sb.Draw(tilering, new Vector2(activeTilePos.X - tilering.Width / 2, activeTilePos.Y - tilering.Height / 2), Color.White);
                         //ParentMap.Players[0].Towers[ParentMap.Layout[activeTileCoord.Y, activeTileCoord.X] - 6].ShowRadius = true;
@@ -1934,6 +2317,8 @@ namespace AlkuTD
                                     HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].MapCoord = activeTileCoord;
                                     TileRingInfoBox = new TowerInfoBox(HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6], belowTilePos, true);
                                 }
+                                else
+                                    TileRingInfoBox = new TileringInfoBox(tileCorners[selectedRingPart] + new Vector2(tileringSlot.Width * 0.5f, TileringInfoBox.DefaultHeight * -0.5f), null, "Already at max");
                                 break;
                             case 2:
                                 if (selectedTower.GeneSpecs.BaseTiers[0] < 3)
@@ -2011,21 +2396,29 @@ namespace AlkuTD
                             //}
                             switch (selectedRingPart)
                             {
+                                case 0: if (isDoubleClickCounterActive)
+                                    {
+                                        if (towerDoubleClickCounter > 3 && towerDoubleClickCounter < towerDoubleClickTime)
+                                            selectedTower.Active = !selectedTower.Active;
+
+                                        StopDoubleClickCounter();
+                                    }
+                                    break;
                                 case 1:
                                     if ((int)selectedTower.UpgradeLvl + 1 < ParentMap.AvailableTowers[selectedTower.towerBranch] && ParentMap.Players[0].EnergyPoints >= HexMap.ExampleTowers[selectedTower.towerBranch + (((int)selectedTower.UpgradeLvl + 1) * 6)].Cost)
                                     {
-                                        if (selectedTower.Name == "Pruiter 1")
+                                        if (selectedTower.Name == "Pruiter 2")
                                         {
                                             //Point mCoord = selectedTower.MapCoord;
                                             selectedTower.Remove();
-                                            selectedTower = new SprayTower(selectedTower.MapCoord, UpgLvl.Basic, false);
+                                            selectedTower = new SprayTower(selectedTower.MapCoord, UpgLvl.Max, false);
                                             ParentMap.BuildTower(selectedTower);
                                             CurrentGame.soundEffects[0].Play(0.18f, -1, 0);
                                         }
                                         else
                                         {
-                                            selectedTower.Upgrade();
                                             ParentMap.Players[0].EnergyPoints -= HexMap.ExampleTowers[selectedTower.towerBranch + (((int)selectedTower.UpgradeLvl + 1) * 6)].Cost;
+                                            selectedTower.Upgrade();
                                         }
                                     }
                                     break;
@@ -2035,7 +2428,7 @@ namespace AlkuTD
                                 case 5: selectedTower.WithdrawMainGeneTier(); break;
                                 case 6: selectedTower.Disassemble(); break;
                             }
-                            if (hudCue.IsPlaying) hudCue.Stop(AudioStopOptions.AsAuthored);
+                            if (hudCue != null && hudCue.IsPlaying) hudCue.Stop(AudioStopOptions.AsAuthored);
                             hudCue = CurrentGame.soundBank.GetCue("buiRev");
                             hudCue.Play();
                             towerTileRingActive = false;
@@ -2043,6 +2436,8 @@ namespace AlkuTD
                             HoveredTowerInfoBox = new TowerInfoBox(selectedTower, belowTilePos, false);
                         }
                         #endregion
+
+                        StartDoubleClickCounter();
 
                         if (selectedRingPart == 1 && (int)selectedTower.UpgradeLvl + 1 < ParentMap.AvailableTowers[selectedTower.towerBranch] && selectedTower.UpgradeLvl < UpgLvl.Max)
                             HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].Draw(sb);
@@ -2054,10 +2449,11 @@ namespace AlkuTD
                     #region PRIORITY TILERING
                     else if (priorityRingActive)
                     {
-                        tileringLabelString = "target        priority";
+                        //tileringLabelString = "target        priority";
+                        tileringLabelString = "TARGET";
                         selectedRingPart = CheckNearestPoint(extendedPoints);
 
-                        sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
+                        //sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
                         sb.Draw(tilering, activeTilePos, null, Color.Teal * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.03f);
 
                         switch (selectedRingPart)
@@ -2097,22 +2493,23 @@ namespace AlkuTD
 
                         #region DEBUGSHOW PRIORITY
                         ColorPriority hoveredEPriority = ColorPriority.any;
-                        TargetPriority hoveredTPriority = TargetPriority.none;
+                        TargetPriority hoveredTPriority = selectedTower.TargetPriority;
                         switch (selectedRingPart)
                         {
                             case 2: hoveredEPriority = ColorPriority.any; break;
-                            case 7: hoveredEPriority = ColorPriority.red; break;
-                            case 8: hoveredEPriority = ColorPriority.green; break;
-                            case 9: hoveredEPriority = ColorPriority.blue; break;
+                            case 7: hoveredEPriority = ColorPriority.Red; break;
+                            case 8: hoveredEPriority = ColorPriority.Green; break;
+                            case 9: hoveredEPriority = ColorPriority.Blue; break;
                             case 10: hoveredTPriority = TargetPriority.first; break;
                             case 11: hoveredTPriority = TargetPriority.last; break;
                             case 12: hoveredTPriority = TargetPriority.tough; break;
                             case 13: hoveredTPriority = TargetPriority.weak; break;
-                            case 14: hoveredTPriority = TargetPriority.fast; break;
+                            case 14: hoveredTPriority = TargetPriority.quick; break;
                             case 15: hoveredTPriority = TargetPriority.slow; break;
                             case 16: hoveredTPriority = TargetPriority.close; break;
-                            case 17: hoveredTPriority = TargetPriority.far; break;
+                            case 17: hoveredTPriority = TargetPriority.distant; break;
                             case 18: hoveredTPriority = TargetPriority.mob; break;
+                            case 19: hoveredEPriority = ColorPriority.normal; break;
                         }
                         #endregion
                         if (mouse.RightButton == ButtonState.Released)
@@ -2126,44 +2523,47 @@ namespace AlkuTD
                                 case 4:
                                 case 5:
                                 case 6: selectedTower.TargetPriority = TargetPriority.none; break;
-                                case 7: selectedTower.ElemPriority = ColorPriority.red; break;
-                                case 8: selectedTower.ElemPriority = ColorPriority.green; break;
-                                case 9: selectedTower.ElemPriority = ColorPriority.blue; break;
+                                case 7: selectedTower.ElemPriority = ColorPriority.Red; break;
+                                case 8: selectedTower.ElemPriority = ColorPriority.Green; break;
+                                case 9: selectedTower.ElemPriority = ColorPriority.Blue; break;
                                 case 10: selectedTower.TargetPriority = TargetPriority.first; break;
                                 case 11: selectedTower.TargetPriority = TargetPriority.last; break;
                                 case 12: selectedTower.TargetPriority = TargetPriority.tough; break;
                                 case 13: selectedTower.TargetPriority = TargetPriority.weak; break;
-                                case 14: selectedTower.TargetPriority = TargetPriority.fast; break;
+                                case 14: selectedTower.TargetPriority = TargetPriority.quick; break;
                                 case 15: selectedTower.TargetPriority = TargetPriority.slow; break;
                                 case 16: selectedTower.TargetPriority = TargetPriority.close; break;
-                                case 17: selectedTower.TargetPriority = TargetPriority.far; break;
-                                case 18: hoveredTPriority = TargetPriority.mob; break;
+                                case 17: selectedTower.TargetPriority = TargetPriority.distant; break;
+                                case 18: selectedTower.TargetPriority = TargetPriority.mob; break;
+                                case 19: selectedTower.ElemPriority = ColorPriority.normal; break;
                             }
                         }
-                        string hoveredEPriorityString = hoveredEPriority== ColorPriority.any ? " any" : hoveredEPriority.ToString();
-                        string towerEPriorityString = selectedTower.ElemPriority == ColorPriority.any ? " any" : selectedTower.ElemPriority.ToString();
+                        string hoveredEPriorityString = hoveredEPriority.ToString();
+                        string towerEPriorityString = selectedTower.ElemPriority.ToString();
                         Color elemColor;
                         switch (selectedRingPart)
                         {
+                            case 2: 
+                            case 19: elemColor = Color.White; break;
                             case 7: elemColor = Color.Red; break;
                             case 8: elemColor = Color.LightGreen; break;
                             case 9: elemColor = Color.CornflowerBlue; break;
-                            default: elemColor = selectedTower.ElemPriority == ColorPriority.red ? Color.Red : selectedTower.ElemPriority == ColorPriority.green ? Color.LightGreen : selectedTower.ElemPriority == ColorPriority.blue ? Color.CornflowerBlue : Color.White; break;
+                            default: elemColor = selectedTower.ElemPriority == ColorPriority.Red ? Color.Red : selectedTower.ElemPriority == ColorPriority.Green ? Color.LightGreen : selectedTower.ElemPriority == ColorPriority.Blue ? Color.CornflowerBlue : Color.White; break;
                         }
 
                         int elemPriorityStringWidth = (int)CurrentGame.font.MeasureString("green").X;
                         int targPriorityStrWidth = (int)CurrentGame.font.MeasureString("tough").X;
-                        Vector2 priorityRingLabelStringDrawPos = activeTilePos - new Vector2(CurrentGame.font.MeasureString(tileringLabelString).X / 2, CurrentGame.font.LineSpacing / 2);
+                        Vector2 priorityRingLabelStringDrawPos = activeTilePos - new Vector2(CurrentGame.font.MeasureString(tileringLabelString).X / 2, CurrentGame.font.LineSpacing / 2 - 4);
                         Vector2 elemPriorityStringDrawPos = activeTilePos - new Vector2(elemPriorityStringWidth / 2, 20);
                         Vector2 targetPriorityStringDrawPos = activeTilePos - new Vector2(targPriorityStrWidth / 2, -10);
 
                         //if (selectedTower.ElemPriority != ColorPriority.none || (selectedRingPart >= 7 && selectedRingPart <=9))
-                            sb.Draw(CurrentGame.pixel, new Rectangle((int)elemPriorityStringDrawPos.X, (int)elemPriorityStringDrawPos.Y - 1, elemPriorityStringWidth, CurrentGame.font.LineSpacing), Color.Black * 0.5f);
+                        sb.Draw(CurrentGame.pixel, new Rectangle((int)elemPriorityStringDrawPos.X, (int)elemPriorityStringDrawPos.Y - 1, elemPriorityStringWidth, CurrentGame.font.LineSpacing), Color.Black * 0.5f);
                         sb.Draw(CurrentGame.pixel, new Rectangle((int)targetPriorityStringDrawPos.X, (int)targetPriorityStringDrawPos.Y - 1, targPriorityStrWidth, CurrentGame.font.LineSpacing), Color.Black * 0.5f);
 
                         sb.Draw(tileringGlow, MagnetizeExtended(extendedPoints), Color.White * 0.7f); //restricted & magnetized object
-                        sb.DrawString(CurrentGame.font, tileringLabelString, priorityRingLabelStringDrawPos, Color.DarkOrange);
-                        sb.DrawString(font, selectedRingPart >= 7 && selectedRingPart <= 9 ? hoveredEPriorityString : towerEPriorityString, elemPriorityStringDrawPos, elemColor);
+                        sb.DrawString(CurrentGame.font, tileringLabelString, priorityRingLabelStringDrawPos, Color.Black);
+                        sb.DrawString(font, selectedRingPart == 2 || selectedRingPart == 19 || selectedRingPart >= 7 && selectedRingPart <= 9 ? hoveredEPriorityString : towerEPriorityString, elemPriorityStringDrawPos, elemColor);
                         sb.DrawString(font, selectedRingPart >= 10 ? hoveredTPriority.ToString() : selectedTower.TargetPriority.ToString(), targetPriorityStringDrawPos, Color.White);
 
                     }
@@ -2183,9 +2583,11 @@ namespace AlkuTD
                         //----------------------------AFFORDCOLOR-----------------------------------------------------------------|  (28.5.16: riittämättömyyshohto symbolien päälle
                         //if (ParentMap.Players[0].EnergyPoints - ParentMap.ExampleTowers[selectedRingPart - 1].Cost >= 0)
                         //    sb.Draw(ParentMap.tileTextures[5], tileCorners[selectedRingPart] - new Vector2(ParentMap.tileTextures[5].Width / 2, ParentMap.tileTextures[5].Height / 2), Color.PowderBlue);
-                        if (towerTileRingActive && selectedRingPart > 1 && selectedRingPart < 5 && ParentMap.Players[0].GenePoints[selectedRingPart-2] < 33)
+                        if (towerTileRingActive && selectedRingPart == 1 && selectedTower.UpgradeLvl < UpgLvl.Max && ParentMap.Players[0].EnergyPoints < HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].Cost)
                             sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.IndianRed); //----------------------TODO: noRedsOnSellETC
-                        else if (selectedRingPart < 7 && !priorityRingActive && ParentMap.AvailableTowers[selectedRingPart - 1] > 0 && ParentMap.Players[0].EnergyPoints < HexMap.ExampleTowers[selectedRingPart - 1].Cost)
+                        else if (towerTileRingActive && selectedRingPart > 1 && selectedRingPart < 5 && ParentMap.Players[0].GenePoints[selectedRingPart-2] < GeneSpecs.TierSize)
+                            sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.IndianRed); //----------------------TODO: noRedsOnSellETC
+                        else if (selectedRingPart < 7 && !priorityRingActive && !towerTileRingActive && ParentMap.AvailableTowers[selectedRingPart - 1] > 0 && ParentMap.Players[0].EnergyPoints < HexMap.ExampleTowers[selectedRingPart - 1].Cost)
                             sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.IndianRed); 
                     }
                     #endregion
@@ -2196,47 +2598,7 @@ namespace AlkuTD
                 {
                     ParentGame.IsMouseVisible = true;
                     char tileChar = ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X];
-                    #region switchOption
-                    //switch (tileChar)
-                    //{
-                    //    case '\'': 
-                    //    case '.':
-                    //    case 'a':
-                    //    case 'b':
-                    //    case 'c':
-                    //    case 'd':
-                    //    case 'e':
-                    //    case 'f':
-                    //    case 'g':
-                    //    case 'h':
-                    //    case 'i':
-                    //    case '1':
-                    //    case '2':
-                    //    case '3':
-                    //    case '4':
-                    //    case '5':
-                    //    case '6':
-                    //    case '7':
-                    //    case '8':
-                    //    case '9':
-                    //    case '0': if (mouse.LeftButton == ButtonState.Pressed)
-                    //        {
-                    //            activeTilePos = hoveredTilePos;
-                    //            newTileRingActive = true;
-                    //            activeTileCoord = new Point(hoveredCoord.X, hoveredCoord.Y);
-                    //            Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
-                    //            selectedRingPart = 0;
-                    //            //selectionBall = hoveredTilePos;
-                    //            hudCue = CurrentGame.soundBank.GetCue("bui");
-                    //            hudCue.Play();
-                    //        }
-                    //        if (tileHoverFade < hoverFadeCycles) 
-                    //            tileHoverFade++;
-                    //        //ColorConversion.SetLightness(ref color, 100f);
-                    //        break;
-                    //    default:
-                    //}
-                    #endregion
+                    
                     //HOVERING OVER OPEN TILE OR TOWER
                     if (tileChar == '0' || !(tileChar == ' ' || tileChar == '\'' || tileChar == '.' || (tileChar >= 'a' && tileChar <= 'i') || (tileChar >= '1' && tileChar <= '9')))
                     {
@@ -2361,7 +2723,8 @@ namespace AlkuTD
                 sb.DrawString(font, "fps " + (int)Math.Round(1 / gameTime.ElapsedGameTime.TotalSeconds), new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.9f, 20), Color.DarkTurquoise);
                 if (ParentMap.currentWave >= 0)
                     sb.DrawString(font, waveXofN, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.5f - (int)font.MeasureString(waveXofN).X / 2, 20), Color.Orange);//, 0, Vector2.Zero,2f, SpriteEffects.None,0);
-                else sb.DrawString(font, "Setup phase", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.5f - (int)font.MeasureString("Setup phase").X / 2, 50), Color.Orange);
+                else sb.DrawString(font, "Setup phase", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.5f - (int)font.MeasureString("Setup phase").X / 2, 20), Color.Orange);
+                sb.DrawString(font, ParentMap.Name, new Vector2(HUDbuttons[1].Bounds.Right + 10, HUDbuttons[1].Pos.Y), Color.Orange);
                 sb.DrawString(font, "Life:   " + ParentMap.Players[0].LifePoints + "/" + CurrentGame.currentMap.PlayerInitLife, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.62f, 20), Color.IndianRed);
                 sb.DrawString(font, "Biomass: " + ParentMap.Players[0].EnergyPoints, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.62f, 40), Color.LightSeaGreen);
                 sb.DrawString(font, "Genes: ", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.8f, 20), Color.LightGray);
@@ -2372,76 +2735,26 @@ namespace AlkuTD
                 //sb.DrawString(font, Environment.CurrentDirectory, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.3f, 70), Color.Plum);
                 //sb.DrawString(font, "Td, aT, at, dT, a7, AVAK T;, zgj", new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.4f, 90), Color.Plum);
                 //sb.DrawString(font, "mapTime:  " + CurrentMap.mapTimer, new Vector2(ParentGame.GraphicsDevice.Viewport.Width * 0.7f, 80), Color.Wheat);
+
+                if (ShowPrioritiesActive)
+                {
+                    for (int i = 0; i < ParentMap.Players[0].Towers.Count; i++)
+                    {
+                        sb.DrawString(font, ParentMap.Players[0].Towers[i].TargetPriority.ToString().Substring(0, 1).ToUpper(), new Vector2(ParentMap.Players[0].Towers[i].ScreenLocation.X + 4, ParentMap.Players[0].Towers[i].ScreenLocation.Y - ParentMap.TileHeight * 0.7f), Color.Black * 0.8f);
+                        if(ParentMap.Players[0].Towers[i].ElemPriority != ColorPriority.any && ParentMap.Players[0].Towers[i].ElemPriority != ColorPriority.normal)
+                            sb.DrawString(font, ParentMap.Players[0].Towers[i].ElemPriority.ToString().Substring(0, 1).ToUpper(), new Vector2(ParentMap.Players[0].Towers[i].ScreenLocation.X - 14, ParentMap.Players[0].Towers[i].ScreenLocation.Y - ParentMap.TileHeight * 0.7f), GeneColors[ParentMap.Players[0].Towers[i].ElemPriority.ToString()]);
+
+                    }
+                }
                 #endregion
 
                 //DrawWaveInfo(sb);
 
-                if (CurrentGame.gameState == GameState.MapTestInGame || CurrentGame.gameState == GameState.MapTestInitSetup /*|| (CurrentGame.prevState == GameState.MapTestInGame && CurrentGame.gameState == GameState.Paused)*/)
-                    #region MAPTEST WAVETABLE
-                    {
-                        BackToEditButton.Draw(sb);
-                        MapEditorTopButtons[1].Draw(sb);
-                        if (MapEditorTopButtons[1].State == ButnState.Active)
-                        {
-                            sb.Draw(CurrentGame.pixel, new Rectangle(topButtonX, topButtonY + menuButtonHeight, ParentGame.GraphicsDevice.Viewport.Width - topButtonX * 2, ParentGame.GraphicsDevice.Viewport.Height - (menuButtonHeight + 7) * 2), Color.Black * 0.9f);
-                            for (int i = 0; i < MapEditorLabelButtons.Length; i++)
-                            {
-                                MapEditorLabelButtons[i].Draw(sb);
-                            }
-                            for (int i = totalGroups * (MapEditorTableCols - 1) - 1; i >= 0; i--) // taulukkosolut lopusta alkuun jotta dropdownmenut näkyy
-                            {
-                                if (MapEditorTableCells[i] != null)
-                                    MapEditorTableCells[i].Draw(sb);
-                            }
-
-                            if (totalGroups > 0)
-                            {
-                                for (int i = 0; i < totalGroups + 1; i++)
-                                    MapEditorTableAddButtons[i].Draw(sb);
-                            }
-
-                            if (ParentMap.MapEditorTempWaves.Count > 0)
-                                MapEditorWaveLabels[0].Draw(sb);
-                            if (totalGroups < MapEditorTableRows - 1)
-                                MapEditorWaveLabels[totalGroups].Draw(sb);
-                            int labelPos = 0;
-                            for (int i = 1; i < ParentMap.MapEditorTempWaves.Count; i++)
-                            {
-                                labelPos += ParentMap.MapEditorTempWaves[i - 1].TempGroups.Count;
-                                MapEditorWaveLabels[labelPos].Draw(sb);
-                            }
-                            for (int i = 0; i < totalGroups; i++)
-                                MapEditorTableDelButtons[i].Draw(sb);
-                        }
-                    }
-                    #endregion
-                }
-                else // Mapeditor---------------------------------------------------------------------------------.
-                #region EDITOR
+                if (CurrentGame.gameState == GameState.MapTestInGame || CurrentGame.gameState == GameState.MapTestInitSetup || CurrentGame.gameState == GameState.MapTestPaused /*|| (CurrentGame.prevState == GameState.MapTestInGame && CurrentGame.gameState == GameState.Paused)*/)
+                #region MAPTEST WAVETABLE
                 {
-
-                    for (int i = 0; i < MapEditorTopButtons.Length; i++)
-                        MapEditorTopButtons[i].Draw(sb);
-                    for (int i = 0; i < MapEditorResourceCells.Length; i++)
-                        MapEditorResourceCells[i].Draw(sb);
-                    for (int i = 0; i < MapEditorToolButtons.Length; i++)
-                        MapEditorToolButtons[i].Draw(sb);
-
-                    MapNameBox.Draw(sb);
-
-                    Vector2 spawnTextOrigin = font.MeasureString("spawn") / 2;
-                    for (int i = 0; i < MapEditorSpawnPoints.Count; i++)
-                    {
-                        sb.DrawString(font, "spawn", ParentMap.ToScreenLocation(MapEditorSpawnPoints[i]) - spawnTextOrigin, Color.AntiqueWhite);
-                        sb.DrawString(font, (i + 1).ToString(), ParentMap.ToScreenLocation(MapEditorSpawnPoints[i]) - new Vector2(font.MeasureString((i + 1).ToString()).X / 2, -4), Color.AntiqueWhite);
-                    }
-                    Vector2 goalTextOrigin = font.MeasureString("goal") / 2;
-                    for (int i = 0; i < MapEditorGoalPoints.Count; i++)
-                    {
-                        sb.DrawString(font, "goal", ParentMap.ToScreenLocation(MapEditorGoalPoints[i]) - goalTextOrigin, Color.AntiqueWhite);
-                        sb.DrawString(font, ((char)(i + 97)).ToString(), ParentMap.ToScreenLocation(MapEditorGoalPoints[i]) - new Vector2(font.MeasureString(((char)(i + 97)).ToString()).X / 2, -4), Color.AntiqueWhite);
-                    }
-
+                    BackToEditButton.Draw(sb);
+                    MapEditorTopButtons[1].Draw(sb);
                     if (MapEditorTopButtons[1].State == ButnState.Active)
                     {
                         sb.Draw(CurrentGame.pixel, new Rectangle(topButtonX, topButtonY + menuButtonHeight, ParentGame.GraphicsDevice.Viewport.Width - topButtonX * 2, ParentGame.GraphicsDevice.Viewport.Height - (menuButtonHeight + 7) * 2), Color.Black * 0.9f);
@@ -2457,7 +2770,7 @@ namespace AlkuTD
 
                         if (totalGroups > 0)
                         {
-                            for (int i = 0; i <= totalGroups; i++)
+                            for (int i = 0; i < totalGroups + 1; i++)
                                 MapEditorTableAddButtons[i].Draw(sb);
                         }
 
@@ -2474,324 +2787,385 @@ namespace AlkuTD
                         for (int i = 0; i < totalGroups; i++)
                             MapEditorTableDelButtons[i].Draw(sb);
                     }
-                    else
+                }
+                #endregion
+                
+            }
+            else if (CurrentGame.gameState == GameState.MapEditor) // Mapeditor---------------------------------------------------------------------------------.
+            #region EDITOR
+            {
+
+                for (int i = 0; i < MapEditorTopButtons.Length; i++)
+                    MapEditorTopButtons[i].Draw(sb);
+                for (int i = 0; i < MapEditorResourceCells.Length; i++)
+                    MapEditorResourceCells[i].Draw(sb);
+                for (int i = 0; i < MapEditorToolButtons.Length; i++)
+                    MapEditorToolButtons[i].Draw(sb);
+
+                MapNameBox.Draw(sb);
+
+                Vector2 spawnTextOrigin = font.MeasureString("spawn") / 2;
+                for (int i = 0; i < MapEditorSpawnPoints.Count; i++)
+                {
+                    sb.DrawString(font, "spawn", ParentMap.ToScreenLocation(MapEditorSpawnPoints[i]) - spawnTextOrigin, Color.AntiqueWhite);
+                    sb.DrawString(font, (i + 1).ToString(), ParentMap.ToScreenLocation(MapEditorSpawnPoints[i]) - new Vector2(font.MeasureString((i + 1).ToString()).X / 2, -4), Color.AntiqueWhite);
+                }
+                Vector2 goalTextOrigin = font.MeasureString("goal") / 2;
+                for (int i = 0; i < MapEditorGoalPoints.Count; i++)
+                {
+                    sb.DrawString(font, "goal", ParentMap.ToScreenLocation(MapEditorGoalPoints[i]) - goalTextOrigin, Color.AntiqueWhite);
+                    sb.DrawString(font, ((char)(i + 97)).ToString(), ParentMap.ToScreenLocation(MapEditorGoalPoints[i]) - new Vector2(font.MeasureString(((char)(i + 97)).ToString()).X / 2, -4), Color.AntiqueWhite);
+                }
+
+                if (MapEditorTopButtons[1].State == ButnState.Active)
+                {
+                    sb.Draw(CurrentGame.pixel, new Rectangle(topButtonX, topButtonY + menuButtonHeight, ParentGame.GraphicsDevice.Viewport.Width - topButtonX * 2, ParentGame.GraphicsDevice.Viewport.Height - (menuButtonHeight + 7) * 2), Color.Black * 0.9f);
+                    for (int i = 0; i < MapEditorLabelButtons.Length; i++)
                     {
-                        if (hoveredCoord.X >= 0 && hoveredCoord.X < ParentMap.Layout.GetLength(1) && hoveredCoord.Y >= 0 && hoveredCoord.Y < ParentMap.Layout.GetLength(0))
+                        MapEditorLabelButtons[i].Draw(sb);
+                    }
+                    for (int i = totalGroups * (MapEditorTableCols - 1) - 1; i >= 0; i--) // taulukkosolut lopusta alkuun jotta dropdownmenut näkyy
+                    {
+                        if (MapEditorTableCells[i] != null)
+                            MapEditorTableCells[i].Draw(sb);
+                    }
+
+                    if (totalGroups > 0)
+                    {
+                        for (int i = 0; i <= totalGroups; i++)
+                            MapEditorTableAddButtons[i].Draw(sb);
+                    }
+
+                    if (ParentMap.MapEditorTempWaves.Count > 0)
+                        MapEditorWaveLabels[0].Draw(sb);
+                    if (totalGroups < MapEditorTableRows - 1)
+                        MapEditorWaveLabels[totalGroups].Draw(sb);
+                    int labelPos = 0;
+                    for (int i = 1; i < ParentMap.MapEditorTempWaves.Count; i++)
+                    {
+                        labelPos += ParentMap.MapEditorTempWaves[i - 1].TempGroups.Count;
+                        MapEditorWaveLabels[labelPos].Draw(sb);
+                    }
+                    for (int i = 0; i < totalGroups; i++)
+                        MapEditorTableDelButtons[i].Draw(sb);
+                }
+                else
+                {
+                    if (hoveredCoord.X >= 0 && hoveredCoord.X < ParentMap.Layout.GetLength(1) && hoveredCoord.Y >= 0 && hoveredCoord.Y < ParentMap.Layout.GetLength(0))
+                    {
+                        if (!(drawMode == DrawMode.Tower && mouse.LeftButton == ButtonState.Pressed))
                         {
-                            if (!(drawMode == DrawMode.Tower && mouse.LeftButton == ButtonState.Pressed))
+                            sb.Draw(tileOverlay, overlayPos, null, Color.White * 0.4f, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0.4f);
+                        }
+                    }
+                }
+
+                for (int m = 0; m < MapEditorMenuButtons.Length; m++) //THAT DROPDONWS CAN SHOW OVER THE TABLE
+                    MapEditorMenuButtons[m].Draw(sb);
+
+                if (ErrorShow)
+                {
+                    for (int i = 0; i < ErrorButtons.Count; i++)
+                    {
+                        ErrorButtons[i].Draw(sb);
+                    }
+                }
+
+
+                if (drawMode == DrawMode.Tower)
+                #region UUDESTAAN UPDATEEN KUULUVA MOUSELOGIC !!!
+                {
+                    if (newTileRingActive || towerTileRingActive)
+                    {
+                        ParentGame.IsMouseVisible = false;
+                        Vector2[] tileCorners = new Vector2[7] { activeTilePos,   //Center
+                                                            new Vector2(activeTilePos.X - ParentMap.TileWidth/4 -1, activeTilePos.Y - ParentMap.TileHalfHeight), //up-L
+                                                            new Vector2(activeTilePos.X + ParentMap.TileWidth/4 +1 /* +1 jottei näy upgia mietties kokoajan vanha range*/, activeTilePos.Y - ParentMap.TileHalfHeight),  //up-R
+                                                            new Vector2(activeTilePos.X + ParentMap.TileHalfWidth /* ennen 28.5.16 -1, mut vaihto jottei näy upgia mietties kokoajan vanha range*/, activeTilePos.Y),    //R
+                                                            new Vector2(activeTilePos.X + ParentMap.TileWidth/4, activeTilePos.Y + ParentMap.TileHalfHeight),    //lo-R
+                                                            new Vector2(activeTilePos.X - ParentMap.TileWidth/4 -1, activeTilePos.Y + ParentMap.TileHalfHeight), //lo-L
+                                                            new Vector2(activeTilePos.X - ParentMap.TileHalfWidth, activeTilePos.Y)};                            //L
+
+
+                        #region TILERING LOGIC
+                        if (newTileRingActive)  //--------------------------------------------------------------------------------------------------------------------------------------JA TÄMÄN?!
+                        {
+                            selectedRingPart = CheckNearestPoint(tileCorners);
+                            if (tileRingFade < tileRingFadeCycles) tileRingFade++;
+                            if (selectedRingPart > 0)
                             {
-                                sb.Draw(tileOverlay, overlayPos, null, Color.White * 0.4f, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0.4f);
+                                TileRingInfoBox = new TowerInfoBox(HexMap.ExampleTowers[selectedRingPart - 1], activeTilePos, true);
+                                HexMap.ExampleTowers[selectedRingPart - 1].ShowRadius = true;
+                                HexMap.ExampleTowers[selectedRingPart - 1].MapCoord = activeTileCoord;
+                                HexMap.ExampleTowers[selectedRingPart - 1].Draw(sb);
+
+                                sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.White);
                             }
-                        }
-                    }
 
-                    for (int m = 0; m < MapEditorMenuButtons.Length; m++) //THAT DROPDONWS CAN SHOW OVER THE TABLE
-                        MapEditorMenuButtons[m].Draw(sb);
-
-                    if (ErrorShow)
-                    {
-                        for (int i = 0; i < ErrorButtons.Count; i++)
-                        {
-                            ErrorButtons[i].Draw(sb);
-                        }
-                    }
-
-
-                    if (drawMode == DrawMode.Tower)
-                    #region UUDESTAAN UPDATEEN KUULUVA MOUSELOGIC !!!
-                    {
-                        if (newTileRingActive || towerTileRingActive)
-                        {
-                            ParentGame.IsMouseVisible = false;
-                            Vector2[] tileCorners = new Vector2[7] { activeTilePos,   //Center
-                                                             new Vector2(activeTilePos.X - ParentMap.TileWidth/4 -1, activeTilePos.Y - ParentMap.TileHalfHeight), //up-L
-                                                             new Vector2(activeTilePos.X + ParentMap.TileWidth/4 +1 /* +1 jottei näy upgia mietties kokoajan vanha range*/, activeTilePos.Y - ParentMap.TileHalfHeight),  //up-R
-                                                             new Vector2(activeTilePos.X + ParentMap.TileHalfWidth /* ennen 28.5.16 -1, mut vaihto jottei näy upgia mietties kokoajan vanha range*/, activeTilePos.Y),    //R
-                                                             new Vector2(activeTilePos.X + ParentMap.TileWidth/4, activeTilePos.Y + ParentMap.TileHalfHeight),    //lo-R
-                                                             new Vector2(activeTilePos.X - ParentMap.TileWidth/4 -1, activeTilePos.Y + ParentMap.TileHalfHeight), //lo-L
-                                                             new Vector2(activeTilePos.X - ParentMap.TileHalfWidth, activeTilePos.Y)};                            //L
-
-
-                            #region TILERING LOGIC
-                            if (newTileRingActive)  //--------------------------------------------------------------------------------------------------------------------------------------JA TÄMÄN?!
-                            {
-                                selectedRingPart = CheckNearestPoint(tileCorners);
-                                if (tileRingFade < tileRingFadeCycles) tileRingFade++;
-                                if (selectedRingPart > 0)
-                                {
-                                    TileRingInfoBox = new TowerInfoBox(HexMap.ExampleTowers[selectedRingPart - 1], activeTilePos, true);
-                                    HexMap.ExampleTowers[selectedRingPart - 1].ShowRadius = true;
-                                    HexMap.ExampleTowers[selectedRingPart - 1].MapCoord = activeTileCoord;
-                                    HexMap.ExampleTowers[selectedRingPart - 1].Draw(sb);
-
-                                    sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.White);
-                                }
-
-                            sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
-                            sb.Draw(ringFills[1], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                            for (int i = 0; i < ParentMap.AvailableTowers.Length; i++)
+                                    sb.Draw(MainMenu.TowersTileringTextures[i * 3], activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                            //sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
+                            //sb.Draw(ringFills[1], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
                             sb.Draw(tilering, activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.03f);
-                            sb.Draw(ringFills[0], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
+                            //sb.Draw(ringFills[0], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
 
                             if (mouse.LeftButton == ButtonState.Released)
-                                {
-                                    if (selectedRingPart > 0)
-                                    {
-                                        Tower t = Tower.Clone(HexMap.ExampleTowers[selectedRingPart - 1]);
-                                        t.ParentMap = ParentMap;
-                                        t.MapCoord = activeTileCoord;
-                                        t.buildFinishedCounter = 0;
-                                        t.buildTimer = 0;
-                                        t.Built = true;
-                                        ParentMap.InitLayout[activeTileCoord.Y, activeTileCoord.X] = HexMap.ExampleTowers[selectedRingPart - 1].Symbol;
-                                        ParentMap.Layout[activeTileCoord.Y, activeTileCoord.X] = HexMap.ExampleTowers[selectedRingPart - 1].Symbol;
-                                        //ParentMap.Players[0].Towers.Add(t);
-                                        ParentMap.InitTowers.Add(t);
-                                        ParentMap.Players[0].Towers.Add(t);
-
-                                        //if (hudCue.IsPlaying) hudCue.Stop(AudioStopOptions.AsAuthored);
-                                        hudCue = CurrentGame.soundBank.GetCue("pluip2");
-                                        hudCue.Play();
-                                    }
-
-                                    newTileRingActive = false;
-                                }
-                                sb.Draw(tileringGlow, MagnetizeMouse(tileCorners, sb, gameTime), Color.White * 0.7f); //restricted & magnetized object
-                            }
-                            else if (towerTileRingActive)
                             {
-                                selectedRingPart = CheckNearestPoint(tileCorners);
-                                if (tileRingFade < tileRingFadeCycles) tileRingFade++;
+                                if (selectedRingPart > 0)
+                                {
+                                    Tower t = Tower.Clone(HexMap.ExampleTowers[selectedRingPart - 1]);
+                                    t.ParentMap = ParentMap;
+                                    t.MapCoord = activeTileCoord;
+                                    t.buildFinishedCounter = 0;
+                                    t.buildTimer = 0;
+                                    t.Built = true;
+                                    ParentMap.InitLayout[activeTileCoord.Y, activeTileCoord.X] = HexMap.ExampleTowers[selectedRingPart - 1].Symbol;
+                                    ParentMap.Layout[activeTileCoord.Y, activeTileCoord.X] = HexMap.ExampleTowers[selectedRingPart - 1].Symbol;
+                                    //ParentMap.Players[0].Towers.Add(t);
+                                    ParentMap.InitTowers.Add(t);
+                                    ParentMap.Players[0].Towers.Add(t);
 
-                                sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
-                                sb.Draw(ringFills[1], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
-                                sb.Draw(tilering, activeTilePos, null, Color.Gray * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.03f);
-                                sb.Draw(ringFills[0], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
-                            //sb.Draw(tilering, new Vector2(activeTilePos.X - tilering.Width / 2, activeTilePos.Y - tilering.Height / 2), Color.White);
-                            //ParentMap.Players[0].Towers[ParentMap.Layout[activeTileCoord.Y, activeTileCoord.X] - 6].ShowRadius = true;
+                                    //if (hudCue.IsPlaying) hudCue.Stop(AudioStopOptions.AsAuthored);
+                                    hudCue = CurrentGame.soundBank.GetCue("pluip2");
+                                    hudCue.Play();
+                                }
+
+                                newTileRingActive = false;
+                            }
+                            sb.Draw(tileringGlow, MagnetizeMouse(tileCorners, sb, gameTime), Color.White * 0.7f); //restricted & magnetized object
+                        }
+                        else if (towerTileRingActive)
+                        {
+                            selectedRingPart = CheckNearestPoint(tileCorners);
+                            if (tileRingFade < tileRingFadeCycles) tileRingFade++;
+
+                            int t = selectedTower.towerBranch;
+                            Vector2 drawPos = activeTilePos;
+                            switch (t)
+                            {
+                                case 0: break;
+                                case 1: drawPos -= new Vector2(ParentMap.TileHalfWidth, 0); break;
+                                case 2: drawPos -= new Vector2(ParentMap.TileHalfWidth + ParentMap.TileWidth * 0.24f, ParentMap.TileHalfHeight); break;
+                                case 3: drawPos -= new Vector2(ParentMap.TileHalfWidth, ParentMap.TileHeight); break;
+                                case 4: drawPos -= new Vector2(0, ParentMap.TileHeight); break;
+                                case 5: drawPos -= new Vector2(ParentMap.TileWidth * -0.26f, ParentMap.TileHalfHeight); break;
+                            }
+
+
+                            //sb.Draw(tilering, activeTilePos + HexMap.TileWallHeight, null, Color.Black * (tileRingFade / tileRingFadeCycles) * 0.5f, 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.05f);
+                            //sb.Draw(ringFills[1], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                            sb.Draw(MainMenu.TowersTileringTextures[t * 3 + (selectedTower.UpgradeLvl == UpgLvl.Max ? 1 : (int)selectedTower.UpgradeLvl) + 1], drawPos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.031f);
+                            sb.Draw(tilering, activeTilePos, null, Color.Gray * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.03f);
+                            //sb.Draw(ringFills[0], activeTilePos + new Vector2(1, 1), null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0.02f);
+                        //sb.Draw(tilering, new Vector2(activeTilePos.X - tilering.Width / 2, activeTilePos.Y - tilering.Height / 2), Color.White);
+                        //ParentMap.Players[0].Towers[ParentMap.Layout[activeTileCoord.Y, activeTileCoord.X] - 6].ShowRadius = true;
 
                             int towerBranch = selectedTower.towerTypeIdx % 6;
-                                if (mouse.LeftButton == ButtonState.Released)
-                                {
-                                    if (selectedRingPart == 1)
-                                    {
-                                        selectedTower.Upgrade();
-                                    }
-                                    /*switch (selectedRingPart)
-                                    {
-                                        case 1: break;
-                                        case 2: break;
-                                        case 3: break;
-                                        case 4: break;
-                                        case 5: break;
-                                        case 6: break;
-                                    }*/
-                                    towerTileRingActive = false;
-                                    if (hudCue.IsPlaying) hudCue.Stop(AudioStopOptions.AsAuthored);
-                                    hudCue = CurrentGame.soundBank.GetCue("buiRev");
-                                    hudCue.Play();
-                                }
+                            if (mouse.LeftButton == ButtonState.Released)
+                            {
                                 if (selectedRingPart == 1)
                                 {
-                                    if (selectedTower.UpgradeLvl != UpgLvl.Max)
-                                    {
-                                        HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].ShowRadius = true;
-                                        HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].MapCoord = activeTileCoord;
-                                        HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].Draw(sb);
-                                    }
+                                    selectedTower.Upgrade();
                                 }
-                            }
-                            if (tileHoverFade > 0) tileHoverFade--;
-                            sb.Draw(tileringGlow, MagnetizeMouse(tileCorners,sb, gameTime), Color.White * 0.7f); //restricted & magnetized object
-                                                                                               //sb.Draw(tileOverlay, activeTilePos, null, Color.White * (hoverFade / hoverFadeCycles) * 0.8f /*new Color(230, 230, 250, 255)*/, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0);
-
-                            if (selectedRingPart > 0) //-----------kaikissa tileringeissä
-                            {
-                                if (selectedRingPart != prevRingPart)
+                                /*switch (selectedRingPart)
                                 {
-                                    HexMap.ExampleTowers[selectedRingPart - 1].radiusFade = 0;
-                                    hudCue = CurrentGame.soundBank.GetCue("pluip5");
-                                    hudCue.Play();
-                                }
-                                //HexMap.ExampleTowers[selectedRingPart - 1].ShowRadius = true;
-                                //HexMap.ExampleTowers[selectedRingPart - 1].mapCoord = activeTileCoord;
-                                //HexMap.ExampleTowers[selectedRingPart - 1].Draw(sb);
-                                //----------------------------AFFORDCOLOR-----------------------------------------------------------------|  (28.5.16: riittämättömyyshohto symbolien päälle
-                                //if (ParentMap.Players[0].EnergyPoints - ParentMap.ExampleTowers[selectedRingPart - 1].Cost >= 0)
-                                //    sb.Draw(ParentMap.tileTextures[5], tileCorners[selectedRingPart] - new Vector2(ParentMap.tileTextures[5].Width / 2, ParentMap.tileTextures[5].Height / 2), Color.PowderBlue);
-                                //if (ParentMap.Players[0].EnergyPoints - HexMap.ExampleTowers[selectedRingPart - 1].Cost < 0)
-                                //    sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.IndianRed);
-                                //foreach (Vector2 point in tileCorners)
-                                //    sb.Draw(ParentMap.tileTextures[4], point, null, new Color(150, 150, 150, 150));
+                                    case 1: break;
+                                    case 2: break;
+                                    case 3: break;
+                                    case 4: break;
+                                    case 5: break;
+                                    case 6: break;
+                                }*/
+                                towerTileRingActive = false;
+                                if (hudCue.IsPlaying) hudCue.Stop(AudioStopOptions.AsAuthored);
+                                hudCue = CurrentGame.soundBank.GetCue("buiRev");
+                                hudCue.Play();
                             }
-                            #endregion
-                        }
-                        else if (hoveredCoord.X >= 0 && hoveredCoord.X < ParentMap.Layout.GetLength(1) && hoveredCoord.Y >= 0 && hoveredCoord.Y < ParentMap.Layout.GetLength(0)) //if in map bounds
-                        #region HOVER & CLICK
-                        {
-                            ParentGame.IsMouseVisible = true;
-
-                            if (ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] == '0') //-----OPEN TILE
+                            if (selectedRingPart == 1)
                             {
-                                if (mouse.LeftButton == ButtonState.Pressed)
+                                if (selectedTower.UpgradeLvl != UpgLvl.Max)
                                 {
-                                    activeTilePos = hoveredTilePos;
-                                    newTileRingActive = true;
-                                    activeTileCoord = new Point(hoveredCoord.X, hoveredCoord.Y);
-                                    Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
-                                    selectedRingPart = 0;
-                                    //selectionBall = hoveredTilePos;
-                                    hudCue = CurrentGame.soundBank.GetCue("bui");
-                                    hudCue.Play();
+                                    HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].ShowRadius = true;
+                                    HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].MapCoord = activeTileCoord;
+                                    HexMap.ExampleTowers[selectedTower.towerTypeIdx + 6].Draw(sb);
                                 }
-                                if (tileHoverFade < hoverFadeCycles) tileHoverFade++;
-                                //ColorConversion.SetLightness(ref color, 100f);
-                            }//------PATH OR S/GPOINT
-                            else if (ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] == '\'' || ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] == '.' || (ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] >= '1' && ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] <= '9'))
-                            {
-                                //if (mouse.LeftButton == ButtonState.Pressed)
-                                //    sb.Draw(ParentMap.tileTextures[1], overlayPos, null, Color.RosyBrown, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0);
-                                //else sb.Draw(ParentMap.tileTextures[1], overlayPos, null, Color.RosyBrown * 0.5f * (1 - (hoverFade / hoverFadeCycles)), 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0);
-                                if (tileHoverFade > 0) tileHoverFade--;
-                            }
-                            else if (ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] == ' ') //--------VOID
-                            {
-                                if (tileHoverFade > 0) tileHoverFade--;
-                            }
-                            else //------TOWER-----------------------------------------------!!!
-                            {
-
-                                if (mouse.LeftButton == ButtonState.Pressed)
-                                {
-                                    towerTileRingActive = true;
-                                    activeTileCoord = new Point(hoveredCoord.X, hoveredCoord.Y);
-                                    Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
-                                    selectedRingPart = 0;
-                                    hudCue = CurrentGame.soundBank.GetCue("bui");
-                                    hudCue.Play();
-                                }
-                                for (int i = 0; i < ParentMap.Players[0].Towers.Count; i++)
-                                {
-                                    if (ParentMap.Players[0].Towers[i].MapCoord == activeTileCoord)
-                                        selectedTower = ParentMap.Players[0].Towers[i];
-                                }
-                                activeTilePos = hoveredTilePos;
-                                if (tileHoverFade < hoverFadeCycles) tileHoverFade++;
-                            }
-
-                            if (tileRingFade > 0)
-                            {
-                                tileRingFade--;
-                                sb.Draw(tilering, activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
                             }
                         }
-                        else
+                        if (tileHoverFade > 0) tileHoverFade--;
+                        sb.Draw(tileringGlow, MagnetizeMouse(tileCorners,sb, gameTime), Color.White * 0.7f); //restricted & magnetized object
+                                                                                            //sb.Draw(tileOverlay, activeTilePos, null, Color.White * (hoverFade / hoverFadeCycles) * 0.8f /*new Color(230, 230, 250, 255)*/, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0);
+
+                        if (selectedRingPart > 0) //-----------kaikissa tileringeissä
                         {
-                            if (tileHoverFade > 0) tileHoverFade--;
+                            if (selectedRingPart != prevRingPart)
+                            {
+                                HexMap.ExampleTowers[selectedRingPart - 1].radiusFade = 0;
+                                hudCue = CurrentGame.soundBank.GetCue("pluip5");
+                                hudCue.Play();
+                            }
+                            //HexMap.ExampleTowers[selectedRingPart - 1].ShowRadius = true;
+                            //HexMap.ExampleTowers[selectedRingPart - 1].mapCoord = activeTileCoord;
+                            //HexMap.ExampleTowers[selectedRingPart - 1].Draw(sb);
+                            //----------------------------AFFORDCOLOR-----------------------------------------------------------------|  (28.5.16: riittämättömyyshohto symbolien päälle
+                            //if (ParentMap.Players[0].EnergyPoints - ParentMap.ExampleTowers[selectedRingPart - 1].Cost >= 0)
+                            //    sb.Draw(ParentMap.tileTextures[5], tileCorners[selectedRingPart] - new Vector2(ParentMap.tileTextures[5].Width / 2, ParentMap.tileTextures[5].Height / 2), Color.PowderBlue);
+                            //if (ParentMap.Players[0].EnergyPoints - HexMap.ExampleTowers[selectedRingPart - 1].Cost < 0)
+                            //    sb.Draw(tileringGlow, tileCorners[selectedRingPart] - new Vector2(tileringGlow.Width / 2, tileringGlow.Height / 2), Color.IndianRed);
+                            //foreach (Vector2 point in tileCorners)
+                            //    sb.Draw(ParentMap.tileTextures[4], point, null, new Color(150, 150, 150, 150));
                         }
                         #endregion
-                        //sb.Draw(tileOverlay, overlayPos, null, Color.White * (tileHoverFade / hoverFadeCycles) * 0.8f, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0.4f); //HOVER OVERLAY-------------------------------------DISAPPEARS AT GAMEOVER (HOVERFADES STOP)
+                    }
+                    else if (hoveredCoord.X >= 0 && hoveredCoord.X < ParentMap.Layout.GetLength(1) && hoveredCoord.Y >= 0 && hoveredCoord.Y < ParentMap.Layout.GetLength(0)) //if in map bounds
+                    #region HOVER & CLICK
+                    {
+                        ParentGame.IsMouseVisible = true;
+
+                        if (ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] == '0') //-----OPEN TILE
+                        {
+                            if (mouse.LeftButton == ButtonState.Pressed)
+                            {
+                                activeTilePos = hoveredTilePos;
+                                newTileRingActive = true;
+                                activeTileCoord = new Point(hoveredCoord.X, hoveredCoord.Y);
+                                Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
+                                selectedRingPart = 0;
+                                //selectionBall = hoveredTilePos;
+                                hudCue = CurrentGame.soundBank.GetCue("bui");
+                                hudCue.Play();
+                            }
+                            if (tileHoverFade < hoverFadeCycles) tileHoverFade++;
+                            //ColorConversion.SetLightness(ref color, 100f);
+                        }//------PATH OR S/GPOINT
+                        else if (ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] == '\'' || ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] == '.' || (ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] >= '1' && ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] <= '9'))
+                        {
+                            //if (mouse.LeftButton == ButtonState.Pressed)
+                            //    sb.Draw(ParentMap.tileTextures[1], overlayPos, null, Color.RosyBrown, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0);
+                            //else sb.Draw(ParentMap.tileTextures[1], overlayPos, null, Color.RosyBrown * 0.5f * (1 - (hoverFade / hoverFadeCycles)), 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0);
+                            if (tileHoverFade > 0) tileHoverFade--;
+                        }
+                        else if (ParentMap.Layout[hoveredCoord.Y, hoveredCoord.X] == ' ') //--------VOID
+                        {
+                            if (tileHoverFade > 0) tileHoverFade--;
+                        }
+                        else //------TOWER-----------------------------------------------!!!
+                        {
+
+                            if (mouse.LeftButton == ButtonState.Pressed)
+                            {
+                                towerTileRingActive = true;
+                                activeTileCoord = new Point(hoveredCoord.X, hoveredCoord.Y);
+                                Mouse.SetPosition((int)activeTilePos.X, (int)activeTilePos.Y);
+                                selectedRingPart = 0;
+                                hudCue = CurrentGame.soundBank.GetCue("bui");
+                                hudCue.Play();
+                            }
+                            for (int i = 0; i < ParentMap.Players[0].Towers.Count; i++)
+                            {
+                                if (ParentMap.Players[0].Towers[i].MapCoord == activeTileCoord)
+                                    selectedTower = ParentMap.Players[0].Towers[i];
+                            }
+                            activeTilePos = hoveredTilePos;
+                            if (tileHoverFade < hoverFadeCycles) tileHoverFade++;
+                        }
+
+                        if (tileRingFade > 0)
+                        {
+                            tileRingFade--;
+                            sb.Draw(tilering, activeTilePos, null, Color.White * (tileRingFade / tileRingFadeCycles), 0, tileringCenter, tileRingFade / tileRingFadeCycles, SpriteEffects.None, 0);
+                        }
+                    }
+                    else
+                    {
+                        if (tileHoverFade > 0) tileHoverFade--;
                     }
                     #endregion
-
-                    for (int i = 0; i < AvailableTowersCells.Length; i++)
-                    {
-                        AvailableTowersCells[i].Draw(sb);
-                    }
-
-                    /*Vector2[] tileCorn = new Vector2[6] { new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4, MapEditorToolButtons[3].Pos.Y), //up-L
-                                                         new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 * 3 +1, MapEditorToolButtons[3].Pos.Y),  //up-R
-                                                         new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width -1, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height/2),         //R
-                                                         new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 * 3 +1, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height -1),    //lo-R
-                                                         new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height -1), //lo-L
-                                                         new Vector2(MapEditorToolButtons[3].Pos.X +1, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height/2)};        //L
-                    for (int i = 0; i < tileCorn.Length; i++)
-                    {
-                        sb.Draw(CurrentGame.pixel, tileCorn[i], Color.Tomato); 
-                    }*/
-
-                    /*sb.Draw(CurrentGame.pixel, TableBackground, Color.BlueViolet * 0.5f);
-                    sb.Draw(CurrentGame.pixel, TableBackground1, Color.BlueViolet * 0.5f);
-                    sb.Draw(CurrentGame.pixel, TableBackground2, Color.BlueViolet * 0.5f);
-                    sb.Draw(CurrentGame.pixel, TableBackground3, Color.BlueViolet * 0.5f);
-                    sb.Draw(CurrentGame.pixel, TableBackground4, Color.BlueViolet * 0.5f);
-                    sb.Draw(CurrentGame.pixel, TableBackground5, Color.BlueViolet * 0.5f);*/
+                    //sb.Draw(tileOverlay, overlayPos, null, Color.White * (tileHoverFade / hoverFadeCycles) * 0.8f, 0, ParentMap.tileTexCenter, 1, SpriteEffects.None, 0.4f); //HOVER OVERLAY-------------------------------------DISAPPEARS AT GAMEOVER (HOVERFADES STOP)
                 }
                 #endregion
 
-                #region LOStest
-                //if (Keyboard.GetState().IsKeyDown(Keys.A))
-                //{
-                //    LOSFromTilePos = hoveredTilePos;
-                //    //LOSCollisionPos = Vector2.Zero;
-                //    isTileChecked = false;
-                //    LOSPixelDistanceCounter = 0;
-                //}
-                //if (Keyboard.GetState().IsKeyDown(Keys.D))
-                //{
-                //    if (hoveredTilePos != PrevLOSCollisionPos)
-                //    {
-                //        Vector2 lookPixel = LOSFromTilePos;
-                //        Vector2 broadLookPixel;
-                //        Vector2 dir = Vector2.Normalize(hoveredTilePos - LOSFromTilePos);
-                //        lookPixel += (ParentMap.TileHalfHeight + 6) * dir;
-                //        int targetDist = (int)Vector2.Distance(hoveredTilePos, lookPixel);
-                //        while (hoveredTilePos != PrevLOSCollisionPos && LOSPixelDistanceCounter < targetDist)
-                //        {
-                //            broadLookPixel = LOSPixelDistanceCounter % 2 == 1 ? lookPixel + new Vector2(0, 1) : lookPixel - new Vector2(0, 1);
-                //            Point coord = ParentMap.ToMapCoordinate(broadLookPixel);
-                //            if (ParentMap.Layout[coord.Y, coord.X] != '.' && ParentMap.Layout[coord.Y, coord.X] != '\'')
-                //            {
-                //                isTileChecked = true;
-                //                PrevLOSCollisionPos = hoveredTilePos;
-                //                LOSCollisionPos = lookPixel;
-                //            }
-                //            else
-                //                lookPixel += dir;
-                //            LOSPixelDistanceCounter++;
-                //        } 
-                //    }
-                //}
+                for (int i = 0; i < AvailableTowersCells.Length; i++)
+                {
+                    AvailableTowersCells[i].Draw(sb);
+                }
 
-                //sb.Draw(CurrentGame.pixel, new Rectangle((int)LOSFromTilePos.X, (int)LOSFromTilePos.Y, (int)Vector2.Distance(LOSFromTilePos, hoveredTilePos), 1), null, Color.Wheat, (float)Math.Atan2(hoveredTilePos.Y - LOSFromTilePos.Y, hoveredTilePos.X - LOSFromTilePos.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
-                //if (isTileChecked)
-                //{
-                //    sb.Draw(CurrentGame.ball, LOSCollisionPos, Color.Red);
-                //    sb.DrawString(font, LOSPixelDistanceCounter.ToString(), LOSCollisionPos, Color.PowderBlue);
-                //}
-                #endregion
+                /*Vector2[] tileCorn = new Vector2[6] { new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4, MapEditorToolButtons[3].Pos.Y), //up-L
+                                                        new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 * 3 +1, MapEditorToolButtons[3].Pos.Y),  //up-R
+                                                        new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width -1, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height/2),         //R
+                                                        new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4 * 3 +1, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height -1),    //lo-R
+                                                        new Vector2(MapEditorToolButtons[3].Pos.X + tileOverlay.Width/4, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height -1), //lo-L
+                                                        new Vector2(MapEditorToolButtons[3].Pos.X +1, MapEditorToolButtons[3].Pos.Y + tileOverlay.Height/2)};        //L
+                for (int i = 0; i < tileCorn.Length; i++)
+                {
+                    sb.Draw(CurrentGame.pixel, tileCorn[i], Color.Tomato); 
+                }*/
+
+                /*sb.Draw(CurrentGame.pixel, TableBackground, Color.BlueViolet * 0.5f);
+                sb.Draw(CurrentGame.pixel, TableBackground1, Color.BlueViolet * 0.5f);
+                sb.Draw(CurrentGame.pixel, TableBackground2, Color.BlueViolet * 0.5f);
+                sb.Draw(CurrentGame.pixel, TableBackground3, Color.BlueViolet * 0.5f);
+                sb.Draw(CurrentGame.pixel, TableBackground4, Color.BlueViolet * 0.5f);
+                sb.Draw(CurrentGame.pixel, TableBackground5, Color.BlueViolet * 0.5f);*/
+            }
+            #endregion
+
+            #region LOStest
+            //if (Keyboard.GetState().IsKeyDown(Keys.A))
+            //{
+            //    LOSFromTilePos = hoveredTilePos;
+            //    //LOSCollisionPos = Vector2.Zero;
+            //    isTileChecked = false;
+            //    LOSPixelDistanceCounter = 0;
+            //}
+            //if (Keyboard.GetState().IsKeyDown(Keys.D))
+            //{
+            //    if (hoveredTilePos != PrevLOSCollisionPos)
+            //    {
+            //        Vector2 lookPixel = LOSFromTilePos;
+            //        Vector2 broadLookPixel;
+            //        Vector2 dir = Vector2.Normalize(hoveredTilePos - LOSFromTilePos);
+            //        lookPixel += (ParentMap.TileHalfHeight + 6) * dir;
+            //        int targetDist = (int)Vector2.Distance(hoveredTilePos, lookPixel);
+            //        while (hoveredTilePos != PrevLOSCollisionPos && LOSPixelDistanceCounter < targetDist)
+            //        {
+            //            broadLookPixel = LOSPixelDistanceCounter % 2 == 1 ? lookPixel + new Vector2(0, 1) : lookPixel - new Vector2(0, 1);
+            //            Point coord = ParentMap.ToMapCoordinate(broadLookPixel);
+            //            if (ParentMap.Layout[coord.Y, coord.X] != '.' && ParentMap.Layout[coord.Y, coord.X] != '\'')
+            //            {
+            //                isTileChecked = true;
+            //                PrevLOSCollisionPos = hoveredTilePos;
+            //                LOSCollisionPos = lookPixel;
+            //            }
+            //            else
+            //                lookPixel += dir;
+            //            LOSPixelDistanceCounter++;
+            //        } 
+            //    }
+            //}
+
+            //sb.Draw(CurrentGame.pixel, new Rectangle((int)LOSFromTilePos.X, (int)LOSFromTilePos.Y, (int)Vector2.Distance(LOSFromTilePos, hoveredTilePos), 1), null, Color.Wheat, (float)Math.Atan2(hoveredTilePos.Y - LOSFromTilePos.Y, hoveredTilePos.X - LOSFromTilePos.X), Vector2.Zero, SpriteEffects.FlipHorizontally, 0f);
+            //if (isTileChecked)
+            //{
+            //    sb.Draw(CurrentGame.ball, LOSCollisionPos, Color.Red);
+            //    sb.DrawString(font, LOSPixelDistanceCounter.ToString(), LOSCollisionPos, Color.PowderBlue);
+            //}
+            #endregion
+
+            if (CurrentGame.gameState != GameState.MapEditor)
+                BackToMenuButton.Draw(sb);
 
 
-                //GeneBars[0].Draw(sb);
-                //GeneBars[1].Draw(sb);
-                //GeneBars[2].Draw(sb);
+            //GeneBars[0].Draw(sb);
+            //GeneBars[1].Draw(sb);
+            //GeneBars[2].Draw(sb);
 
-                prevRingPart = selectedRingPart;
+            prevRingPart = selectedRingPart;
 
-            /*
-                //sb.DrawString(font, mousePos.ToString(), mousePos, Color.White);
-                Vector2 testPos = mousePos;
-                float angle = (float)Math.Atan2(hoveredTilePos.Y - mousePos.Y, hoveredTilePos.X - mousePos.X);
-                sb.DrawString(font, angle.ToString(), mousePos + new Vector2(50,0), Color.White);
-
-                Vector2 dir = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
-                sb.DrawString(font, dir.ToString(), mousePos + new Vector2(50,20), Color.White);
-                dir *= 50;
-            
-                testPos -= new Vector2(tileringSlot.Width / 2, tileringSlot.Height / 2);
-
-                float angleOffset = (float)(Math.PI * 0.5f) * ((float)ParentMap.rnd.NextDouble() - 0.5f);
-                float ca = (float)Math.Cos(angleOffset);
-                float sa = (float)Math.Sin(angleOffset);
-                Vector2 sprayTarget = new Vector2(dir.X * ca - dir.Y * sa, dir.X * sa + dir.Y * ca);
-                sprayTarget = testPos - sprayTarget;
-
-                sb.Draw(tileringSlot, sprayTarget, Color.Yellow);
-                sb.Draw(tileringSlot, testPos - dir, Color.White);
-                sb.Draw(tileringSlot, testPos, Color.White);
-            */
-
+            //sb.DrawString(font, mousePos.ToString(), mousePos, Color.White);
             //sb.DrawString(font, CurrentGame.gameState.ToString(), mousePos + new Vector2(50, 0), Color.White);
+            //sb.DrawString(font, towerDoubleClickCounter.ToString(), mousePos, Color.White);
+
         }
     }
-    }
+}
 

@@ -1,12 +1,14 @@
-﻿using System;
-using System.IO;
-using System.Globalization;
-using System.Collections.Generic;
-using System.Diagnostics;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 //using System.Linq;
 
 
@@ -31,6 +33,7 @@ namespace AlkuTD
         public Button[] MapButtons;
         public Button[] NewPlayerButtons;
         public Button[] MapEditorButtons;
+        public Button[] MapZoneButtons;
 
         //public Rectangle[] ButtonBoundses;
 
@@ -40,6 +43,9 @@ namespace AlkuTD
         public int[] CurrentPlayerIndexes;
         public string currentMap;
         public string[] MapNames;
+        public Dictionary<string, string> StoryMaps;
+        public byte[][] PlayerAvailableTowers;
+        public byte[] playerAvailableTowers;
 
         public SpriteFont Font;
 
@@ -56,6 +62,10 @@ namespace AlkuTD
         Color[] buttonColors;
         Color[] buttonTextColors;
 
+        Texture2D bodyMapTex;
+        public static Texture2D[] TowersTileringTextures;
+        public Texture2D[] PlayerAvailableTowersTileringTextures;
+
         public MainMenu(CurrentGame game)
         {
             ParentGame = game;
@@ -71,7 +81,17 @@ namespace AlkuTD
             for (int f = 0; f < pfiles.Length; f++)
                 PlayerFilePaths[f] = pfiles[f].FullName;
             CurrentPlayerIndexes = new int[2];
+            CurrentPlayerIndexes[0] = -1;
             PlayerNames = Array.ConvertAll<string, string>(PlayerFilePaths, Path.GetFileNameWithoutExtension); // in one line!
+            StoryMaps = new Dictionary<string, string>();
+            using (StreamReader sr = new StreamReader(CurrentGame.ContentDir + "StoryMaps.txt"))
+            {
+                while (!sr.EndOfStream)
+                {
+                    string[] read = sr.ReadLine().Split('-');
+                    StoryMaps.Add(read[0].Trim(), read[1].Trim());
+                }
+            }
 
             string longestName = "";
             for (int n = 0; n < PlayerNames.Length; n++)
@@ -84,7 +104,7 @@ namespace AlkuTD
             mapButtonWidth = (int)Math.Round(Font.MeasureString("12345678901234567890").X);
             buttonHeight = Font.LineSpacing + padding;
             //rootButtonX = (int)(game.GraphicsDevice.Viewport.Width/2 - rootButtonWidth -1); //-----Buttonses have their right side on the screen x center  
-            rootButtonX = (int)(game.GraphicsDevice.Viewport.Width / 2.8); //-----uus vasemmal 
+            rootButtonX = (int)(game.GraphicsDevice.Viewport.Width / 3); //-----uus vasemmal 
             rootButtonY = (int)(game.GraphicsDevice.Viewport.Height*0.5); //----------VANH: rootbuttons stack vertically down starting from 0.6 screenheight 
             playerButtonX = (int)(rootButtonX + rootButtonWidth +2); //-----right side of rootbuttons
             //mapButtonX = (int)(game.GraphicsDevice.Viewport.Width/2 - rootButtonWidth - mapButtonWidth -3); //-----Maps are on the left side of the rootbuttons
@@ -117,7 +137,7 @@ namespace AlkuTD
             MapNames = Array.ConvertAll<string, string>(Directory.GetFiles(CurrentGame.MapDir), Path.GetFileNameWithoutExtension);
             MapButtons = new Button[MapNames.Length];
             for (int m = 0; m < MapNames.Length; m++)
-                MapButtons[m] = new Button(MapNames[m], mapButtonX, mapButtonY + m*buttonHeight, mapButtonWidth, buttonHeight, padding, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.pixel);
+                MapButtons[m] = new Button(MapNames[m], mapButtonX, mapButtonY + m*buttonHeight, mapButtonWidth, buttonHeight, padding, TextAlignment.HalfLeft, buttonColors, buttonTextColors, CurrentGame.pixel);
 
             MapEditorButtons = new Button[] {new Button("New map", playerButtonX, rootButtonY + 3*buttonHeight, rootButtonWidth, buttonHeight, padding, TextAlignment.Left, buttonColors, buttonTextColors, CurrentGame.pixel)};
 
@@ -152,22 +172,135 @@ namespace AlkuTD
                 else ButtonBoundses[i] = new Rectangle(mapButtonX, (int)(game.GraphicsDevice.Viewport.Height * 0.4 + (i - 4) * buttonHeight), mapButtonWidth, buttonHeight); // Option buttons
             }*/
             #endregion
+
+            MapZoneButtons = new Button[16];
+            buttonColors = new Color[] { new Color(0,0,0, 0), Color.Black, new Color(30,40,50) }; //----passive,hovered,pressed
+            buttonTextColors = new Color[] { Color.Red, Color.White, Color.Orange };//----passive,hovered,pressed
+            MapZoneButtons[0] = new Button("+", 942 - 44, 452 - 36, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.bigBall);
+            MapZoneButtons[1] = new Button("+", 950 - 44, 314 - 36, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.bigBall);
+            MapZoneButtons[2] = new Button("+", 1015 - 44, 299 - 36, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.bigBall);
+            MapZoneButtons[3] = new Button("+", 1034 - 44, 334 - 36, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.bigBall);
+            MapZoneButtons[4] = new Button("+", 992 - 44, 385 - 36, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.bigBall);
+            MapZoneButtons[5] = new Button("+", 1044 - 44, 422 - 36, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.bigBall);
+            MapZoneButtons[6] = new Button("+", 1090 - 44, 391 - 36, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.bigBall);
+            MapZoneButtons[7] = new Button("+", 1090 - 44, 454 - 36, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.bigBall);
+            MapZoneButtons[8] = new Button("+", 1015 - 44, 469 - 36, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.bigBall);
+            MapZoneButtons[9] = new Button("+", 984 - 44, 510 - 36, TextAlignment.Center, buttonColors, buttonTextColors, CurrentGame.bigBall);
+            bodyMapTex = game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Menu\\bodyMap");
+
+            PlayerAvailableTowers = new byte[6][];
+            for (int i = 0; i < PlayerAvailableTowers.Length; i++)
+                PlayerAvailableTowers[i] = new byte[3];
+            PlayerAvailableTowers[0][0] = 1;
+            playerAvailableTowers = new byte[6];
+            playerAvailableTowers[0] = 1;
+
+            PlayerAvailableTowersTileringTextures = new Texture2D[7];
+            PlayerAvailableTowersTileringTextures[0] = CurrentGame.tilering;
+            //PlayerAvailableTowersTileringTextures[1] = game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-1a");
+
+            TowersTileringTextures = new Texture2D[] { game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-1a"), 
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-1b"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-1c"), 
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-2a"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-2b"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-2c"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-3a"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-3b"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-3c"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-4a"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-4b"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-4c"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-5a"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-5b"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-5c"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-6a"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-6b"),
+                                                                game.Content.Load<Texture2D>(CurrentGame.ContentDir + "Tilering\\ringFill-6c") };
+            PlayerAvailableTowersTileringTextures[1] = TowersTileringTextures[0];
         }
 
         public void LoadPlayerData(int fileIndex)
         {
-            Player loadedPlayer = new Player(PlayerNames[fileIndex]);
+            Player loadedPlayer;
+            if (CurrentGame.players[0] != null && PlayerNames[fileIndex] != CurrentGame.players[0].Name)
+                loadedPlayer = new Player(PlayerNames[fileIndex]);
+            else if (CurrentGame.players[0] != null)
+                loadedPlayer = CurrentGame.players[0];
+            else 
+                loadedPlayer = new Player(PlayerNames[fileIndex]);
+
+            foreach (Button b in MapButtons) b.TextAlign = TextAlignment.HalfLeft;
+
+            for (int i = 0; i < MapZoneButtons.Length; i++)
+            {
+                if (MapZoneButtons[i] != null)
+                   MapZoneButtons[i].TextColors = buttonTextColors;
+            }
+
+            List<string> tempMapList = new List<string>();
+            foreach (string mapName in StoryMaps.Keys)
+                tempMapList.Add(mapName);
+                
+            foreach (string mapName in MapNames)
+            {
+                if (!StoryMaps.ContainsKey(mapName))
+                    tempMapList.Add(mapName);
+            }
+
+            MapNames = tempMapList.ToArray();
+
+            for (int i = 1; i < PlayerAvailableTowersTileringTextures.Length; i++)
+                PlayerAvailableTowersTileringTextures[i] = null;
+            PlayerAvailableTowersTileringTextures[1] = TowersTileringTextures[0];
+
+            foreach (byte[] b in PlayerAvailableTowers)
+            {
+                b[0] = 0;
+                b[1] = 0;
+                b[2] = 0;
+            }
+            PlayerAvailableTowers[0][0] = 1;
 
             using (StreamReader reader = new StreamReader(PlayerFilePaths[fileIndex]))
             {
                 string[] read = reader.ReadToEnd().Split(new string[]{ Environment.NewLine }, StringSplitOptions.None);
                 for (int n = 0; n < MapButtons.Length; n++)
                 {
-                    MapButtons[n].Text = MapNames[n];
+                    MapButtons[n].Text = tempMapList[n];
+                    MapButtons[n].Texts = null;
+                    string mapName = tempMapList[n];
                     for (int i = 0; i < read.Length; i++)
                     {
                         if (read[i].Contains(MapButtons[n].Text + " "))
-                            MapButtons[n].Text += "  (" + read[i].Split('-')[1].Trim() + ")";
+                        {
+                            //MapButtons[n].Text += "  (" + read[i].Split('-')[1].Trim() + ")";
+                            MapButtons[n] = new Button(MapButtons[n].Bounds.X, MapButtons[n].Bounds.Y, mapButtonWidth, buttonHeight, TextAlignment.HalfLeft, MapButtons[n].ButtonColors, MapButtons[n].TextColors, MapButtons[n].ButtonTexture, mapName, "  (" + read[i].Split('-')[1].Trim() + ")");
+                            if (MapZoneButtons[n] != null) 
+                                MapZoneButtons[n].TextColors = new Color[] { Color.Green, Color.White, Color.Orange };//----passive,hovered,pressed
+
+                            if (StoryMaps.ContainsKey(mapName))
+                            {
+                                string[] unlocks = StoryMaps[mapName].Split(',');
+                                foreach (string unlock in unlocks)
+                                {
+                                    byte unlockType = (byte)((unlock[0] - '0') - 1); //convert char to number by - '0', then make zero-based
+                                    byte unlockTier = 0;
+                                    switch (unlock[1])
+                                    {
+                                        case 'a': unlockTier = 0; break;
+                                        case 'b': unlockTier = 1; break;
+                                        case 'c': unlockTier = 2; break;
+                                    }
+                                    PlayerAvailableTowers[unlockType][unlockTier] = 1;
+                                    playerAvailableTowers[unlockType] = (byte)(unlockTier + 1);
+
+                                    //if (unlockType == 0 && unlockTier == 1)
+                                    //    PlayerAvailableTowersTileringTextures[1] = AvailableTowersTileringTextures[1];
+                                    PlayerAvailableTowersTileringTextures[unlockType +1] = TowersTileringTextures[unlockType * 3 + unlockTier];
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -239,9 +372,42 @@ namespace AlkuTD
                         reader.ReadLine();
                         reader.ReadLine();
 
+                        read = reader.ReadLine().Split(':');
+                        if (read[1].Trim() == "Yes")
+                            loadedMap.IsStoryMap = true;
+                        read = reader.ReadLine().Split(':');
                         read = reader.ReadLine().Split(':', ' ');
                         for (int i = 0; i < availableTowers.Length; i++)
                             byte.TryParse(read[i + 3], out availableTowers[i]);
+
+                        if (loadedMap.IsStoryMap)
+                        {
+                            HexMap.ProgressBlockedTowers = new byte[6];
+                            for (int i = 0; i < availableTowers.Length; i++)
+                            {
+                                if (availableTowers[i] == 0)
+                                {
+
+                                }
+                                else if (PlayerAvailableTowers[i][0] == 0)
+                                {
+                                    availableTowers[i] = 0;
+                                    HexMap.ProgressBlockedTowers[i] = 1;
+                                }
+                                else if (PlayerAvailableTowers[i][2] == 1 && availableTowers[i] > 2)
+                                    availableTowers[i] = 3;
+                                else if (PlayerAvailableTowers[i][1] == 1 && availableTowers[i] > 1)
+                                { 
+                                    availableTowers[i] = 2;
+                                    HexMap.ProgressBlockedTowers[i] = 1;
+                                }
+                                else if (PlayerAvailableTowers[i][0] == 1 && availableTowers[i] > 0)
+                                { 
+                                    availableTowers[i] = 1;
+                                    HexMap.ProgressBlockedTowers[i] = 1;
+                                }
+                            }
+                        }
 
                         //string[] test = reader.ReadLine().Split(new char[]{':', ' '}, StringSplitOptions.RemoveEmptyEntries);
                         initLife = int.Parse(reader.ReadLine().Split(new char[] { ':', ' ' }, StringSplitOptions.RemoveEmptyEntries)[1]);
@@ -249,7 +415,7 @@ namespace AlkuTD
 						read = reader.ReadLine().Split(':', ',');
                         initGenePoints = new int[] { int.Parse(read[1]), int.Parse(read[2]), int.Parse(read[3]) };
 
-						loadedMap = new HexMap(ParentGame, loadedMap.Name, layout, spawnPoints.ToArray(), goalPoints.ToArray(), CurrentGame.players);
+						loadedMap = new HexMap(ParentGame, loadedMap.Name, layout, spawnPoints.ToArray(), goalPoints.ToArray(), CurrentGame.players, loadedMap.IsStoryMap);
 						CurrentGame.currentMap = loadedMap;
 						CurrentGame.HUD.ParentMap = loadedMap;
                         for (int i = 0; i < initTowers.Count; i++)
@@ -454,12 +620,17 @@ namespace AlkuTD
             menuState = MenuState.MapSelection;
         }
 
-        public void SavePlayerData()
+        public void SavePlayerData(HexMap playedMap)
         {
             //string completedLevel = currentMap;
             //if (CurrentGame.players[0].UpdateScore() > CurrentGame.players[0].CompletedLevels[currentMap])
             //	CurrentGame.players[0].CompletedLevels[currentMap] = CurrentGame.players[0].Score;
-            CurrentGame.players[0].UpdateScore();
+            
+
+            CurrentGame.players[0].UpdateScore(playedMap);
+
+            if (CurrentPlayerIndexes[0] == -1)
+                return;
 
             using (FileStream stream = new FileStream(PlayerFilePaths[CurrentPlayerIndexes[0]], FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
             {
@@ -555,10 +726,46 @@ namespace AlkuTD
             MapButtons = tempButtonArr;
         }
 
+        private void AdjustAvailableTowersForMap(string mapName)
+        {
+            for (int i = 1; i < PlayerAvailableTowersTileringTextures.Length; i++)
+                PlayerAvailableTowersTileringTextures[i] = null;
+            PlayerAvailableTowersTileringTextures[1] = TowersTileringTextures[0];
+
+            using (StreamReader sr = new StreamReader(CurrentGame.MapDir + mapName + ".txt"))
+            {
+                string[] read = sr.ReadToEnd().Split('\n', '\r');
+                string[] availableTowers = Array.Find(read, s => s.StartsWith("Available towers: ")).Split(' ');
+                for (int i = 2; i < availableTowers.Length; i++)
+                {
+                    if (availableTowers[i] == "-")
+                        PlayerAvailableTowersTileringTextures[i - 1] = null;
+                    else 
+                        PlayerAvailableTowersTileringTextures[i - 1] = TowersTileringTextures[(i-2) * 3 + int.Parse(availableTowers[i]) - 1];
+                }
+            }
+        }
+
+        private void AdjustAvailableTowersForPlayer()
+        {
+            for (int i = 0; i < PlayerAvailableTowers.Length; i++)
+            {
+                if (PlayerAvailableTowers[i][2] == 1)
+                    PlayerAvailableTowersTileringTextures[i+1] = TowersTileringTextures[i * 3 + 2];
+                else if (PlayerAvailableTowers[i][1] == 1)
+                    PlayerAvailableTowersTileringTextures[i+1] = TowersTileringTextures[i * 3 + 1];
+                else if (PlayerAvailableTowers[i][0] == 1)
+                    PlayerAvailableTowersTileringTextures[i+1] = TowersTileringTextures[i * 3];
+                else
+                    PlayerAvailableTowersTileringTextures[i+1] = null;
+            }
+        }
+
         string nameInput;
         bool nameAlreadyExists;
         int backspaceRefreshCounter; //-------------------------not elegant....?
         MouseState prevMouse;
+        Button prevButton;
         public void Update(MouseState mouse, KeyboardState keyboard)
         {
             // AUTOMATED LEVEL SELECTOR.................................................................................................................................................!
@@ -596,13 +803,14 @@ namespace AlkuTD
                     switch (r)
                     {
                         case 0: menuState = MenuState.NewGame;
+                                CurrentPlayerIndexes[0] = -1;
                                 nameAlreadyExists = false;
                                 backspaceRefreshCounter = 0;
                                 nameInput = "";
                                 break;
-                        case 1: menuState = MenuState.Continue; break;
-                        case 2: menuState = MenuState.Options; break;
-                        case 3: menuState = MenuState.MapEditor; break;
+                        case 1: menuState = MenuState.Continue; CurrentPlayerIndexes[0] = -1; break;
+                        case 2: menuState = MenuState.Options; CurrentPlayerIndexes[0] = -1; break;
+                        case 3: menuState = MenuState.MapEditor; CurrentPlayerIndexes[0] = -1; foreach (Button b in MapButtons) b.TextAlign = TextAlignment.Center; break;
                         case 4: ParentGame.Exit(); break;
                     }
                 }
@@ -664,6 +872,8 @@ namespace AlkuTD
                     }
                     RootButtons[1].State = ButnState.Pressed;
                 }
+
+                
             }
             else if (menuState == MenuState.MapEditor)
             {
@@ -678,7 +888,10 @@ namespace AlkuTD
 						CurrentGame.HUD.MapEditorSpawnPoints = new List<Point>();
 						CurrentGame.HUD.MapEditorGoalPoints = new List<Point>();
 						CurrentGame.currentMap = new HexMap(ParentGame, "loadedMap", new char[11, 21], new Point[1], new Point[1], new Player[] { new Player("map editor person") }); //-----------------------------------------------täällä !;
-						CurrentGame.HUD.ParentMap = CurrentGame.currentMap;
+                        playerAvailableTowers = new byte[6] { 3, 3, 3, 3, 3, 3 };
+                        PlayerAvailableTowers = new byte[6][] { new byte[] { 1, 1, 1, 1, 1, 1 }, new byte[] { 1, 1, 1, 1, 1, 1 }, new byte[] { 1, 1, 1, 1, 1, 1 }, new byte[] { 1, 1, 1, 1, 1, 1 }, new byte[] { 1, 1, 1, 1, 1, 1 }, new byte[] { 1, 1, 1, 1, 1, 1 } };
+                        AdjustAvailableTowersForPlayer();
+                        CurrentGame.HUD.ParentMap = CurrentGame.currentMap;
 						CurrentGame.currentMap.MapEditorTempWaves = new List<Wave>();
 						CurrentGame.HUD.EditorMapLoad(MapButtons[m]);
                     }
@@ -721,14 +934,48 @@ namespace AlkuTD
                     if (MapButtons[m].State == ButnState.Released)
                     {
                         CurrentGame.soundBank.PlayCue("kansi");
-                        HexMap TempMap = new HexMap(ParentGame, "newMap", new char[11, 21], null, null, new Player[] { new Player("map editor person") }); //----------täällä temp mappia ku static CoordToScrLoc puuttuu!
-						CurrentGame.currentMap = TempMap;
                         LoadMap(MapButtons[m]);
+                        return;
                     }
                 }
                 PlayerButtons[CurrentPlayerIndexes[0]].State = ButnState.Pressed;
-            }
 
+                if (CurrentPlayerIndexes[0] >= 0)
+                {
+                    AdjustAvailableTowersForPlayer();
+                    for (int i = 0; i < MapButtons.Length; i++)
+                    {
+                        if (MapButtons[i].State == ButnState.Hovered)
+                        {
+                            if (MapButtons[i] != prevButton)
+                                CurrentGame.soundBank.PlayCue("kansi");
+                            AdjustAvailableTowersForMap(MapNames[i]);
+                            prevButton = MapButtons[i];
+                        }
+                        if (MapZoneButtons[i] != null)
+                        {
+                            MapZoneButtons[i].Update(mouse, prevMouse);
+                            if (MapButtons[i].State == ButnState.Hovered)
+                                MapZoneButtons[i].State = ButnState.Hovered;
+
+                            if (MapZoneButtons[i].State == ButnState.Hovered)
+                            {
+                                if (MapButtons[i] != prevButton)
+                                    CurrentGame.soundBank.PlayCue("kansi");
+                                MapButtons[i].State = ButnState.Hovered;
+                                AdjustAvailableTowersForMap(MapNames[i]);
+                                prevButton = MapButtons[i];
+                            }
+                            else if (MapZoneButtons[i].State == ButnState.Released)
+                            {
+                                CurrentGame.soundBank.PlayCue("kansi");
+                                LoadMap(MapButtons[i]);
+                            }
+
+                        }
+                    }
+                }
+            }
 
             #region OLD BUTTONSYSTEM
             /*for (int i = 0; i < ButtonBoundses.Length; i++)
@@ -774,7 +1021,7 @@ namespace AlkuTD
 
         public void Draw(SpriteBatch sb)
         {
-            sb.DrawString(CurrentGame.font, "Alku TD Menu", new Vector2(ParentGame.GraphicsDevice.Viewport.Width / 2 - CurrentGame.font.MeasureString("Alku TD Menu").X / 2,
+            sb.DrawString(CurrentGame.font, "Pöpö Defense", new Vector2(ParentGame.GraphicsDevice.Viewport.Width / 2 - CurrentGame.font.MeasureString("Alku TD Menu").X / 2,
                           ParentGame.GraphicsDevice.Viewport.Height / 6), Color.Orange, 0f, Vector2.Zero, 1, SpriteEffects.None, 0);
 
             #region OLD BUTTONSYSTEM
@@ -822,12 +1069,47 @@ namespace AlkuTD
                 {
                     PlayerButtons[p].Draw(sb);
                 }
+                if (CurrentPlayerIndexes[0] >= 0)
+                {
+                    //sb.DrawString(CurrentGame.font, prevMouse.X + "," + prevMouse.Y, new Vector2(prevMouse.X + 150, prevMouse.Y), Color.White * 0.2f); //---COOOOOOOOORDS
+                    sb.Draw(bodyMapTex, new Vector2(mapButtonX + MapButtons[0].Width, mapButtonY), null, Color.White, 0, Vector2.Zero, 0.3f, SpriteEffects.None, 0);
+                    for (int i = 0; i < MapZoneButtons.Length; i++)
+                    {
+                        if (MapZoneButtons[i] != null)
+                            MapZoneButtons[i].Draw(sb);
+                    }
+
+                    for (int p = PlayerAvailableTowersTileringTextures.Length-1; p >= 0; p--)
+                    {
+                        if (PlayerAvailableTowersTileringTextures[p] != null)
+                            sb.Draw(PlayerAvailableTowersTileringTextures[p], new Vector2(rootButtonX + rootButtonWidth + 5, rootButtonY - CurrentGame.tilering.Height + buttonHeight - 5), Color.White);
+                    }
+
+                    
+                }
+                
             }
             if (menuState == MenuState.MapSelection || menuState == MenuState.MapEditor)
             {
                 for (int m = 0; m < MapButtons.Length; m++)
                 {
                     MapButtons[m].Draw(sb);
+                    if (MapButtons[m].State == ButnState.Hovered)
+                    {
+                        sb.DrawString(Font, "AVAILABLE:", new Vector2(rootButtonX + 5, rootButtonY - buttonHeight - 5), Color.White);
+                        if (StoryMaps.ContainsKey(MapButtons[m].Text))
+                        { 
+                            sb.DrawString(Font, "UNLOCKS:", new Vector2(rootButtonX + 5, rootButtonY - buttonHeight * 4 - 5), Color.White);
+                            string[] unlocks = StoryMaps[MapButtons[m].Text].Split(',');
+                            foreach (string unlock in unlocks)
+                            {
+                                int ttype = (int.Parse(unlock.Substring(0,1).Trim()) - 1) * 3;
+                                int tlvl = unlock[1] - 97;
+                                sb.Draw(TowersTileringTextures[ttype + tlvl], new Vector2(rootButtonX + rootButtonWidth + 5, rootButtonY - CurrentGame.tilering.Height * 1.8f), Color.White);
+                            }
+                        }
+                        //sb.Draw(CurrentGame.tilering, new Vector2(rootButtonX + rootButtonWidth + 5, rootButtonY - CurrentGame.tilering.Height * 2 + buttonHeight - 5), Color.White);
+                    }
                 }
             }
             if (menuState == MenuState.MapEditor)
@@ -836,5 +1118,7 @@ namespace AlkuTD
                     MapEditorButtons[e].Draw(sb);
             }
         }
+
+        
     }
 }
